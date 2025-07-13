@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title%} 화물 AI 서비스 (화주용){% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/shipper/dashboard.css') }}">
+    {% block extra_css %}
+    {% endblock %}
+</head>
+<body class="p-4">
+    <div id="shipper-app" class="app-container">
+    {% block contents %}
+    {% endblock %}
+    {% block footer %}
+    {% endblock %}
+    </div>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+{% block extra_js %}
+{% endblock %} 
+</body>

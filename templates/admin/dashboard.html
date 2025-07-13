@@ -1,0 +1,52 @@
+{% extends "admin_base.html" %}
+{% block title %} 관리자페이지 {% endblock %}
+{% block contents %}
+<div class="web-container">
+        <aside id="main-nav" class="sidebar">
+            <h1 class="text-3xl font-extrabold text-indigo-400 mb-10">화물 AI 관제</h1>
+            <nav class="flex-grow">
+                <ul>
+                    <li class="mb-3"><a href="/dashboard" id="nav-dashboard" class="nav-link-item flex items-center"><i class="fas fa-chart-line w-5 h-5 mr-3"></i> 대시보드</a></li>
+                    <li class="mb-3"><a href="/realtime" id="nav-realtime" class="nav-link-item flex items-center"><i class="fas fa-truck-moving w-5 h-5 mr-3"></i> 실시간 관제</a></li>
+                    <li class="mb-3"><a href="/cargo-approval" class="nav-link-item flex items-center"><i class="fas fa-box mr-3"></i> 화물 승인</a></li>
+                    <li class="mb-3"><a href="/driver-approval" class="nav-link-item flex items-center"><i class="fas fa-id-card mr-3"></i> 기사 승인</a></li>
+                    <li class="mb-3"><a href="/user-management" class="nav-link-item flex items-center"><i class="fas fa-users mr-3"></i> 사용자 관리</a></li>
+                    <li class="mb-3"><a href="/reports" id="nav-reports" class="nav-link-item flex items-center"><i class="fas fa-file-alt w-5 h-5 mr-3"></i> 보고서</a></li>
+                    <li class="mb-3"><a href="/inquiry" id="nav-inquiry" class="nav-link-item flex items-center"><i class="fas fa-question-circle w-5 h-5 mr-3"></i> 1:1 문의</a></li>
+                    <li class="mb-3"><a href="/settings" id="nav-settings" class="nav-link-item flex items-center"><i class="fas fa-cog w-5 h-5 mr-3"></i> 설정</a></li>
+                </ul>
+            </nav>
+            <button id="logout-button" class="bg-gray-700 text-gray-300 py-3 rounded-lg font-semibold hover:bg-gray-600"><i class="fas fa-sign-out-alt mr-2"></i> 로그아웃</button>
+        </aside>
+
+        <main id="main-content" class="content-area-wrapper">
+            <div class="content-area">
+                <h2 class="text-3xl font-bold text-gray-800 mb-8">대시보드</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-indigo-600 text-white p-6 rounded-xl shadow-lg"><p class="text-sm opacity-90">현재 운송 중</p><p class="text-5xl font-extrabold mt-2">124 <span class="text-2xl font-normal">건</span></p></div>
+                    <div class="bg-green-600 text-white p-6 rounded-xl shadow-lg"><p class="text-sm opacity-90">가용 기사</p><p class="text-5xl font-extrabold mt-2">87 <span class="text-2xl font-normal">명</span></p></div>
+                    <div class="bg-yellow-600 text-white p-6 rounded-xl shadow-lg"><p class="text-sm opacity-90">매칭 성공률</p><p class="text-5xl font-extrabold mt-2">92<span class="text-2xl font-normal">%</span></p></div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg mb-8"><h3 class="text-2xl font-semibold text-gray-800 mb-5">실시간 운송 현황</h3><div class="h-96 bg-gray-100 rounded-xl flex items-center justify-center text-gray-500">[Tmap API 연동 실시간 전체 운송 지도]</div></div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-5">운송 알림</h3>
+                    <div class="bg-blue-50 border border-blue-200 text-blue-800 px-5 py-4 rounded-xl mb-4 flex justify-between items-center">
+                        <div>
+                            <p class="font-bold">#20250709-001 화물 상차 완료</p>
+                            <p class="text-sm">김철수 기사님, 서울 강남구에서 화물 상차 완료 (09:30)</p>
+                        </div>
+                        <button onclick="window.location.href=window.location.origin + '/realtime?driverId=DRV001'" class="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700">상세 보기</button>
+                    </div>
+                    <div class="bg-gray-50 border border-gray-200 text-gray-800 px-5 py-4 rounded-xl flex justify-between items-center">
+                        <div>
+                            <p class="font-bold">#20250709-002 화물 배차 완료</p>
+                            <p class="text-sm">이영희 기사님, 부산행 화물 배차 완료</p>
+                        </div>
+                        <button onclick="window.location.href=window.location.origin + '/realtime?driverId=DRV002'" class="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700">상세 보기</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+{% endblock %}

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}베이스페이지{% endblock %}</title>
+
+    <!-- 외부 라이브러리 (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js" crossorigin="anonymous"></script>
+
+    <!-- 외부 스타일시트 연결 -->
+    <link rel="stylesheet" href="../static/css/public/auth.css">
+    {% block extra_css %}
+    {% endblock %}
+</head>
+<body>
+{% block contents %}
+{% endblock %}
+    <!-- 외부 스크립트 파일 연결 -->
+{% block extra_js %}
+{% endblock %}
+</body>
+</html>
