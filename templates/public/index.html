@@ -7,13 +7,21 @@
         <h2 class="text-3xl font-bold text-indigo-700 mb-6">화물 AI 로그인</h2>
         <div class="mb-4 text-left">
             <label for="user_id" class="block text-gray-700 text-sm font-semibold mb-2">사용자 id:</label>
-            <input type="text" id="user_id" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="사용자 이름 입력">
+            <input type="text" id="user_id" name="user_id" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="사용자 이름 입력">
         </div>
         <div class="mb-6 text-left">
             <label for="password" class="block text-gray-700 text-sm font-semibold mb-2">비밀번호:</label>
-            <input type="password" id="password" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="비밀번호 입력">
+            <input type="password" id="password" name="password" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="비밀번호 입력">
         </div>
-        <button type="submit">로그인</button>
+        <button id="login-phone" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold mb-4 shadow-md hover:bg-indigo-700 transition">
+            로그인
+        </button>
+        <p class="text-gray-600 text-sm">
+            계정이 없으신가요? 
+            <a href="{{url_for('register')}}" id="signup-link" class="text-indigo-600 font-medium hover:underline">
+                새 계정 만들기
+            </a>
+        </p>
         </form>
     </div>
 </div>
