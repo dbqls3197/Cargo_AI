@@ -15,49 +15,30 @@
                     운송 내역을 선택하여 기사님 위치를 확인하세요.
                 </div>
         </div>
-
+        {% if my_matchings %}
+        {% for mat in my_matchings %}
         <div id="shipments-list" class="space-y-3">
             <div id="shipment-item-1" class="shipment-item bg-white p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition border-2 border-transparent" data-driver-name="김철수">
                 <div class="flex justify-between items-start">
                     <div>
-                        <p class="font-semibold text-gray-800">서울 강남구 → 부산 해운대구</p>
-                        <p class="text-sm text-gray-600">#20250709-001 | 가구 (165kg)</p>
+                        <p class="font-semibold text-gray-800">출발지 : {{ mat['origin'] }}</p>
+                        <p class="font-semibold text-gray-800">도착지 : {{ mat['destination'] }}</p>
+                        <p class="text-sm text-gray-600">#번호 {{ mat.created_at.strftime('%Y%m%d') }} - {{ loop.index}} | {{ mat.item_type }} {{ mat.item_weight/1000 }}톤</p>
                     </div>
+                    {% if mat['delivery_status'] == 'in_progress' %}
                     <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium whitespace-nowrap min-w-[3.5rem] text-center">운송 중</span>
+                    {% else %}
+                    <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium whitespace-nowrap min-w-[3.5rem] text-center">운송 완료</span>
+                    {% endif %}
                 </div>
                 <div class="mt-3">
                     <p class="text-sm text-gray-500">김철수 기사님 | 5톤 탑차</p>
                     <p class="text-sm text-gray-500">예상 도착: 2025-07-09 18:00</p>
                 </div>
             </div>
-            <div id="shipment-item-2" class="shipment-item bg-white p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition border-2 border-transparent" data-driver-name="이영희">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="font-semibold text-gray-800">서울 서초구 → 인천 남동구</p>
-                        <p class="text-sm text-gray-600">#20250712-002 | 전자제품 (500kg)</p>
-                    </div>
-                    <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium whitespace-nowrap min-w-[3.5rem] text-center">운송 중</span>
-                </div>
-                <div class="mt-3">
-                    <p class="text-sm text-gray-500">이영희 기사님 | 1톤 카고</p>
-                    <p class="text-sm text-gray-500">예상 도착: 2025-07-12 19:00</p>
-                </div>
-            </div>
-            <div id="shipment-item-3" class="bg-white p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition border-2 border-transparent">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="font-semibold text-gray-800">경기 수원시 → 인천 연수구</p>
-                        <p class="text-sm text-gray-600">#20250708-003 | 공산품 (850kg)</p>
-                    </div>
-                    <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium whitespace-nowrap min-w-[3.5rem] text-center">운송 완료</span>
-                </div>
-                    <div class="mt-3">
-                    <p class="text-sm text-gray-500">박기사 기사님 | 1톤 카고</p>
-                    <p class="text-sm text-gray-500">완료 시간: 2025-07-08 15:30</p>
-                </div>
-            </div>
         </div>
-
+        {% endfor %}
+        {% else %}
         <!-- 운송 내역 없을 경우 노출되는 페이지 -->
         <div id="no-shipments-message" class="hidden text-center py-10">
             <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -66,11 +47,12 @@
             <h3 class="mt-2 text-lg font-medium text-gray-900">진행 중인 운송 내역이 없습니다.</h3>
             <p class="mt-1 text-sm text-gray-500">새로운 운송을 요청하여 시작해보세요.</p>
             <div class="mt-6">
-                <button type="button" onclick="UIManager.showScreen('shipper-request-screen-1', '운송 요청하기')" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                <a href="{{ url_for('shipper_request') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                 운송 요청하기
-                </button>
+                </a>
             </div>
         </div>
+        {% endif %}
     </div>
 {% endblock %}
 {% block footer %}
@@ -95,10 +77,10 @@
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
         <span class="text-xs mt-1">결제</span>
     </button>
-    <button id="shipper-tab-mypage" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
+    <a href="{{ url_for('shipper_my_page') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
         <span class="text-xs mt-1">마이페이지</span>
-    </button>
+   </a>
 </div>
 {% endblock %}
 <!-- JS 연결 -->

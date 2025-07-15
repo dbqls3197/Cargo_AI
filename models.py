@@ -92,13 +92,14 @@ class DBManager:
             self.disconnect()
 
     # 운송 요청 조회 
-    def select_shipper_requests(self):
+    def select_shipper_requests_by_id(self,user_id):
         try : 
             self.connect()
             query = """
-            select * from shipper_requests
+            select * from shipper_requests where user_id = %s
             """
-            self.cursor.execute(query)
+            value = (user_id,)
+            self.cursor.execute(query,value)
             print("화물 운송 신청 데이터 조회 성공")
             return self.cursor.fetchall()
         except Exception as e:
@@ -163,6 +164,8 @@ class DBManager:
                 password VARCHAR(255) NOT NULL,
                 phone VARCHAR(20),
                 company_name VARCHAR(100),
+                total_request INT,
+                total_payment INT,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );
             """
@@ -240,7 +243,7 @@ class DBManager:
                 total_deliveries INT,
                 accident_history TEXT,
                 avg_delay_time FLOAT,
-                delivery_status VARCHAR(20) DEFAULT 'in_progress',
+                `delivery_status` ENUM('in_progress', 'completed') DEFAULT 'in_progress',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             )
             """
@@ -302,15 +305,42 @@ class DBManager:
         finally:
             self.disconnect()
 
-    # 매칭완료 테이블 조회
-    def select_driver_my_request(self, user_id):
+    # 매칭완료결과 확인 
+    def select_matching_driver_my_request(self, user_id, driver_id, request_id):
+        try:
+            self.connect()
+            query = "select * from matching_driver_my_request WHERE user_id = %s and driver_id = %s and request_id = %s"
+            self.cursor.execute(query, (user_id, driver_id, request_id))
+            print("매칭완료 테이블 조회")
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"매칭완료 테이블 조회 실패: {e}")
+        finally:
+            self.disconnect()
+    
+    # 매칭 내역 조회
+    def select_matching_driver_my_request_by_id(self, user_id):
         try:
             self.connect()
             query = "select * from matching_driver_my_request WHERE user_id = %s"
             self.cursor.execute(query, (user_id,))
-            self.connection.commit()
             print("매칭완료 테이블 조회")
+            return self.cursor.fetchall()
         except Exception as e:
             print(f"매칭완료 테이블 조회 실패: {e}")
+        finally:
+            self.disconnect()
+
+
+    # 화주 아이디로 정보 조회
+    def select_shipper_by_id(self, user_id):
+        try:
+            self.connect()
+            query = "select * from shippers WHERE user_id = %s"
+            self.cursor.execute(query, (user_id,))
+            print("화주 테이블 조회")
+            return self.cursor.fetchone()
+        except Exception as e:
+            print(f"화주 테이블 조회 실패: {e}")
         finally:
             self.disconnect()
