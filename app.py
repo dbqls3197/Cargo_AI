@@ -41,24 +41,26 @@ except Exception as e:
     producer = None
 
 #화주 데코레이터
-def login_required(role='shipper'):
-    def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            user_id = session.get('id')
-            user_pw = session.get('pw')
+from functools import wraps
+from flask import session, redirect, url_for, flash
 
-            if not user_id or not user_pw:
-                return redirect(url_for('index'))  # 로그인 안 했으면 로그인 페이지로
+def login_required_shipper(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'id' not in session or session.get('role') != 'shipper':
+            flash('화주 전용 페이지입니다.')
+            return redirect(url_for('login_page'))
+        return f(*args, **kwargs)
+    return decorated_function
 
-            # 추가로 역할 기반 체크할 수 있도록 확장 (예: admin, driver 등)
-            if role == 'shipper':
-                # 필요 시 session['role'] == 'shipper' 같은 조건 추가 가능
-                return f(*args, **kwargs)
-            else:
-                return redirect(url_for('unauthorized'))  # 권한 없을 때 처리
-        return decorated_function
-    return decorator
+def login_required_driver(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'id' not in session or session.get('role') != 'driver':
+            flash('기사 전용 페이지입니다.')
+            return redirect(url_for('login_page'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 # 루트 URL ('/')에 접속했을 때 index.html 파일을 렌더링합니다.
 @app.route('/')
@@ -72,18 +74,16 @@ def login():
     session['pw'] = request.form['password']
     user_id = session['id']
     user = manager.select_shipper_by_id(user_id)
-    if user :
-        return redirect(url_for('shipper_dashboard'))
-    else :
-        return redirect(url_for('index'))
+    driver = manager.select_driver_by_id(user_id)
     
-    # if admin :
-    #     return render_template('admin/dashboard')
-
-    # elif shipper :
-    #     return render_template('shipper/dashboard')
-    # elif driver :
-    #     return render_template('driver/admin/dashboard')
+    if user:
+        session['role'] = 'shipper'
+        return redirect(url_for('shipper_dashboard'))
+    elif driver:
+        session['role'] = 'driver'
+        return redirect(url_for('driver_dashboard'))
+    else:
+        return redirect(url_for('index'))
 
 @app.route('/logout')
 def logout():
@@ -100,7 +100,7 @@ def register():
 # 화주 페이지
 ## 화주 대시보드
 @app.route('/shipper/dashboard')
-@login_required(role='shipper')
+@login_required_shipper
 def shipper_dashboard():
     user_id = session['id']
     my_requests = manager.select_request_by_user_id(user_id)
@@ -115,13 +115,13 @@ def shipper_dashboard():
 
 ## 화주 화물 의뢰 페이지
 @app.route('/shipper/shipper_request')
-@login_required(role='shipper')
+@login_required_shipper
 def shipper_request():
     return render_template('shipper/shipper_request.html')
 
 ## 화주 화물 의뢰 정보 DB 저장
 @app.route("/shipper/request/submit", methods=["POST"])
-@login_required(role='shipper')
+@login_required_shipper
 def submit_shipper_request():
     try:
         data = request.get_json()
@@ -136,7 +136,7 @@ def submit_shipper_request():
 
 ## 화주 운송신청 리스트
 @app.route("/shipper/my_requests")
-@login_required(role='shipper')
+@login_required_shipper
 def shipper_my_requests():
     user_id = session['id']
     all_requests = manager.select_shipper_requests_by_id(user_id)
@@ -149,7 +149,7 @@ def shipper_my_requests():
 
 ## 기사 매칭 페이지 
 @app.route('/shipper/driver_matching')
-@login_required(role='shipper')
+@login_required_shipper
 def driver_matching():
     request_id = request.args.get('id')
     my_request = manager.select_request_by_id(request_id)
@@ -160,7 +160,7 @@ def driver_matching():
 
 ## 매칭 결과 페이지 
 @app.route('/shipper/matching_result', methods=['POST'])
-@login_required(role='shipper')
+@login_required_shipper
 def driver_matching_result():
     request_id = request.form['request_id']
     driver_id = request.form['driver_id']
@@ -180,7 +180,7 @@ def driver_matching_result():
 
 ## 화주 운송 내역 페이지
 @app.route('/shipper/my_shipments')
-@login_required(role='shipper')
+@login_required_shipper
 def shipper_my_shipments():
     user_id = session['id']
     my_matchings = manager.select_matching_driver_my_request_by_id(user_id)
@@ -189,7 +189,7 @@ def shipper_my_shipments():
 
 ## 화주 결제 페이지
 @app.route('/shipper/payments')
-@login_required(role='shipper')
+@login_required_shipper
 def shipper_payments():
     user_id = session['id']
     all_matchings = manager.select_matching_driver_my_request_by_id(user_id)
@@ -229,6 +229,7 @@ def shipper_payments():
 
 ## 결제 완료 API
 @app.route("/api/process_payment", methods=["POST"])
+@login_required_shipper
 def process_payment():
     data = request.get_json()
     match_id = data.get("match_id")
@@ -241,7 +242,7 @@ def process_payment():
 
 ## 화주 마이페이지
 @app.route('/shipper/my_page')
-@login_required(role='shipper')
+@login_required_shipper
 def shipper_my_page():
     user_id = session['id']
     shipper = manager.select_shipper_by_id(user_id)
@@ -251,21 +252,25 @@ def shipper_my_page():
 # ---------------------------------------------------------------------------------------------------
 # 화물기사 대시보드
 @app.route('/driver/dashboard')
+@login_required_driver
 def driver_dashboard():
     return render_template('driver/dashboard.html')
 
 # 화물기사 요청 화물 상세정보
 @app.route('/<int:request_id>')
+@login_required_driver
 def request_detail(request_id):
     return render_template('driver/request_detail.html', request_id=request_id)
 
 # 화물기사 요청 화물 수락 
 @app.route('/request_accept_success')
+@login_required_driver
 def request_accept_success():
     return render_template('driver/request_accept_success.html')
 
 # 네비게이션
 @app.route("/navigation")
+@login_required_driver
 def navigation_page():
     return render_template("driver/navigation.html")
 
@@ -281,12 +286,14 @@ matches = [
 
 # 화물기사 운송 내역
 @app.route("/history")
+@login_required_driver
 def history():
     return render_template("driver/history.html", matches=matches)
 
 
 #화물기사->화주 리뷰
 @app.route("/review/<int:match_id>")
+@login_required_driver
 def review(match_id):
     match = next((m for m in matches if m["id"] == match_id), None)
     if not match:
@@ -295,38 +302,45 @@ def review(match_id):
 
 #리뷰 완료
 @app.route("/review_success")
+@login_required_driver
 def review_success():
     return render_template("driver/review_success.html")
 
 
 #정산 페이지
 @app.route('/settlement')
+@login_required_driver
 def settlement():
     return render_template('driver/settlement.html')
 
 
 #마이페이지 
 @app.route("/mypage")
+@login_required_driver
 def mypage():
     return render_template("driver/mypage.html")
 
 ##공지사항
 @app.route("/mypage/notice")
+@login_required_driver
 def mypage_notice():
     return render_template("driver/mypage_notice.html")
 
 ##고객센터
 @app.route("/mypage/cs")
+@login_required_driver
 def mypage_cs():
     return render_template("driver/mypage_cs.html")
 
 ## 화물기사가 쓴 리뷰
 @app.route("/mypage/reviews")
+@login_required_driver
 def mypage_reviews():
     return render_template("driver/mypage_reviews.html")
 
 ## 매칭 페이지
 @app.route('/matching')
+@login_required_driver
 def matching_page():
     return render_template('driver/matching.html')
 
@@ -548,7 +562,6 @@ def get_latest_location():
 def admin_dashboard():
     return render_template('admin/dashboard.html')
 # 이 파일이 직접 실행될 때 Flask 개발 서버를 실행합니다.
-
 
 
 if __name__ == '__main__':
