@@ -39,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("confirm-pickupTime").textContent = document.getElementById("pickupTime").value;
         document.getElementById("confirm-dropoffDate").textContent = document.getElementById("dropoffDate").value;
         document.getElementById("confirm-dropoffTime").textContent = document.getElementById("dropoffTime").value;
-
+        document.getElementById("confirm-fee").textContent = document.getElementById("fee").value;
         step2.classList.add("hidden");
         step3.classList.remove("hidden");
     });
@@ -71,7 +71,8 @@ document.addEventListener("DOMContentLoaded", () => {
             pickup_date: document.querySelector('#pickupDate').value,
             pickup_time: document.querySelector('#pickupTime').value,
             dropoff_date: document.querySelector('#dropoffDate').value,
-            dropoff_time: document.querySelector('#dropoffTime').value
+            dropoff_time: document.querySelector('#dropoffTime').value,
+            fee : document.querySelector('#fee').value
         };
 
         fetch("/shipper/request/submit", {
@@ -82,7 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(res => res.json())
         .then(result => {
             if (result.success) {
-                window.location.href = "/shipper/my_requests";
+                window.location.href = "/shipper/dashboard";
             } else {
                 alert("제출 실패: " + result.message);
             }

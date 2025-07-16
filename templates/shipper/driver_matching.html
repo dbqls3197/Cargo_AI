@@ -77,17 +77,26 @@
                 {% endfor %}
                 </p>
                 <div class="text-xs text-gray-600 mt-1">
-                    <div class="flex items-center"><span class="w-20 inline-block">{{ driver['vehicle_capacity']/1000 | round(1) }}톤 {{ driver['vehicle_type'] }}</span>
-                    <span>| 운송 {{ driver['total_deliveries'] }}건</span></div>
+                    <div class="flex items-center">
+                        <span class="w-30 inline-block whitespace-nowrap">
+                            {{ driver['vehicle_capacity']/1000 | round(1) }}톤 / {{ driver['vehicle_type'] }}
+                        </span>
+                    </div>
+                    <div class="flex items-center">
+                    <span>
+                        운송 이력 {{ driver['total_deliveries'] }}건
+                    </span>
+                    </div>
                     {% if driver['accident_history'] == None %}
                     <div class="flex items-center"><span class="w-20 inline-block">사고이력 없음</span>
                     {% else %}
                     <div class="flex items-center"><span class="w-20 inline-block">사고이력 있음</span>
                     {% endif %}
-                        <span>| 평균지연 {{ driver['avg_delay_time'] }}분</span></div>
-                    <div class="flex items-center"><span class="w-20 inline-block">거리 5km</span><span>| 예상도착 10분</span></div>
+                        <span>/ 평균지연 {{ driver['avg_delay_time'] }}분</span></div>
+                    <div class="flex items-center"><span class="w-20 inline-block">거리 5km</span><span>/ 예상도착 10분</span></div>
                 </div>
-                <p class="text-sm text-indigo-600 font-semibold mt-1">AI 추천 점수: 92점 | 수락 예상 확률: 85%</p>
+                <p class="text-sm text-indigo-600 font-semibold mt-1">AI 추천 점수: 92점 </p>
+                <p class="text-sm text-indigo-600 font-semibold mt-1">수락 예상 확률: 85%</p>
             </div>
             <button type="submit" class="select-driver-btn bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm hover:bg-indigo-700 transition ml-2 whitespace-nowrap" data-driver-id="101">
             선택
@@ -120,10 +129,10 @@
         <span class="text-xs mt-1">내 운송</span>
     </a>
     <!-- 결제 -->
-    <button id="shipper-tab-payment" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
+    <a href="{{ url_for('shipper_payments') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
         <span class="text-xs mt-1">결제</span>
-    </button>
+    </a>
     <!-- 마이페이지 -->
     <a href="{{ url_for('shipper_my_page') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
