@@ -1,0 +1,165 @@
+{% extends 'driver/driver_base.html' %}
+
+{% block title %}기사 차량 설정{% endblock %}
+
+{% block content %}
+<div id="driver-vehicle-setup" class="content-scrollable">
+    <h1 class="text-2xl font-bold text-indigo-700 mb-6">기사 차량 설정</h1>
+
+    {# 이 부분을 다시 변경했습니다! 폼 제출은 이제 driver_vehicle_setup 라우트가 직접 처리합니다. #}
+    <form id="vehicle-form" action="{{ url_for('driver_vehicle_setup') }}" method="post">
+        <div class="mb-6">
+            <label for="vehicle-type" class="block text-gray-700 text-sm font-bold mb-2">차량 종류</label>
+            <select id="vehicle-type" name="vehicle_type" class="shadow-sm appearance-none border rounded-xl w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" onchange="updateLoadCapacity()">
+                <option value="" {% if not vehicle_type %}selected{% endif %} disabled>선택하세요</option>
+                <option value="damos" {% if vehicle_type == 'damos' %}selected{% endif %}>다마스</option>
+                <option value="labo" {% if vehicle_type == 'labo' %}selected{% endif %}>라보</option>
+                <option value="cargo" {% if vehicle_type == 'cargo' %}selected{% endif %}>카고</option>
+                <option value="wing_body" {% if vehicle_type == 'wing_body' %}selected{% endif %}>윙바디</option>
+                <option value="top_truck" {% if vehicle_type == 'top_truck' %}selected{% endif %}>탑차</option>
+            </select>
+        </div>
+
+        <div class="mb-6">
+            <label for="load-capacity" class="block text-gray-700 text-sm font-bold mb-2">최대 적재량</label>
+            <select id="load-capacity" name="load_capacity" class="shadow-sm appearance-none border rounded-xl w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                </select>
+        </div>
+
+        <div class="mb-6">
+            <label class="block text-gray-700 text-sm font-bold mb-2">차량이 운송 가능한 화물 특성</label>
+            <div class="flex flex-wrap gap-4">
+                <label for="general-cargo" class="inline-flex items-center text-gray-700">
+                    <input type="checkbox" id="general-cargo" name="cargo_type[]" value="general" class="form-checkbox h-5 w-5 text-indigo-600" {% if 'general' in cargo_type %}checked{% endif %}>
+                    <span class="ml-2">일반</span>
+                </label>
+                <label for="refrigerated" class="inline-flex items-center text-gray-700">
+                    <input type="checkbox" id="refrigerated" name="cargo_type[]" value="refrigerated" class="form-checkbox h-5 w-5 text-indigo-600" {% if 'refrigerated' in cargo_type %}checked{% endif %}>
+                    <span class="ml-2">냉장</span>
+                </label>
+                <label for="frozen" class="inline-flex items-center text-gray-700">
+                    <input type="checkbox" id="frozen" name="cargo_type[]" value="frozen" class="form-checkbox h-5 w-5 text-indigo-600" {% if 'frozen' in cargo_type %}checked{% endif %}>
+                    <span class="ml-2">냉동</span>
+                </label>
+                <label for="hazardous" class="inline-flex items-center text-gray-700">
+                    <input type="checkbox" id="hazardous" name="cargo_type[]" value="hazardous" class="form-checkbox h-5 w-5 text-indigo-600" {% if 'hazardous' in cargo_type %}checked{% endif %}>
+                    <span class="ml-2">위험물</span>
+                </label>
+                <label for="toxic" class="inline-flex items-center text-gray-700">
+                    <input type="checkbox" id="toxic" name="cargo_type[]" value="toxic" class="form-checkbox h-5 w-5 text-indigo-600" {% if 'toxic' in cargo_type %}checked{% endif %}>
+                    <span class="ml-2">유해물질</span>
+                </label>
+            </div>
+        </div>
+
+        <button type="submit" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-semibold shadow-lg hover:bg-indigo-700 transition transform hover:scale-105">
+            저장
+        </button>
+    </form>
+</div>
+
+<script>
+    const loadCapacityOptions = {
+        'damos': [{ value: '0.55', text: '0.55t (다마스)' }],
+        'labo': [{ value: '0.55', text: '0.55t (라보)' }],
+        'cargo': [
+            { value: '', text: '선택하세요', disabled: true, selected: true },
+            { value: '1', text: '1t' },
+            { value: '1.4', text: '1.4t' },
+            { value: '2.5', text: '2.5t' },
+            { value: '3.5', text: '3.5t' },
+            { value: '5.5', text: '5.5t' },
+            { value: '8', text: '8t' },
+            { value: '12', text: '12t' },
+            { value: '18', text: '18t' },
+            { value: '25', text: '25t' },
+            { value: '30', text: '30t' }
+        ],
+        'wing_body': [
+            { value: '', text: '선택하세요', disabled: true, selected: true },
+            { value: '1', text: '1t' },
+            { value: '1.4', text: '1.4t' },
+            { value: '2.5', text: '2.5t' },
+            { value: '3.5', text: '3.5t' },
+            { value: '5.5', text: '5.5t' },
+            { value: '8', text: '8t' },
+            { value: '12', text: '12t' },
+            { value: '18', text: '18t' },
+            { value: '25', text: '25t' },
+            { value: '30', text: '30t' }
+        ],
+        'top_truck': [
+            { value: '', text: '선택하세요', disabled: true, selected: true },
+            { value: '1', text: '1t' },
+            { value: '1.4', text: '1.4t' },
+            { value: '2.5', text: '2.5t' },
+            { value: '3.5', text: '3.5t' },
+            { value: '5.5', text: '5.5t' },
+            { value: '8', text: '8t' },
+            { value: '12', text: '12t' },
+            { value: '18', text: '18t' },
+            { value: '25', text: '25t' },
+            { value: '30', text: '30t' }
+        ]
+    };
+
+    function updateLoadCapacity() {
+        const vehicleTypeSelect = document.getElementById('vehicle-type');
+        const loadCapacitySelect = document.getElementById('load-capacity');
+        const selectedVehicleType = vehicleTypeSelect.value;
+
+        // 기존 옵션 제거
+        loadCapacitySelect.innerHTML = '';
+
+        let optionsToDisplay;
+        if (selectedVehicleType === 'damos' || selectedVehicleType === 'labo') {
+            optionsToDisplay = loadCapacityOptions[selectedVehicleType];
+        } else if (selectedVehicleType in loadCapacityOptions) { // 카고, 윙바디, 탑차 등
+            optionsToDisplay = loadCapacityOptions[selectedVehicleType];
+        } else {
+            // 차량 종류가 선택되지 않았을 때 (초기 상태)
+            optionsToDisplay = [{ value: '', text: '선택하세요', disabled: true, selected: true }];
+        }
+
+        optionsToDisplay.forEach(optionData => {
+            const newOption = document.createElement('option');
+            newOption.value = optionData.value;
+            newOption.textContent = optionData.text;
+            if (optionData.disabled) {
+                newOption.disabled = true;
+            }
+            if (optionData.selected) {
+                newOption.selected = true;
+            }
+            loadCapacitySelect.appendChild(newOption);
+        });
+
+        // 이전에 선택된 적재량이 있다면 해당 값으로 설정
+        const currentLoadCapacity = "{{ load_capacity }}";
+        if (selectedVehicleType === 'damos' || selectedVehicleType === 'labo') {
+            loadCapacitySelect.value = '0.55';
+        } else if (currentLoadCapacity && selectedVehicleType) { // 차량 종류가 선택된 상태에서만 이전 값 유지 시도
+            const optionExists = Array.from(loadCapacitySelect.options).some(option => option.value === currentLoadCapacity);
+            if (optionExists) {
+                loadCapacitySelect.value = currentLoadCapacity;
+            } else {
+                // 이전에 선택된 값이 현재 옵션에 없으면 "선택하세요"를 기본으로 선택
+                loadCapacitySelect.value = '';
+            }
+        } else {
+            // 차량 종류가 선택되지 않았거나, 기타 차량 선택 시 "선택하세요"를 기본으로 선택
+            loadCapacitySelect.value = '';
+        }
+    }
+
+    // 페이지 로드 시 초기 차량 종류 및 적재량 옵션 설정
+    document.addEventListener('DOMContentLoaded', () => {
+        const vehicleTypeSelect = document.getElementById('vehicle-type');
+        // 서버에서 vehicle_type이 넘어오지 않았다면 "선택하세요"를 기본으로 설정
+        if (!"{{ vehicle_type }}" || "{{ vehicle_type }}" === "None") { // "None" 문자열 처리 추가
+            vehicleTypeSelect.value = '';
+        }
+        updateLoadCapacity();
+    });
+</script>
+{% endblock %}

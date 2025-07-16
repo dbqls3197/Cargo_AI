@@ -1,0 +1,575 @@
+{% extends "driver_base.html" %}
+{% block title %}네비게이션 - 화물기사 페이지{% endblock %}
+{% block content %}
+<div id="driver-app" class="app-container">
+    <div id="driver-navigation-screen" class="content-scrollable">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold text-indigo-700">네비게이션</h1>
+            <div class="flex space-x-3">
+                <button id="driver-notification-icon" class="relative text-gray-600 hover:text-indigo-600 p-1">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9">
+                        </path>
+                    </svg>
+                    <span class="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center w-5 h-5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+                        1
+                    </span>
+                </button>
+                <button id="driver-profile-icon" class="text-gray-600 hover:text-indigo-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-blue-50 p-4 rounded-xl shadow-sm mb-6">
+            <div class="flex items-center justify-between mb-3">
+                <h3 class="text-lg font-semibold text-blue-800">현재 운행 중</h3>
+                <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">진행 중</span>
+
+                <label class="inline-flex items-center cursor-pointer ml-4"> {# ml-4는 왼쪽 여백 추가 #}
+                    <input type="checkbox" id="driverStatusToggle" class="sr-only peer" checked>
+                    <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                    <span class="ml-3 text-sm font-medium text-green-700" id="driverStatusText">운행 가능</span>
+                </label>
+            </div>
+            <div class="space-y-2">
+                <div class="flex items-center space-x-3">
+                    <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span class="text-sm text-gray-700" id="current-start-address">출발지: 서울 강남구 테헤란로 123</span>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <span class="text-sm text-gray-700" id="current-end-address">도착지: 경기 성남시 분당구 판교역로 10번길</span>
+                </div>
+                <div class="flex justify-between items-center mt-4">
+                    <span class="text-sm text-gray-600" id="current-eta">예상 도착 시간: 오후 3:25</span>
+                    <span class="text-sm text-blue-600 font-medium" id="current-remaining-distance">잔여 거리: 12.5km</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">실시간 네비게이션</h3>
+            <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                <div id="map" class="h-80 bg-gray-100 relative">
+                    <div class="absolute inset-0 flex items-center justify-center" id="map-loading-overlay">
+                        <div class="text-center">
+                            <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-2">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                </svg>
+                            </div>
+                            <p class="text-sm text-gray-600">지도 로딩 중...</p>
+                        </div>
+                    </div>
+
+                    <div class="absolute top-4 left-4 bg-white rounded-lg p-3 shadow-lg max-w-xs" id="route-info-overlay">
+                        <div class="flex items-center space-x-2 mb-2">
+                            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span class="text-xs text-gray-600" id="display-start-address">출발: 서울 강남구 테헤란로 123</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                            <span class="text-xs text-gray-600" id="display-end-address">도착: 경기 성남시 분당구 판교역로 235</span>
+                        </div>
+                    </div>
+
+                    <div class="absolute bottom-4 right-4 bg-blue-600 text-white rounded-lg p-3 shadow-lg" id="nav-summary-overlay">
+                        <div class="text-center">
+                            <div class="text-lg font-bold" id="display-total-distance">12.5km</div>
+                            <div class="text-xs" id="display-estimated-time">예상 25분</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-gray-50 flex justify-between items-center">
+                    <button id="re-route-button" class="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg shadow-sm hover:bg-gray-100 transition">
+                        <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                        </svg>
+                        <span class="text-sm">경로 재검색</span>
+                    </button>
+                    <button id="start-guidance-button" class="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-blue-700 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                        </svg>
+                        <span class="text-sm">안내 시작</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-3">최근 경로</h3>
+            <div class="space-y-3">
+                <div class="bg-white p-4 rounded-xl shadow-md recent-route-item">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium text-gray-800">서울 강남구 → 경기 성남시</span>
+                        <span class="text-xs text-gray-500">2시간 전</span>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        <div class="flex justify-between">
+                            <span>거리: 25.3km</span>
+                            <span>소요시간: 45분</span>
+                        </div>
+                    </div>
+                    <button class="mt-3 w-full bg-gray-100 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-200 transition"
+                            data-start-addr="서울 강남구 테헤란로 123" data-end-addr="경기 성남시 분당구 판교역로 456">
+                        다시 안내받기
+                    </button>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-md recent-route-item">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium text-gray-800">경기 수원시 → 서울 서초구</span>
+                        <span class="text-xs text-gray-500">1일 전</span>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        <div class="flex justify-between">
+                            <span>거리: 32.1km</span>
+                            <span>소요시간: 55분</span>
+                        </div>
+                    </div>
+                    <button class="mt-3 w-full bg-gray-100 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-200 transition"
+                            data-start-addr="경기 수원시" data-end-addr="서울 서초구">
+                        다시 안내받기
+                    </button>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow-md recent-route-item">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium text-gray-800">인천 연수구 → 서울 영등포구</span>
+                        <span class="text-xs text-gray-500">3일 전</span>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        <div class="flex justify-between">
+                            <span>거리: 28.7km</span>
+                            <span>소요시간: 50분</span>
+                        </div>
+                    </div>
+                    <button class="mt-3 w-full bg-gray-100 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-200 transition"
+                            data-start-addr="인천 연수구" data-end-addr="서울 영등포구">
+                        다시 안내받기
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        </div>
+    </div>
+
+    <div class="footer-nav flex justify-around">
+        <button id="driver-tab-home" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path></svg>
+            <span class="text-xs mt-1">홈</span>
+        </button>
+        <button id="driver-tab-history" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+            <span class="text-xs mt-1">운송 내역</span>
+        </button>
+        <button id="driver-tab-navigation" class="flex flex-col items-center text-indigo-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <span class="text-xs mt-1">네비게이션</span>
+        </button>
+        <button id="driver-tab-settlement" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            <span class="text-xs mt-1">정산</span>
+        </button>
+        <button id="driver-tab-mypage" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+            <span class="text-xs mt-1">마이페이지</span>
+        </button>
+    </div>
+</div>
+
+
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=685e7ddf6b71b33bbeff08111988694f&autoload=false&libraries=services"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const driverStatusToggle = document.getElementById('driverStatusToggle');
+        const driverStatusText = document.getElementById('driverStatusText');
+        const startGuidanceButton = document.getElementById('start-guidance-button');
+        const currentStartAddressElem = document.getElementById('current-start-address');
+        const currentEndAddressElem = document.getElementById('current-end-address');
+
+        let guidanceActive = false; // Track if guidance is active
+        let simulationIntervalId = null; // Changed from watchId to handle simulation interval
+        let currentSimulationIndex = 0; // Current index on the polyline path
+        let currentRoutePolylinePath = []; // Stores the current route's coordinates
+        let totalRouteDistance = 0; // Store total route distance
+        let currentSpeed = 60; // Current speed in km/h
+
+        // Kakao Map variables
+        let map = null;
+        let currentPolyline = null;
+        let startMarker = null;
+        let endMarker = null;
+        let currentLocationMarker = null; // Marker for the simulated moving vehicle
+
+        const mapContainer = document.getElementById('map');
+        const mapLoadingOverlay = document.getElementById('map-loading-overlay');
+
+        // Initial state for driver status toggle
+        if (driverStatusToggle && driverStatusText) {
+            function updateDriverStatusText() {
+                if (driverStatusToggle.checked) {
+                    driverStatusText.textContent = '운행 가능';
+                    driverStatusText.classList.remove('text-red-700');
+                    driverStatusText.classList.add('text-green-700');
+                    console.log('운행 가능으로 변경됨');
+                } else {
+                    driverStatusText.textContent = '운행 불가';
+                    driverStatusText.classList.remove('text-green-700');
+                    driverStatusText.classList.add('text-red-700');
+                    console.log('운행 불가로 변경됨');
+                }
+            }
+            updateDriverStatusText(); // Set initial text
+            driverStatusToggle.addEventListener('change', updateDriverStatusText);
+        } else {
+            console.error("driverStatusToggle 또는 driverStatusText 요소를 찾을 수 없습니다.");
+        }
+
+        function initializeMap(latitude, longitude) {
+            const mapOption = {
+                center: new kakao.maps.LatLng(latitude, longitude),
+                level: 3
+            };
+            map = new kakao.maps.Map(mapContainer, mapOption);
+            mapLoadingOverlay.style.display = 'none';
+            console.log("카카오맵 초기화 완료.");
+        }
+
+        // 두 지점 간의 거리 계산 함수 (하버사인 공식)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371; // 지구의 반지름 (km)
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a =
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c; // 거리 (km)
+        }
+
+        // 잔여 거리 계산 함수
+        function calculateRemainingDistance(currentIndex) {
+            if (currentIndex >= currentRoutePolylinePath.length - 1) {
+                return 0;
+            }
+
+            let remainingDistance = 0;
+            for (let i = currentIndex; i < currentRoutePolylinePath.length - 1; i++) {
+                const point1 = currentRoutePolylinePath[i];
+                const point2 = currentRoutePolylinePath[i + 1];
+                remainingDistance += calculateDistance(
+                    point1.getLat(), point1.getLng(),
+                    point2.getLat(), point2.getLng()
+                );
+            }
+            return remainingDistance;
+        }
+
+        // 도착예정시간 계산 함수
+        function calculateETA(remainingDistanceKm, speedKmH) {
+            const remainingTimeHours = remainingDistanceKm / speedKmH;
+            const remainingTimeMinutes = remainingTimeHours * 60;
+
+            const now = new Date();
+            now.setMinutes(now.getMinutes() + remainingTimeMinutes);
+
+            return {
+                estimatedTime: Math.ceil(remainingTimeMinutes),
+                arrivalTime: now
+            };
+        }
+
+        // UI 업데이트 함수
+        function updateNavigationUI(remainingDistanceKm, estimatedMinutes, arrivalTime) {
+            // 잔여 거리 업데이트
+            document.getElementById('current-remaining-distance').textContent = `잔여 거리: ${remainingDistanceKm.toFixed(1)}km`;
+
+            // 예상 도착 시간 업데이트
+            document.getElementById('current-eta').textContent =
+                `예상 도착 시간: ${arrivalTime.getHours() % 12 || 12}:${arrivalTime.getMinutes().toString().padStart(2, '0')} ${arrivalTime.getHours() >= 12 ? '오후' : '오전'}`;
+
+            // 예상 시간 업데이트 (분)
+            document.getElementById('display-estimated-time').textContent = `예상 ${estimatedMinutes}분`;
+        }
+
+        // 네비게이션 시뮬레이션 시작 함수
+        function startNavigationSimulation(speedKmH, startAddr, endAddr) {
+            if (currentRoutePolylinePath.length === 0) {
+                alert("경로 데이터가 없어 시뮬레이션을 시작할 수 없습니다. 먼저 경로를 검색해주세요.");
+                return;
+            }
+
+            console.log(`네비게이션 시뮬레이션 시작: ${speedKmH}km/h로 ${startAddr}에서 ${endAddr}까지`);
+            guidanceActive = true;
+            currentSpeed = speedKmH;
+            updateGuidanceButtonState();
+            alert(`안내를 시작합니다!\n출발지: ${startAddr}\n도착지: ${endAddr}\n초기 속도: ${speedKmH}km/h`);
+
+            // 기존 시뮬레이션 중지
+            if (simulationIntervalId) {
+                clearInterval(simulationIntervalId);
+            }
+            currentSimulationIndex = 0; // Reset simulation index
+
+            // 시뮬레이션 차량 마커 생성 또는 초기 위치 설정
+            if (!currentLocationMarker) {
+                const markerImageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png'; // 차량 아이콘 등으로 변경 가능
+                const markerImageSize = new kakao.maps.Size(30, 30);
+                const markerImageOption = { offset: new kakao.maps.Point(15, 15) };
+                const markerImage = new kakao.maps.MarkerImage(markerImageSrc, markerImageSize, markerImageOption);
+
+                currentLocationMarker = new kakao.maps.Marker({
+                    map: map,
+                    position: currentRoutePolylinePath[0], // Starting position
+                    image: markerImage
+                });
+            } else {
+                currentLocationMarker.setPosition(currentRoutePolylinePath[0]);
+                currentLocationMarker.setMap(map); // Ensure it's on the map
+            }
+            map.setCenter(currentRoutePolylinePath[0]); // Center map on start
+
+            const speedMps = speedKmH * 1000 / 3600; // Convert km/h to meters/second
+
+            simulationIntervalId = setInterval(() => {
+                if (currentSimulationIndex >= currentRoutePolylinePath.length - 1) {
+                    console.log("시뮬레이션 종료: 목적지에 도달했습니다.");
+                    stopNavigation();
+                    alert("목적지에 도착했습니다! 안내를 종료합니다.");
+                    return;
+                }
+
+                currentSimulationIndex++;
+                const nextPosition = currentRoutePolylinePath[currentSimulationIndex];
+
+                if (currentLocationMarker) {
+                    currentLocationMarker.setPosition(nextPosition);
+                    map.setCenter(nextPosition); // Keep map centered on the moving vehicle
+                }
+
+                // 실시간 잔여 거리 및 도착예정시간 계산
+                const remainingDistance = calculateRemainingDistance(currentSimulationIndex);
+                const etaData = calculateETA(remainingDistance, currentSpeed);
+
+                // UI 업데이트
+                updateNavigationUI(remainingDistance, etaData.estimatedTime, etaData.arrivalTime);
+
+                // Simulate sending location data to server (optional)
+                sendLocationToServer({
+                    latitude: nextPosition.getLat(),
+                    longitude: nextPosition.getLng(),
+                    speed: currentSpeed,
+                    timestamp: new Date().toISOString(),
+                    status: 'navigation_active',
+                    remainingDistance: remainingDistance,
+                    estimatedArrivalTime: etaData.arrivalTime.toISOString()
+                });
+
+            }, 200); // 200ms 마다 다음 지점으로 이동
+        }
+
+        // 네비게이션 종료 함수 (시뮬레이션 포함)
+        function stopNavigation() {
+            console.log("네비게이션이 종료되었습니다.");
+            guidanceActive = false;
+            updateGuidanceButtonState();
+
+            if (simulationIntervalId !== null) {
+                clearInterval(simulationIntervalId);
+                simulationIntervalId = null;
+            }
+            if (currentLocationMarker) { // Remove current location marker from map
+                currentLocationMarker.setMap(null);
+            }
+            sendLocationToServer({ status: 'navigation_inactive' }); // Notify server of termination
+        }
+
+        // 서버로 위치 데이터 전송
+        function sendLocationToServer(locationData) {
+            fetch('/send_location', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(locationData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // console.log('위치 데이터 전송 성공:', data); // 너무 많은 로그로 콘솔이 느려질 수 있어 주석 처리
+            })
+            .catch(error => {
+                console.error('위치 데이터 전송 실패:', error);
+            });
+        }
+
+        // "안내 시작/종료" 버튼 상태 업데이트
+        function updateGuidanceButtonState() {
+            if (guidanceActive) {
+                startGuidanceButton.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9"></path>
+                    </svg>
+                    <span class="text-sm">안내 종료</span>
+                `;
+                startGuidanceButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                startGuidanceButton.classList.add('bg-green-600', 'hover:bg-green-700');
+            } else {
+                startGuidanceButton.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                    <span class="text-sm">안내 시작</span>
+                `;
+                startGuidanceButton.classList.remove('bg-green-600', 'hover:bg-green-700');
+                startGuidanceButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            }
+        }
+
+        // "안내 시작/종료" 버튼 클릭 이벤트
+        startGuidanceButton.addEventListener('click', function() {
+            if (guidanceActive) {
+                stopNavigation();
+            } else {
+                const initialSpeed = 60; // Default speed
+                const currentStartAddress = currentStartAddressElem.textContent.replace('출발지: ', '');
+                const currentEndAddress = currentEndAddressElem.textContent.replace('도착지: ', '');
+                startNavigationSimulation(initialSpeed, currentStartAddress, currentEndAddress);
+            }
+        });
+
+        // Kakao Map SDK 로드 후 실행
+        kakao.maps.load(function() {
+            // Try to get current position to initialize map
+            // 현재 위치 대신 기본 위치로 먼저 지도를 초기화합니다.
+            // 시뮬레이션 시작 시 경로의 출발지로 지도를 이동시킬 것입니다.
+            initializeMap(37.566826, 126.9786567); // Default to Seoul
+
+            async function loadAndDrawRoute(startAddress, endAddress) {
+                try {
+                    // Update current trip display
+                    currentStartAddressElem.textContent = `출발지: ${startAddress}`;
+                    currentEndAddressElem.textContent = `도착지: ${endAddress}`;
+                    document.getElementById('display-start-address').textContent = `출발: ${startAddress}`;
+                    document.getElementById('display-end-address').textContent = `도착: ${endAddress}`;
+
+                    const response = await fetch('/route_process', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ start_addr: startAddress, end_addr: endAddress })
+                    });
+                    const data = await response.json();
+                    if (data.error) {
+                        alert("경로를 가져오는 데 실패했습니다: " + data.error);
+                        return;
+                    }
+
+                    const routeCoordinates = data.coords;
+                    const totalDistance = data.totalDistance;
+                    const totalTime = data.totalTime;
+                    totalRouteDistance = totalDistance; // Store total distance
+
+                    if (routeCoordinates.length === 0) {
+                        alert("경로 데이터가 없습니다. 주소를 다시 확인해주세요.");
+                        return;
+                    }
+
+                    if (currentPolyline) currentPolyline.setMap(null);
+                    if (startMarker) startMarker.setMap(null);
+                    if (endMarker) endMarker.setMap(null);
+
+                    currentRoutePolylinePath = routeCoordinates.map(coord => new kakao.maps.LatLng(coord.lat, coord.lon));
+
+                    // Always center map on the start of the loaded route
+                    if (map && currentRoutePolylinePath.length > 0) {
+                        map.setCenter(currentRoutePolylinePath[0]);
+                    }
+
+                    currentPolyline = new kakao.maps.Polyline({
+                        path: currentRoutePolylinePath,
+                        strokeWeight: 5,
+                        strokeColor: '#FF3E00',
+                        strokeOpacity: 0.7,
+                        strokeStyle: 'solid'
+                    });
+                    currentPolyline.setMap(map);
+
+                    const startPoint = currentRoutePolylinePath[0];
+                    const endPoint = currentRoutePolylinePath[currentRoutePolylinePath.length - 1];
+
+                    const startImageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/red_b.png';
+                    const endImageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/blue_b.png';
+
+                    startMarker = new kakao.maps.Marker({
+                        position: startPoint,
+                        image: new kakao.maps.MarkerImage(
+                            startImageSrc,
+                            new kakao.maps.Size(24, 35),
+                            { offset: new kakao.maps.Point(12, 35) }
+                        )
+                    });
+                    startMarker.setMap(map);
+
+                    endMarker = new kakao.maps.Marker({
+                        position: endPoint,
+                        image: new kakao.maps.MarkerImage(
+                            endImageSrc,
+                            new kakao.maps.Size(24, 35),
+                            { offset: new kakao.maps.Point(12, 35) }
+                        )
+                    });
+                    endMarker.setMap(map);
+
+                    const bounds = new kakao.maps.LatLngBounds();
+                    currentRoutePolylinePath.forEach(point => bounds.extend(point));
+                    map.setBounds(bounds);
+
+                    document.getElementById('display-total-distance').textContent = `${(totalDistance / 1000).toFixed(1)}km`;
+                    document.getElementById('current-remaining-distance').textContent = `잔여 거리: ${(totalDistance / 1000).toFixed(1)}km`;
+
+                    const estimatedMinutes = Math.ceil(totalTime / 60);
+                    document.getElementById('display-estimated-time').textContent = `예상 ${estimatedMinutes}분`;
+                    const now = new Date();
+                    now.setMinutes(now.getMinutes() + estimatedMinutes);
+                    document.getElementById('current-eta').textContent = `예상 도착 시간: ${now.getHours() % 12 || 12}:${now.getMinutes().toString().padStart(2, '0')} ${now.getHours() >= 12 ? '오후' : '오전'}`;
+
+                } catch (error) {
+                    console.error("경로 데이터를 가져오거나 지도에 그리는 중 오류 발생:", error);
+                    alert("경로를 표시하는 데 문제가 생겼습니다. 개발자 도구(F12)의 콘솔 탭을 확인해주세요.");
+                }
+            }
+
+            // Initial route loading with default addresses
+            const defaultStartAddr = "서울 강남구 테헤란로 123";
+            const defaultEndAddr = "경기 성남시 분당구 판교역로 235";
+            loadAndDrawRoute(defaultStartAddr, defaultEndAddr);
+
+            // "경로 재검색" 버튼 클릭 이벤트
+            document.getElementById('re-route-button').addEventListener('click', function() {
+                const currentStartAddress = currentStartAddressElem.textContent.replace('출발지: ', '');
+                const currentEndAddress = currentEndAddressElem.textContent.replace('도착지: ', '');
+                loadAndDrawRoute(currentStartAddress, currentEndAddress);
+                alert("경로를 재검색합니다.");
+            });
+
+            // "다시 안내받기" 버튼 클릭 이벤트
+            document.querySelectorAll('.recent-route-item button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const startAddr = this.dataset.startAddr;
+                    const endAddr = this.dataset.endAddr;
+                    loadAndDrawRoute(startAddr, endAddr);
+                    alert(`새로운 경로를 안내합니다: ${startAddr} -> ${endAddr}`);
+                });
+            });
+        }); // kakao.maps.load 끝
+    }); // DOMContentLoaded 끝
+</script>
+
+{% endblock %}

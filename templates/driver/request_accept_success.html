@@ -1,0 +1,26 @@
+{% extends "driver_base.html" %}
+
+{% block title %}운송 요청 수락 완료 - 화물 AI 서비스{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto bg-white rounded-xl shadow-md p-8 space-y-6 mt-6 text-center">
+    <h2 class="text-3xl font-bold text-indigo-700 mb-4">운송 요청 수락 완료!</h2>
+    <p class="text-gray-700 text-lg">운송 요청이 성공적으로 수락되었습니다.<br>화주님이 확인 후 연락드릴 예정입니다.</p>
+
+    <div class="bg-gray-100 rounded-xl p-4 mt-4 text-left space-y-2">
+        <p class="text-gray-800 font-semibold">운송 구간:</p>
+        <p class="text-sm text-gray-600">서울 강남구 → 경기 성남시</p>
+        <p class="text-gray-800 font-semibold mt-2">예상 순수익:</p>
+        <p class="text-lg text-green-600 font-bold">85,000원</p>
+    </div>
+
+    {# 내비게이션 보기 버튼 추가 #}
+    <a href="{{ url_for('navigation_page') }}" class="inline-block w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition mt-4">
+        내비게이션 보기 🗺️
+    </a>
+
+    <a href="{{ url_for('driver_dashboard') }}" class="inline-block w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition mt-2">
+        홈으로 돌아가기
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "driver_base.html" %}
+
+{% block title %}정산 내역 - 화물 AI 서비스{% endblock %}
+
+{% block content %}
+<div id="driver-settlement-screen">
+    <div class="flex items-center mb-6">
+        <a href="{{ url_for('driver_dashboard') }}" class="back-btn text-gray-600 hover:text-indigo-600 p-1 mr-2">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        </a>
+        <h2 class="text-xl font-bold text-gray-800">정산 내역</h2>
+    </div>
+    <div class="bg-gray-50 p-4 rounded-xl mb-6"><div class="flex justify-between items-center"><span class="text-gray-600">이번 달 정산 예정 금액</span><span class="font-bold text-indigo-600 text-xl">3,450,000원</span></div></div>
+    <div class="space-y-4">
+        <div class="bg-white p-4 rounded-xl shadow-sm flex items-center"><div class="flex-grow"><p class="font-semibold text-gray-800">(주)가나다 물류</p><p class="text-sm text-gray-600">2025-07-08 | 가구 (165kg)</p><p class="text-lg font-bold text-gray-800 mt-1">103,000원</p></div><div class="flex items-center text-green-600"><svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg><span class="text-sm font-medium">정산 완료</span></div></div>
+        <div class="bg-white p-4 rounded-xl shadow-sm flex items-center"><div class="flex-grow"><p class="font-semibold text-gray-800">ABC 전자</p><p class="text-sm text-gray-600">2025-07-05 | 전자제품 (80kg)</p><p class="text-lg font-bold text-gray-800 mt-1">85,000원</p></div><div class="flex items-center text-yellow-600"><svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.414-1.415L11 9.586V6z" clip-rule="evenodd"></path></svg><span class="text-sm font-medium">정산 진행 중</span></div></div>
+        <div class="bg-white p-4 rounded-xl shadow-sm flex items-center"><div class="flex-grow"><p class="font-semibold text-gray-800">우리식품</p><p class="text-sm text-gray-600">2025-06-30 | 식품 (550kg)</p><p class="text-lg font-bold text-gray-800 mt-1">70,000원</p></div><div class="flex items-center text-green-600"><svg class="w-5 h-5 mr-1" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg><span class="text-sm font-medium">정산 완료</span></div></div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "driver_base.html" %}
+{% block title %}화주 리뷰 작성 - 화물 AI 서비스{% endblock %}
+{% block content %}
+
+<div class="max-w-xl mx-auto bg-white rounded-xl shadow-md p-6 space-y-6 mt-6">
+    <h2 class="text-2xl font-bold text-center text-gray-800">화주 리뷰 작성</h2>
+    <div class="flex flex-col items-center">
+        <img src="https://placehold.co/80x80/6366F1/FFFFFF?text=화주" class="rounded-full mb-3">
+        <p class="font-semibold text-lg text-gray-700">{{ match.company }}</p>
+    </div>
+
+    <form action="{{ url_for('submit_review_driver', match_id=match.id) }}" method="POST" class="space-y-6">
+
+        <!-- ⭐ 별점 선택 -->
+        <div class="text-center space-y-2">
+            <label class="block mb-1 font-medium text-gray-700">평점</label>
+            <div id="star-rating" class="flex flex-row-reverse justify-center space-x-reverse space-x-2">
+                {% for i in range(5, 0, -1) %}
+                <input type="radio" id="star{{i}}" name="score" value="{{i}}"
+                       class="absolute opacity-0 w-6 h-6 peer" required>
+                <label for="star{{i}}" class="text-3xl cursor-pointer text-gray-300 peer-checked:text-yellow-400">&#9733;</label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 키워드 선택 -->
+        <div>
+            <label class="block mb-2 font-medium text-gray-700">장점 키워드 (선택)</label>
+            <div class="flex flex-wrap gap-2 justify-center">
+                {% for keyword in ["친절함", "시간 엄수", "깔끔한 상차", "의사소통 원활", "추가 요청 적극적"] %}
+                <label class="cursor-pointer">
+                    <input type="checkbox" name="keywords" value="{{ keyword }}" class="hidden peer">
+                    <span class="peer-checked:bg-indigo-600 peer-checked:text-white px-3 py-1 rounded-full border border-gray-300 text-sm text-gray-700 hover:bg-indigo-100 transition">
+                        #{{ keyword }}
+                    </span>
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- 코멘트 입력 -->
+        <div>
+            <label class="block mb-2 font-medium text-gray-700">추가 코멘트</label>
+            <textarea name="comment" rows="4" class="w-full p-3 border rounded-xl focus:ring-2 focus:ring-indigo-500" placeholder="리뷰를 남겨주세요."></textarea>
+        </div>
+
+        <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition">
+            리뷰 제출
+        </button>
+    </form>
+</div>
+
+<!-- 별점 hover 효과 -->
+<style>
+#star-rating label:hover,
+#star-rating label:hover ~ label {
+    color: #facc15;
+}
+</style>
+
+{% endblock %}
