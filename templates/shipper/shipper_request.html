@@ -37,19 +37,19 @@
         </div>
 
         <div class="mb-4">
-            <label for="itemType" class="block mb-1 font-medium">물품 종류</label>
-            <select name="itemType" id="itemType" class="w-full px-4 py-2 border rounded">
+            <label for="cargo_info" class="block mb-1 font-medium">물품 종류</label>
+            <select name="cargo_info" id="cargo_info" class="w-full px-4 py-2 border rounded">
                 <option value="">선택하세요</option>
-                <option value="가구">가구</option>
-                <option value="가전제품">가전제품</option>
-                <option value="식품">식품</option>
+                <option value="일반">일반</option>
+                <option value="냉장">냉장</option>
+                <option value="냉동">냉동</option>
+                <option value="유해물질">유해물질</option>
                 <option value="위험물">위험물</option>
-                <option value="기타">기타</option>
             </select>
         </div>
         <div class="mb-6">
-            <label for="itemWeight" class="block mb-1 font-medium">화물 무게 (kg)</label>
-            <input type="number" name="itemWeight" id="itemWeight" class="w-full px-4 py-2 border rounded">
+            <label for="weight" class="block mb-1 font-medium">중량 (kg)</label>
+            <input type="number" name="weight" id="weight" class="w-full px-4 py-2 border rounded">
         </div>
         <button id="next-to-step-2" type="button" class="w-full py-3 bg-indigo-600 text-white rounded">다음</button>
     </div>
@@ -67,35 +67,36 @@
         </div>
         <div class="mb-4">
             <label>차량 타입</label>
-            <select name="vehicleType" id="vehicleType" class="w-full px-4 py-2 border rounded">
+            <select name="cargo_type" id="cargo_type" class="w-full px-4 py-2 border rounded">
                 <option value="">선택하세요</option>
                 <option value="카고">카고</option>
-                <option value="탑">탑</option>
+                <option value="탑차">탑차</option>
                 <option value="윙바디">윙바디</option>
-                <option value="리프트">리프트</option>
-                <option value="냉탑-냉동">냉동탑차</option>
-                <option value="냉탑-냉장">냉장탑차</option>
+                <option value="라보">라보</option>
+                <option value="다마스">다마스</option>
             </select>
         </div>
         <div class="mb-4">
-            <label for="pickupDate">상차 날짜</label>
+            <label for="pickupDate">희망 상차 날짜</label>
             <input type="date" id="pickupDate" name="pickupDate" class="w-full px-4 py-2 border rounded">
         </div>
         <div class="mb-4">
-            <label for="pickupTime">상차 시간</label>
+            <label for="pickupTime">희망 상차 시간</label>
             <input type="time" id="pickupTime" name="pickupTime" class="w-full px-4 py-2 border rounded">
         </div>
-        <div class="mb-4">
-            <label for="dropoffDate">하차 날짜</label>
-            <input type="date" id="dropoffDate" name="dropoffDate" class="w-full px-4 py-2 border rounded">
+        <div class="mb-6 flex items-center">
+            <input type="checkbox" id="fast_request" name="fast_request" class="form-checkbox h-5 w-5 text-indigo-600 rounded" value="1">
+            <label for="fast_request" class="ml-2 text-gray-700 font-medium">긴급 운송</label>
         </div>
         <div class="mb-4">
-            <label for="dropoffTime">하차 시간</label>
-            <input type="time" id="dropoffTime" name="dropoffTime" class="w-full px-4 py-2 border rounded">
+            <label for="special_request">요구 사항</label>
+            <textarea id="special_request" name="special_request" class="w-full px-4 py-2 border rounded" rows="4" placeholder="요청 사항을 입력하세요"></textarea>
         </div>
+
+
         <div class="mb-4">
-            <label for="fee">운임료(원)</label>
-            <input type="number" id="fee" name="fee" class="w-full px-4 py-2 border rounded">
+            <label for="price">운임료(원)</label>
+            <input type="number" id="price" name="price" class="w-full px-4 py-2 border rounded">
         </div>
         <button id="next-to-step-3" type="button" class="w-full py-3 bg-indigo-600 text-white rounded">다음</button>
     </div>
@@ -116,12 +117,13 @@
         <div class="text-lg space-y-2">
             <p><strong>출발지:</strong> <span id="confirm-origin"></span></p>
             <p><strong>도착지:</strong> <span id="confirm-destination"></span></p>
-            <p><strong>물품 종류:</strong> <span id="confirm-itemType"></span></p>
-            <p><strong>무게:</strong> <span id="confirm-itemWeight"></span> kg</p>
-            <p><strong>차량 타입:</strong> <span id="confirm-vehicleType"></span></p>
-            <p><strong>상차:</strong> <span id="confirm-pickupDate"></span> <span id="confirm-pickupTime"></span></p>
-            <p><strong>하차:</strong> <span id="confirm-dropoffDate"></span> <span id="confirm-dropoffTime"></span></p>
-            <p><strong>운임료:</strong> <span id="confirm-fee"></span> 원</p>
+            <p><strong>물품 종류:</strong> <span id="confirm-cargo_info"></span></p>
+            <p><strong>무게:</strong> <span id="confirm-weight"></span> kg</p>
+            <p><strong>차량 타입:</strong> <span id="confirm-cargo_type"></span></p>
+            <p><strong>상차시간 :</strong> <span id="confirm-pickupDate"></span> <span id="confirm-pickupTime"></span></p>
+            <p><strong>운송 방식:</strong> <span id="confirm-fast_request"></span></p>
+            <p><strong>요구사항:</strong> <span id="confirm-special_request"></span> </p>
+            <p><strong>운임료:</strong> <span id="confirm-price"></span> 원</p>
         </div>
 
         

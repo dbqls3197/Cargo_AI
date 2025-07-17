@@ -1,0 +1,23 @@
+{% extends "shipper_base.html" %}
+{% block title %}실시간 운송 현황{% endblock %}
+{% block contents %}
+<div id="shipper-tracking-screen" class="content-scrollable">
+    <!-- 뒤로가기 버튼 및 페이지 제목 -->
+    <div class="flex items-center mb-6">
+        <a href="{{ url_for('shipper_my_shipments')}}" class="back-btn text-gray-600 hover:text-indigo-600 p-1 mr-2">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        </a>
+        <h2 class="text-xl font-bold text-gray-800">실시간 운송 현황</h2>
+    </div>
+
+    <!-- 요청하신 문구가 표시되는 영역 -->
+    <div class="text-center p-8 bg-white rounded-xl shadow-sm">
+        <h3 class="text-lg font-semibold text-gray-800">TMAP 출발지 - 도착지 경로에 기사 현재 위치 표시</h3>
+        
+        <!-- TODO: 향후 이 곳에 TMAP API를 연동하여 지도를 표시할 수 있습니다. -->
+        <div class="mt-6 w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
+            <p class="text-gray-500">지도 표시 영역</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
