@@ -1,0 +1,71 @@
+{% extends 'public_base.html' %}
+
+{% block title %}회원가입 완료! - Cargo AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    .success-container {
+        max-width: 420px;
+        margin: 60px auto;
+        background-color: #ffffff;
+        padding: 40px 30px;
+        border-radius: 18px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+        text-align: center;
+        overflow: hidden;
+    }
+    .success-icon {
+        font-size: 4rem;
+        color: #28a745; /* 성공 녹색 */
+        margin-bottom: 20px;
+    }
+    .success-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #212529;
+        margin-bottom: 15px;
+    }
+    .success-message {
+        font-size: 1rem;
+        color: #495057;
+        line-height: 1.5;
+        margin-bottom: 30px;
+    }
+    .login-now-button {
+        display: inline-block;
+        width: 80%; /* 버튼 너비 조정 */
+        padding: 15px;
+        background-color: #2e6ffb;
+        color: #ffffff;
+        font-size: 1.1rem;
+        font-weight: bold;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(46, 111, 251, 0.3);
+    }
+    .login-now-button:hover {
+        background-color: #2457c8;
+        box-shadow: 0 6px 15px rgba(46, 111, 251, 0.4);
+    }
+</style>
+{% endblock %}
+
+{% block contents %}
+<div class="flex items-center justify-center min-h-screen p-4">
+    <div class="success-container">
+        <div class="success-icon"><i class="fa-solid fa-circle-check"></i></div>
+        <h2 class="success-title">회원가입 완료!</h2>
+        {# user_type에 따라 메시지를 동적으로 변경 #}
+        {% if user_type == 'shipper' %}
+            <p class="success-message">Cargo AI의 화주님으로 성공적으로 등록되었습니다.<br>지금 로그인하여 서비스를 시작해보세요!</p>
+        {% elif user_type == 'driver' %}
+            <p class="success-message">Cargo AI의 기사님으로 성공적으로 등록되었습니다.<br>지금 로그인하여 서비스를 시작해보세요!</p>
+        {% else %}
+            <p class="success-message">회원가입이 성공적으로 완료되었습니다.<br>지금 로그인하여 서비스를 시작해보세요!</p>
+        {% endif %}
+
+        <a href="{{ url_for('login') }}" class="login-now-button">로그인하러 가기</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}화물 AI 관제{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/dashboard.css') }}">
+
+    {% block head_extra %}{% endblock %}
+</head>
+<body class="p-4">
+    <div class="web-container">
+        <aside class="sidebar">
+            <h1 class="text-3xl font-extrabold text-indigo-400 mb-10">화물 AI 관제</h1>
+            <nav class="flex-grow">
+                <ul>
+                    <li class="mb-3"><a href="{{ url_for('admin_dashboard') }}" class="nav-link-item flex items-center"><i class="fas fa-chart-line w-5 h-5 mr-3"></i> 대시보드</a></li>
+                    <li class="mb-3"><a href="{{ url_for('admin_realtime') }}" class="nav-link-item flex items-center"><i class="fas fa-truck-moving w-5 h-5 mr-3"></i> 실시간 관제</a></li>
+                    <li class="mb-3"><a href="{{ url_for('admin_cargo_approval') }}" class="nav-link-item flex items-center"><i class="fas fa-box mr-3"></i> 화물 승인</a></li>
+                    <li class="mb-3"><a href="{{ url_for('admin_driver_approval') }}" class="nav-link-item flex items-center"><i class="fas fa-id-card mr-3"></i> 기사 승인</a></li>
+                    <li class="mb-3"><a href="{{ url_for('admin_user_management') }}" class="nav-link-item flex items-center"><i class="fas fa-users mr-3"></i> 사용자 관리</a></li>
+                    <li class="mb-3"><a href="{{ url_for('admin_reports') }}" class="nav-link-item flex items-center"><i class="fas fa-file-alt w-5 h-5 mr-3"></i> 보고서</a></li>
+                    <li class="mb-3"><a href="{{ url_for('admin_inquiry') }}" class="nav-link-item flex items-center"><i class="fas fa-question-circle w-5 h-5 mr-3"></i> 1:1 문의</a></li>
+                    <li class="mb-3"><a href="{{ url_for('admin_settings') }}" class="nav-link-item flex items-center"><i class="fas fa-cog w-5 h-5 mr-3"></i> 설정</a></li>
+                </ul>
+            </nav>
+            <a href="{{ url_for('logout') }}" class="w-full text-center bg-gray-700 text-gray-300 py-3 rounded-lg font-semibold hover:bg-gray-600"><i class="fas fa-sign-out-alt mr-2"></i> 로그아웃</a>
+        </aside>
+
+        <main class="content-area-wrapper">
+            {% with messages = get_flashed_messages() %}
+              {% if messages %}
+                <div class="flash-messages">
+                  {% for message in messages %}
+                    <div class="alert alert-info">{{ message }}</div>
+                  {% endfor %}
+                </div>
+              {% endif %}
+            {% endwith %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script>
+        // 현재 URL과 일치하는 메뉴에 활성 스타일을 적용합니다.
+        document.querySelectorAll('.nav-link-item').forEach(link => {
+            if (link.getAttribute('href') === window.location.pathname) {
+                link.classList.add('active-nav-link');
+            }
+        });
+    </script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

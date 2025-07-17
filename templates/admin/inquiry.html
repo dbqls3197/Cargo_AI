@@ -1,0 +1,47 @@
+{% extends "admin/dashboard_base.html" %}
+
+{% block title %}화물 AI 관제 - 1:1 문의{% endblock %}
+
+{% block head_extra %}
+    <!-- [수정] 이 페이지의 스타일을 위해 dashboard.css 파일을 불러옵니다. -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="content-area">
+    <h2 class="text-3xl font-bold text-gray-800 mb-8">1:1 문의 관리</h2>
+    <div class="bg-white p-6 rounded-xl shadow-lg">
+        <h3 class="text-2xl font-semibold text-gray-800 mb-5">전체 문의 내역</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="p-3 text-sm font-semibold text-gray-600">ID</th>
+                        <th class="p-3 text-sm font-semibold text-gray-600">발신자</th>
+                        <th class="p-3 text-sm font-semibold text-gray-600">유형</th>
+                        <th class="p-3 text-sm font-semibold text-gray-600">제목</th>
+                        <th class="p-3 text-sm font-semibold text-gray-600">상태</th>
+                        <th class="p-3 text-sm font-semibold text-gray-600">날짜</th>
+                    </tr>
+                </thead>
+                <tbody id="inquiry-table-body">
+                    <!-- JS로 문의 내역이 렌더링될 영역 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- 상세 보기 모달 (초기에는 숨겨져 있음) -->
+<div id="inquiry-modal-overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div id="inquiry-modal-content" class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl transform transition-transform duration-300 -translate-y-10">
+        <!-- JS로 모달 내용이 채워질 영역 -->
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <!-- 1:1 문의 전용 JS 파일을 불러옵니다. -->
+    <script src="{{ url_for('static', filename='js/inquiry.js') }}"></script>
+{% endblock %}

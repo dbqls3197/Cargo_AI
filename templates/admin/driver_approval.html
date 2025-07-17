@@ -1,0 +1,36 @@
+{% extends "admin/dashboard_base.html" %}
+
+{% block title %}화물 AI 관제 - 기사 승인{% endblock %}
+
+{% block head_extra %}
+    <!-- [수정] 이 페이지의 스타일을 위해 dashboard.css 파일을 불러옵니다. -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<div class="content-area">
+    <h2 class="text-3xl font-bold text-gray-800 mb-8">기사 승인 관리</h2>
+    <div class="bg-white p-6 rounded-xl shadow">
+        <table class="w-full table-auto text-left">
+            <thead>
+                <tr class="bg-gray-100 text-sm text-gray-600">
+                    <th class="p-3">기사 ID</th>
+                    <th class="p-3">이름</th>
+                    <th class="p-3">차량</th>
+                    <th class="p-3">상태</th>
+                    <th class="p-3 text-center">승인</th>
+                </tr>
+            </thead>
+            <tbody id="driverTable" class="divide-y divide-gray-200 bg-white">
+                <!-- JS에서 동적으로 데이터 삽입 -->
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <!-- 기사 승인 페이지 전용 JS 파일을 불러옵니다. -->
+    <script src="{{ url_for('static', filename='js/driver_approval.js') }}"></script>
+{% endblock %}
