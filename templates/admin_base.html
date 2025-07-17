@@ -20,11 +20,11 @@
         });
     </script>
     <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
-    <script>
-        if (localStorage.getItem('isLoggedIn') !== 'true') {
-            window.location.href = window.location.origin + '/';
-        }
-    </script>
+<!--    <script>-->
+<!--        if (localStorage.getItem('isLoggedIn') !== 'true') {-->
+<!--            window.location.href = window.location.origin + '/';-->
+<!--        }-->
+<!--    </script>-->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js" crossorigin="anonymous"></script>
     {% block extra_js %}

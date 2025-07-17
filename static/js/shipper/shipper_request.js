@@ -4,10 +4,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const step2 = document.getElementById("request-step-2");
     const step3 = document.getElementById("request-step-3");
 
-    // 단계 이동: 1 → 2
+    // 1 → 2
     document.getElementById("next-to-step-2").addEventListener("click", () => {
-        if (!document.getElementById("origin").value.trim() || !document.getElementById("destination").value.trim() ||
-            !document.getElementById("itemType").value || !document.getElementById("itemWeight").value.trim()) {
+        if (!document.getElementById("origin").value.trim() ||
+            !document.getElementById("destination").value.trim() ||
+            !document.getElementById("cargo_info").value ||
+            !document.getElementById("weight").value.trim()) {
             alert("모든 항목을 입력해주세요.");
             return;
         }
@@ -23,8 +25,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // 2 → 3
     document.getElementById("next-to-step-3").addEventListener("click", () => {
-        if (!document.getElementById("vehicleType").value || !document.getElementById("pickupDate").value ||
-            !document.getElementById("pickupTime").value || !document.getElementById("dropoffDate").value || !document.getElementById("dropoffTime").value) {
+        if (!document.getElementById("cargo_type").value ||
+            !document.getElementById("pickupDate").value ||
+            !document.getElementById("pickupTime").value ||
+            !document.getElementById("special_request").value.trim() ||
+            !document.getElementById("price").value.trim()) {
             alert("모든 항목을 입력해주세요.");
             return;
         }
@@ -32,14 +37,19 @@ document.addEventListener("DOMContentLoaded", () => {
         // 요약 텍스트 표시
         document.getElementById("confirm-origin").textContent = document.getElementById("origin").value;
         document.getElementById("confirm-destination").textContent = document.getElementById("destination").value;
-        document.getElementById("confirm-itemType").textContent = document.getElementById("itemType").value;
-        document.getElementById("confirm-itemWeight").textContent = document.getElementById("itemWeight").value;
-        document.getElementById("confirm-vehicleType").textContent = document.getElementById("vehicleType").value;
+        document.getElementById("confirm-cargo_info").textContent = document.getElementById("cargo_info").value;
+        document.getElementById("confirm-weight").textContent = document.getElementById("weight").value;
+        document.getElementById("confirm-cargo_type").textContent = document.getElementById("cargo_type").value;
         document.getElementById("confirm-pickupDate").textContent = document.getElementById("pickupDate").value;
         document.getElementById("confirm-pickupTime").textContent = document.getElementById("pickupTime").value;
-        document.getElementById("confirm-dropoffDate").textContent = document.getElementById("dropoffDate").value;
-        document.getElementById("confirm-dropoffTime").textContent = document.getElementById("dropoffTime").value;
-        document.getElementById("confirm-fee").textContent = document.getElementById("fee").value;
+        document.getElementById("confirm-special_request").textContent = document.getElementById("special_request").value;
+
+        // 긴급 여부 텍스트 표시
+        const isFastChecked = document.getElementById("fast_request").checked;
+        document.getElementById("confirm-fast_request").textContent = isFastChecked ? "긴급" : "일반";
+
+        document.getElementById("confirm-price").textContent = document.getElementById("price").value;
+
         step2.classList.add("hidden");
         step3.classList.remove("hidden");
     });
@@ -50,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
         step2.classList.remove("hidden");
     });
 
-    // 뒤로 가기 (대시보드)
+    // 대시보드로 이동
     document.getElementById("arrow-to-dashboard").addEventListener("click", () => {
         window.location.href = "/shipper/dashboard";
     });
@@ -65,14 +75,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const data = {
             origin: document.querySelector('#origin').value,
             destination: document.querySelector('#destination').value,
-            item_type: document.querySelector('#itemType').value,
-            item_weight: document.querySelector('#itemWeight').value,
-            vehicle_type: document.querySelector('#vehicleType').value,
+            cargo_info: document.querySelector('#cargo_info').value,
+            weight: document.querySelector('#weight').value,
+            cargo_type: document.querySelector('#cargo_type').value,
             pickup_date: document.querySelector('#pickupDate').value,
             pickup_time: document.querySelector('#pickupTime').value,
-            dropoff_date: document.querySelector('#dropoffDate').value,
-            dropoff_time: document.querySelector('#dropoffTime').value,
-            fee : document.querySelector('#fee').value
+            fast_request: document.querySelector('#fast_request').checked ? 1 : 0,
+            special_request: document.querySelector('#special_request').value,
+            price: document.querySelector('#price').value
         };
 
         fetch("/shipper/request/submit", {
@@ -94,7 +104,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 
-// 주소 검색
+// 주소 검색 함수
 window.searchAddress = function (targetInputId) {
     new daum.Postcode({
         oncomplete: function (data) {

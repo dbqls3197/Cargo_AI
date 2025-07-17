@@ -1,28 +1,169 @@
-{% extends "public_base.html" %}
-{% block title %} 홈페이지 {% endblock %}
-{% block contents %} 
-<div class="auth-container">
-    <div id="login-screen" class="auth-card">
-        <form action="{{ url_for('login') }}" method="POST">
-        <h2 class="text-3xl font-bold text-indigo-700 mb-6">화물 AI 로그인</h2>
-        <div class="mb-4 text-left">
-            <label for="user_id" class="block text-gray-700 text-sm font-semibold mb-2">사용자 id:</label>
-            <input type="text" id="user_id" name="user_id" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="사용자 이름 입력" required>
+{% extends 'public_base.html' %}
+
+{% block title %}화물 AI 서비스 - 스마트 물류 혁신의 시작{% endblock %}
+{% block contents %}
+<div class="intro-container">
+    {# 상단 헤더: 로고와 로그인/회원가입 버튼 #}
+    <header class="app-header">
+        <span class="app-logo">Cargo AI</span> {# 앱 이름 수정 #}
+        <div class="auth-buttons">
+            <a href="{{ url_for('login') }}" class="login-icon-btn"><i class="fa-solid fa-user"></i></a> {# 로그인 아이콘 버튼 #}
+            <a href="#" class="signup-icon-btn"><i class="fa-solid fa-user-plus"></i></a> {# 회원가입 아이콘 버튼 #}
         </div>
-        <div class="mb-6 text-left">
-            <label for="password" class="block text-gray-700 text-sm font-semibold mb-2">비밀번호:</label>
-            <input type="password" id="password" name="password" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="비밀번호 입력" required>
+    </header>
+
+    {# 히어로 섹션: 서비스의 핵심 메시지 #}
+    <div class="hero-section">
+        <img src="{{ url_for('static', filename='image/intro_hero.png') }}" alt="Cargo AI 서비스 배경" class="hero-image-overlay">
+        <div class="hero-content">
+            <h1 class="hero-main-title">AI가 제시하는<br>새로운 물류의 기준</h1>
+            <p class="hero-description">복잡한 운송 과정을 간소화하고, 투명하고 효율적인 화물 운송 경험을 제공합니다.</p>
+            <a href="{{ url_for('login') }}" class="hero-cta-button">서비스 시작하기</a> {# 회원가입 유형 선택 페이지로 연결 #}
         </div>
-        <button id="login-phone" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold mb-4 shadow-md hover:bg-indigo-700 transition">
-            로그인
-        </button>
-        <p class="text-gray-600 text-sm">
-            계정이 없으신가요? 
-            <a href="{{url_for('register')}}" id="signup-link" class="text-indigo-600 font-medium hover:underline">
-                새 계정 만들기
-            </a>
-        </p>
-        </form>
     </div>
+
+    {# 핵심 가치/장점 소개 섹션 #}
+    <div class="section-common">
+        <h2 class="section-title-lg">AI 기반 스마트 물류 플랫폼</h2>
+        <p class="section-subtitle-md">화주와 기사 모두에게 최적화된 솔루션으로 운송의 미래를 만들어갑니다.</p>
+        <div class="features-grid">
+            <div class="feature-item-card">
+                <div class="feature-icon-lg">📊</div> {# 아이콘은 Font Awesome 등으로 교체 권장 #}
+                <h3 class="feature-card-title">정교한 AI 매칭</h3>
+                <p class="feature-card-description">화물 종류, 적재량, 운송 경로, 차량 특성 등 다양한 데이터를 분석하여 최적의 매칭을 제공합니다.</p>
+            </div>
+            <div class="feature-item-card">
+                <div class="feature-icon-lg">⚡</div>
+                <h3 class="feature-card-title">신속하고 효율적인 운송</h3>
+                <p class="feature-card-description">불필요한 대기 시간과 공차 운행을 최소화하여 시간과 비용을 절감합니다.</p>
+            </div>
+            <div class="feature-item-card">
+                <div class="feature-icon-lg">🔒</div>
+                <h3 class="feature-card-title">안전하고 신뢰할 수 있는 서비스</h3>
+                <p class="feature-card-description">검증된 기사 네트워크와 실시간 추적 시스템으로 운송의 안정성을 보장합니다.</p>
+            </div>
+            <div class="feature-item-card">
+                <div class="feature-icon-lg">📈</div>
+                <h3 class="feature-card-title">투명한 운송 과정 및 정산</h3>
+                <p class="feature-card-description">모든 운송 과정과 정산 내역을 투명하게 공개하여 신뢰를 높입니다.</p>
+            </div>
+        </div>
+    </div>
+
+    {# 작동 방식 섹션 #}
+    <div class="section-common" style="background-color: #f6faff;"> {# 아주 연한 블루 배경 #}
+        <h2 class="section-title-lg">화물 AI 서비스, <br>이렇게 이용하세요!</h2>
+        <p class="section-subtitle-md">간단한 몇 단계만 거치면 스마트 운송을 시작할 수 있습니다.</p>
+        <div class="grid grid-cols-1 gap-6">
+            <div class="how-it-works-step">
+                <div class="step-number">STEP 01</div>
+                <h3 class="step-title">간편 회원가입 및 정보 등록</h3>
+                <p class="step-description">화주라면 화물 정보, 기사라면 차량 정보를 쉽고 <br>빠르게 등록합니다.</p>
+            </div>
+            <div class="how-it-works-step">
+                <div class="step-number">STEP 02</div>
+                <h3 class="step-title">AI 매칭 및 운송 요청/수락</h3>
+                <p class="step-description">AI가 최적의 매칭을 찾아주고, <br>화주는 운송 요청, 기사는 요청을 수락합니다.</p>
+            </div>
+            <div class="how-it-works-step">
+                <div class="step-number">STEP 03</div>
+                <h3 class="step-title">안전하고 빠른 운송 완료</h3>
+                <p class="step-description">실시간 추적과 안전한 운송을 통해 <br>목적지까지 화물을 전달합니다.</p>
+            </div>
+            <div class="how-it-works-step">
+                <div class="step-number">STEP 04</div>
+                <h3 class="step-title">간편 정산 및 리뷰</h3>
+                <p class="step-description">운송 완료 후 시스템을 통해 <br>간편하게 정산하고 상호 평가를 남깁니다.</p>
+            </div>
+        </div>
+    </div>
+
+    {# --- 새로 디자인된 고객 혜택 섹션 --- #}
+    <div class="benefits-section">
+        <h2 class="benefits-title">누구에게나 최고의 선택</h2>
+        <p class="benefits-subtitle">화주와 기사, 모두에게 혁신적인 가치를 제공합니다.</p>
+
+        <div class="user-type-card">
+            <div class="user-type-header">
+                <div class="user-type-icon">📦</div> {# 화주 아이콘 #}
+                <h3 class="user-type-title">화주를 위한 혜택</h3>
+            </div>
+            <ul class="benefit-list">
+                <li class="benefit-list-item">
+                    <div class="benefit-icon-sm">✔</div>
+                    <div class="benefit-text-wrapper">
+                        <h4 class="benefit-item-title">운송 효율 극대화</h4>
+                        <p class="benefit-item-description">AI 기반으로 최적 운임을 산정하고, <br>가장 빠른 운송 경로를 제시합니다.</p>
+                    </div>
+                </li>
+                <li class="benefit-list-item">
+                    <div class="benefit-icon-sm">✔</div>
+                    <div class="benefit-text-wrapper">
+                        <h4 class="benefit-item-title">간편한 운송 관리</h4>
+                        <p class="benefit-item-description">앱 하나로 운송 요청, 실시간 추적, <br>정산까지 모든 과정을 관리합니다.</p>
+                    </div>
+                </li>
+                <li class="benefit-list-item">
+                    <div class="benefit-icon-sm">✔</div>
+                    <div class="benefit-text-wrapper">
+                        <h4 class="benefit-item-title">안전한 화물 보호</h4>
+                        <p class="benefit-item-description">신뢰할 수 있는 기사 네트워크와 체계적인 <br>보험 시스템을 갖춥니다.</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="user-type-card">
+            <div class="user-type-header">
+                <div class="user-type-icon">🚚</div> {# 기사 아이콘 #}
+                <h3 class="user-type-title">기사를 위한 혜택</h3>
+            </div>
+            <ul class="benefit-list">
+                <li class="benefit-list-item">
+                    <div class="benefit-icon-sm">✔</div>
+                    <div class="benefit-text-wrapper">
+                        <h4 class="benefit-item-title">수익 증대 기회</h4>
+                        <p class="benefit-item-description">다양한 운송 건을 제공하고, <br>효율적인 배차로 공차율을 낮춥니다.</p>
+                    </div>
+                </li>
+                <li class="benefit-list-item">
+                    <div class="benefit-icon-sm">✔</div>
+                    <div class="benefit-text-wrapper">
+                        <h4 class="benefit-item-title">개인 맞춤형 배차</h4>
+                        <p class="benefit-item-description">차량과 운행 선호도에 맞춰 가장 적합한 운송을 제안합니다.</p>
+                    </div>
+                </li>
+                <li class="benefit-list-item">
+                    <div class="benefit-icon-sm">✔</div>
+                    <div class="benefit-text-wrapper">
+                        <h4 class="benefit-item-title">간편한 업무 환경</h4>
+                        <p class="benefit-item-description">앱 하나로 배차, 내비게이션, 정산까지 <br>모든 업무를 편리하게 처리합니다.</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    {# --- 고객 혜택 섹션 끝 --- #}
+
+    {# 마무리 CTA 섹션 #}
+    <div class="final-cta-section flex-grow">
+        <h2 class="final-cta-title">지금 바로 Cargo AI <br>서비스와 함께하세요!</h2>
+
+        <div class="final-cta-button-group">
+            <a href="{{ url_for('login') }}" class="final-cta-button login">로그인</a>
+            <a href="#" class="final-cta-button signup">회원가입</a> {# 실제 회원가입 라우트 연결 필요 #}
+        </div>
+    </div>
+
+    {# 푸터 #}
+    <footer class="bg-gray-800 text-white text-center p-5 text-sm flex-shrink-0">
+        <p>&copy; 2025 화물 AI 서비스. All rights reserved.</p>
+    </footer>
 </div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+    // 추가적인 JavaScript (예: 스크롤 애니메이션 라이브러리, 이미지 슬라이더 등)
+</script>
 {% endblock %}

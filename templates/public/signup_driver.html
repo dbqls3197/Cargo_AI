@@ -1,0 +1,506 @@
+{% extends 'public_base.html' %}
+
+{% block title %}기사 회원가입 - Cargo AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 회원가입 페이지 공통 컨테이너 스타일 */
+    .signup-container {
+        max-width: 420px; /* 모바일 화면에 적합한 너비 */
+        margin: 40px auto; /* 상하 여백 조정 */
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 18px; /* 부드러운 모서리 */
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); /* 깊이감 있는 그림자 */
+        text-align: center;
+        overflow: hidden; /* 내부 요소 넘침 방지 */
+    }
+
+    /* 제목 스타일 */
+    .signup-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #212529; /* dark-text */
+        margin-bottom: 25px; /* 하단 여백 */
+        line-height: 1.4;
+    }
+    .signup-subtitle {
+        font-size: 1rem;
+        color: #495057; /* medium-text */
+        margin-bottom: 30px;
+    }
+
+    /* 진행 바 스타일 */
+    .progress-bar-container {
+        width: 100%;
+        background-color: #e0e8f0; /* 연한 회색 배경 */
+        border-radius: 10px;
+        height: 8px; /* 바 높이 */
+        margin-bottom: 30px;
+        overflow: hidden; /* 내부 오버플로우 방지 */
+    }
+    .progress-bar-fill {
+        height: 100%;
+        width: 0%; /* JavaScript로 동적 변경 */
+        background-color: #2e6ffb; /* primary-blue */
+        border-radius: 10px;
+        transition: width 0.5s ease-in-out; /* 부드러운 전환 효과 */
+    }
+    .progress-text {
+        font-size: 0.85rem;
+        color: #495057;
+        margin-bottom: 10px;
+        text-align: right;
+    }
+
+    /* 폼 섹션 (단계별로 숨김/보임) */
+    .form-section {
+        display: none; /* 기본 숨김 */
+    }
+    .form-section.active {
+        display: block; /* 활성 단계만 보임 */
+    }
+
+    /* 입력 필드 스타일 */
+    .input-field {
+        width: 100%;
+        padding: 15px;
+        margin-bottom: 15px;
+        border: 1px solid #e0e8f0;
+        border-radius: 10px; /* 둥근 모서리 */
+        font-size: 1rem;
+        color: #212529;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .input-field:focus {
+        outline: none;
+        border-color: #2e6ffb; /* 포커스 시 테두리 색상 변경 */
+        box-shadow: 0 0 0 3px rgba(46, 111, 251, 0.2); /* 포커스 시 그림자 */
+    }
+
+    /* 라디오/체크박스 그룹 */
+    .radio-group {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 15px;
+        gap: 10px;
+    }
+    .radio-group label {
+        flex: 1;
+        background-color: #f0f4f8;
+        padding: 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid #e0e8f0;
+        font-weight: 500;
+        color: #495057;
+    }
+    .radio-group input[type="radio"] {
+        display: none; /* 기본 라디오 버튼 숨김 */
+    }
+    .radio-group input[type="radio"]:checked + label {
+        background-color: #2e6ffb; /* 선택 시 배경색 */
+        color: #ffffff;
+        border-color: #2e6ffb;
+        box-shadow: 0 2px 8px rgba(46, 111, 251, 0.3);
+    }
+
+    /* 파일 업로드 버튼 (프로필 사진) */
+    .file-upload-label {
+        display: block;
+        width: 100%;
+        padding: 15px;
+        background-color: #f0f4f8;
+        color: #2e6ffb;
+        border: 1px dashed #2e6ffb; /* 점선 테두리 */
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: bold;
+        transition: all 0.2s ease;
+        margin-bottom: 15px;
+    }
+    .file-upload-label:hover {
+        background-color: #eaf2ff;
+    }
+    .file-upload-label i {
+        margin-right: 10px;
+    }
+    #profile_picture_display {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin: 0 auto 15px auto;
+        border: 2px solid #e0e8f0;
+        display: none; /* 기본 숨김 */
+    }
+
+
+    /* 버튼 그룹 (이전/다음/완료) */
+    .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    .button-group button {
+        flex: 1;
+        padding: 15px;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s, box-shadow 0.2s;
+    }
+    .next-button {
+        background-color: #2e6ffb;
+        color: #ffffff;
+        box-shadow: 0 4px 10px rgba(46, 111, 251, 0.3);
+    }
+    .next-button:hover {
+        background-color: #2457c8;
+        box-shadow: 0 6px 15px rgba(46, 111, 251, 0.4);
+    }
+    .prev-button {
+        background-color: #cccccc;
+        color: #ffffff;
+    }
+    .prev-button:hover {
+        background-color: #aaaaaa;
+    }
+    .submit-button { /* 최종 완료 버튼 */
+        background-color: #28a745; /* 성공 녹색 */
+        color: #ffffff;
+        box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+    }
+    .submit-button:hover {
+        background-color: #218838;
+        box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
+    }
+
+    /* 하단 링크 */
+    .back-link {
+        margin-top: 20px;
+        font-size: 0.9rem;
+        color: #495057;
+    }
+    .back-link a {
+        color: #2e6ffb;
+        text-decoration: none;
+        font-weight: 700;
+    }
+    .back-link a:hover {
+        text-decoration: underline;
+    }
+    .address-input-wrapper {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .address-search-btn {
+        padding: 10px 16px;
+        height: 48px;
+        font-size: 0.95rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 10px;
+        background-color: #4c51bf;
+        color: #fff;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .address-search-btn:hover {
+        background-color: #3e44a0;
+    }
+
+    .input-label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #212529;
+        text-align: left;
+    }
+    .bg-container {
+        position: relative;
+        background-image: url("{{ url_for('static', filename='image/intro_hero.png') }}");
+        background-size: cover;
+        background-position: bottom; /* ✅ 하단에서부터 보이도록 */
+        background-repeat: no-repeat;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .bg-container::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.4);  /* ✅ 흐림 효과용 반투명 필터 */
+        backdrop-filter: blur(1px);            /* ✅ 실제 blur 효과 */
+        z-index: 1;
+    }
+
+    .signup-container {
+        position: relative;
+        z-index: 2;  /* ✅ 배경 위에 보이도록 */
+    }
+</style>
+{% endblock %}
+
+{% block contents %}
+<div class="bg-container">  {# ✅ 배경 이미지 적용된 컨테이너 #}
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="signup-container">
+            <h2 class="signup-title">기사 회원가입</h2>
+            <p class="signup-subtitle">Cargo AI의 운전 기사로 등록하고<br>최적의 운송 기회를 잡으세요!</p>
+
+            <div class="progress-text"><span id="current_step">1</span> / <span id="total_steps">6</span>단계</div> {# 총 단계 6으로 변경 #}
+            <div class="progress-bar-container">
+                <div id="progress_bar_fill" class="progress-bar-fill"></div>
+            </div>
+
+            <form id="signup_form" action="/do_signup_driver" method="post" enctype="multipart/form-data">
+                {# 1단계: 기본 정보 #}
+                <div id="step_1" class="form-section active">
+                    <input type="text" name="name" placeholder="이름" class="input-field" required>
+                    <input type="text" name="username" placeholder="아이디" class="input-field" required>
+                    <input type="password" name="password" placeholder="비밀번호" class="input-field" required>
+                    <input type="password" name="confirm_password" placeholder="비밀번호 확인" class="input-field" required>
+                    <input type="text" name="nickname" placeholder="닉네임" class="input-field" required>
+                </div>
+
+                {# 2단계: 연락 정보 #}
+                <div id="step_2" class="form-section">
+                    <input type="tel" name="phone_number" placeholder="전화번호 (예: 010-1234-5678)" class="input-field" required>
+                    <input type="email" name="email" placeholder="이메일" class="input-field" required>
+                    <label for="birthdate" class="block text-left text-sm font-semibold text-gray-700 mb-1">생년월일</label>
+                    <input type="date" id="birthdate" name="birthdate" class="input-field" required>
+                    <div class="radio-group">
+                        <input type="radio" id="gender_male" name="gender" value="male" required><label for="gender_male">남성</label>
+                        <input type="radio" id="gender_female" name="gender" value="female"><label for="gender_female">여성</label>
+                    </div>
+                </div>
+
+                {# 3단계: 주소 정보 #}
+                <div id="step_3" class="form-section">
+                    <div class="address-group">
+                        <label for="address" class="text-left input-label">주소</label>
+                        <div class="address-input-wrapper">
+                            <input type="text" id="address" name="address" placeholder="주소를 입력해주세요" class="input-field" readonly required>
+                            <button type="button" onclick="execDaumPostcode()" class="address-search-btn">주소 검색</button>
+                        </div>
+                    </div>
+                </div>
+
+                {# 4단계: 사업자 정보 #}
+                <div id="step_4" class="form-section">
+                    <input type="text" name="business_name" placeholder="사업자명" class="input-field" required>
+                    <input type="text" name="business_number" placeholder="사업자번호 (예: 123-45-67890)" class="input-field" required>
+                </div>
+
+                {# 5단계: 프로필 사진 #}
+                <div id="step_5" class="form-section">
+                    <img id="profile_picture_display" src="" alt="프로필 사진 미리보기">
+                    <input type="file" id="profile_picture" name="profile_picture" accept="image/*" style="display: none;">
+                    <label for="profile_picture" class="file-upload-label">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> 프로필 사진 업로드
+                    </label>
+                    <p class="text-sm text-medium-text">선명한 본인 사진을 업로드해주세요.</p>
+                </div>
+
+                {# 6단계: 차량 등록 (빈 섹션 - JavaScript에서 특별 처리) #}
+                <div id="step_6" class="form-section">
+                    <h3 class="signup-title text-base">차량 정보 등록</h3>
+                    <p class="signup-subtitle">기사님 차량 정보를 등록해 주세요.</p>
+                    {# 이 섹션은 실제로는 driver_vehicle_setup.html로 리디렉션되기 때문에 비워둡니다. #}
+                    {# 사용자에게 다음 단계로 이동한다는 메시지 또는 로딩 스피너를 보여줄 수 있습니다. #}
+                    <p class="text-medium-text mt-5">잠시 후 차량 등록 페이지로 이동합니다.</p>
+                </div>
+
+
+                {# 버튼 그룹 #}
+                <div class="button-group">
+                    <button type="button" id="prev_button" class="prev-button">이전</button>
+                    <button type="button" id="next_button" class="next-button">다음</button>
+                    <button type="submit" id="submit_button" class="submit-button" style="display: none;">가입 완료</button>
+                </div>
+            </form>
+
+            <p class="back-link">이미 계정이 있으신가요? <a href="{{ url_for('login') }}">로그인</a></p>
+            <p class="back-link"><a href="{{ url_for('user_type_select') }}">뒤로가기</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script>
+    let currentStep = 1;
+    const totalSteps = 6; // 총 단계 6으로 변경
+    const formSections = document.querySelectorAll('.form-section');
+    const progressBarFill = document.getElementById('progress_bar_fill');
+    const currentStepText = document.getElementById('current_step');
+    const totalStepsText = document.getElementById('total_steps');
+    const prevButton = document.getElementById('prev_button');
+    const nextButton = document.getElementById('next_button');
+    const submitButton = document.getElementById('submit_button');
+    const profilePictureInput = document.getElementById('profile_picture');
+    const profilePictureDisplay = document.getElementById('profile_picture_display');
+    const form = document.getElementById('signup_form');
+
+    // 폼 유효성 검사 함수
+    function validateStep(step) {
+        const currentSection = document.getElementById(`step_${step}`);
+        const inputs = currentSection.querySelectorAll('input[required], select[required], textarea[required]');
+        let isValid = true;
+
+        inputs.forEach(input => {
+            if (!input.value.trim()) {
+                isValid = false;
+                input.style.borderColor = 'red'; /* 시각적 피드백 */
+            } else {
+                input.style.borderColor = '#e0e8f0';
+            }
+        });
+
+        // 비밀번호 확인 로직 (1단계)
+        if (step === 1) {
+            const passwordInput = currentSection.querySelector('input[name="password"]');
+            const confirmPasswordInput = currentSection.querySelector('input[name="confirm_password"]');
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            if (password !== confirmPassword) {
+                isValid = false;
+                alert('비밀번호와 비밀번호 확인이 일치하지 않습니다.');
+                confirmPasswordInput.style.borderColor = 'red';
+            } else {
+                confirmPasswordInput.style.borderColor = '#e0e8f0';
+            }
+        }
+
+        // 성별 라디오 버튼 확인 (2단계)
+        if (step === 2) {
+            const genderRadios = currentSection.querySelectorAll('input[name="gender"]');
+            let genderSelected = false;
+            genderRadios.forEach(radio => {
+                if (radio.checked) {
+                    genderSelected = true;
+                }
+            });
+            if (!genderSelected) {
+                isValid = false;
+                alert('성별을 선택해주세요.');
+            }
+        }
+
+        // 5단계 (프로필 사진) 유효성 검사 - 파일이 선택되었는지
+        if (step === 5) {
+            if (!profilePictureInput.files.length) {
+                isValid = false;
+                alert('프로필 사진을 업로드해주세요.');
+                document.querySelector('.file-upload-label').style.borderColor = 'red';
+            } else {
+                document.querySelector('.file-upload-label').style.borderColor = '#2e6ffb';
+            }
+        }
+
+        return isValid;
+    }
+
+    // 단계 업데이트 함수
+    function updateStep() {
+        // 모든 섹션 숨김
+        formSections.forEach(section => section.classList.remove('active'));
+        // 현재 단계 섹션만 보임
+        document.getElementById(`step_${currentStep}`).classList.add('active');
+
+        // 진행 바 업데이트
+        const progress = (currentStep / totalSteps) * 100;
+        progressBarFill.style.width = `${progress}%`;
+        currentStepText.textContent = currentStep;
+
+        // 버튼 가시성 제어
+        prevButton.style.display = (currentStep === 1) ? 'none' : 'block';
+
+        // 5단계까지는 '다음' 버튼, 6단계에서는 '가입 완료' 버튼 (이후 리다이렉트)
+        if (currentStep < totalSteps) {
+            nextButton.style.display = 'block';
+            submitButton.style.display = 'none';
+        } else { // currentStep === totalSteps (6단계)
+            nextButton.style.display = 'none';
+            submitButton.style.display = 'block';
+        }
+    }
+
+    // 다음 버튼 클릭
+    nextButton.addEventListener('click', () => {
+        if (validateStep(currentStep)) {
+            currentStep++;
+            updateStep();
+            // 5단계에서 6단계로 넘어가면 자동 리다이렉트 또는 안내
+            if (currentStep === 6) {
+                // 6단계로 넘어왔을 때 (프로필 사진 업로드 후), 바로 차량 등록 페이지로 리디렉션
+                // 실제 폼 데이터를 전송해야 하므로, 여기에 최종 제출 로직을 트리거합니다.
+                // alert('프로필 사진 업로드 완료! 차량 등록 페이지로 이동합니다.'); // 임시 안내
+                form.submit(); // 폼을 자동으로 제출하여 서버로 데이터 전송
+            }
+        } else {
+            alert('모든 필수 정보를 입력해주세요.');
+        }
+    });
+
+    // 이전 버튼 클릭
+    prevButton.addEventListener('click', () => {
+        currentStep--;
+        updateStep();
+    });
+
+    // 프로필 사진 미리보기 기능
+    profilePictureInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                profilePictureDisplay.src = e.target.result;
+                profilePictureDisplay.style.display = 'block'; // 이미지 보이기
+            };
+            reader.readAsDataURL(file);
+        } else {
+            profilePictureDisplay.src = '';
+            profilePictureDisplay.style.display = 'none'; // 이미지 숨기기
+        }
+    });
+
+    // 폼 제출 (submit_button 클릭 시 또는 5단계에서 다음 버튼 클릭 시)
+    // 이 이벤트 리스너는 이제 6단계에서 '가입 완료' 버튼을 눌렀을 때만 발동되거나,
+    // 5단계에서 '다음' 버튼을 눌러 6단계로 넘어갈 때 form.submit()을 통해 발동됩니다.
+    form.addEventListener('submit', (event) => {
+        // 6단계에서의 유효성 검사는 필요 없지만, 혹시 모를 경우를 대비
+        // 여기서는 폼이 submit되면 서버로 데이터를 보낸 후 리디렉션을 서버가 처리하도록 합니다.
+        alert('회원가입 절차가 완료되었습니다! 차량 등록 페이지로 이동합니다.'); // 임시 안내
+        // event.preventDefault(); // 서버 전송을 막지 않음
+    });
+
+    // 초기화
+    updateStep();
+</script>
+<script>
+function execDaumPostcode() {
+    new daum.Postcode({
+        oncomplete: function(data) {
+            // 선택한 주소 값을 가져와 input에 세팅
+            document.getElementById('address').value = data.address;
+        }
+    }).open();
+}
+</script>
+{% endblock %}

@@ -1,8 +1,5 @@
 {% extends "shipper_base.html" %}
 {% block title %}화주페이지{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
-{% endblock %}
 {% block contents %}
 <div id="shipper-app" class="app-container">
     <div id="shipper-main-screen" class="content-scrollable">
@@ -31,68 +28,25 @@
             <h3 class="text-lg font-semibold text-gray-800 mb-3">내 운송 내역</h3>
             <div class="flex justify-between items-center text-gray-600 mb-2">
                 <span>총 신청 건수</span>
-                <span class="font-bold text-indigo-600">{{ all_count}} 건</span>
+                <span class="font-bold text-indigo-600"> 건</span>
             </div>
             <div class="flex justify-between items-center text-gray-600 mb-2">
                 <span>진행 중</span>
-                <span class="font-bold text-indigo-600">{{ in_progress_count }} 건</span>
+                <span class="font-bold text-indigo-600"> 건</span>
             </div>
             <div class="flex justify-between items-center text-gray-600">
                 <span>완료된 운송</span>
-                <span class="font-bold">{{ completed_count }} 건</span>
+                <span class="font-bold"> 건</span>
             </div>
-            
-
-            <div class="relative mt-8">
-                <!-- Swiper 슬라이더 -->
-                <div class="swiper mySwiper w-full max-w-[360px] mx-auto overflow-hidden">
-                    <div class="swiper-wrapper">
-                        {% for ip in in_progress %}
-                        <div class="swiper-slide w-full">
-                        <div class="p-5 bg-white rounded-xl hover:scale-105">
-                            <p class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-semibold w-fit mb-2">
-                            🚚 운송 중
-                            </p>
-                            <p><strong class="text-gray-700">신청시간</strong>: {{ ip.created_at.strftime('%Y%m%d %H:%M:%S') }}</p>
-                            <p><strong class="text-gray-700">출발지</strong>: {{ ip.origin }}</p>
-                            <p><strong class="text-gray-700">도착지</strong>: {{ ip.destination }}</p>
-                            <p><strong class="text-gray-700">상차 예정</strong>: {{ ip.dropoff_date }} {{ ip.dropoff_time }}</p>
-                        </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <!-- 왼쪽 화살표 -->
-                <div class="absolute -left-5 top-1/2 transform -translate-y-1/2 z-10 swiper-button-prev-custom">
-                    <svg class="w-5 h-5 text-gray-400 hover:text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                    </svg>
-                </div>
-
-                <!-- 오른쪽 화살표 -->
-                <div class="absolute -right-5 top-1/2 transform -translate-y-1/2 z-10 swiper-button-next-custom">
-                    <svg class="w-5 h-5 text-gray-400 hover:text-indigo-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                </div>
+            {% for ip in in_progress %}
+            <div class="mt-4 p-3 bg-white rounded-lg shadow-sm">
+                <p class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium whitespace-nowrap w-fit mb-2">🚚 운송 중</p>
+                <p class="text-sm text-gray-500">신청시간 : <p>
+                <p class="text-sm text-gray-500">출발지 :  </p>
+                <p class="text-sm text-gray-500">도착지 : </p>
+                <p class="text-sm text-gray-500">상차 예정 시간 : </p>
             </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+            {% endfor %}
         </div>
     </div>
 </div>
@@ -129,21 +83,4 @@
         <span class="text-xs mt-1">마이페이지</span>
    </a>
 </div>
-{% endblock %}
-{% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-  new Swiper(".mySwiper", {
-    slidesPerView: 1,
-    centeredSlides: true,
-    spaceBetween: 0,
-    loop: false,
-    navigation: {
-      nextEl: ".swiper-button-next-custom",
-      prevEl: ".swiper-button-prev-custom",
-    }
-  });
-});
-</script>
 {% endblock %}

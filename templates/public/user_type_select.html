@@ -1,0 +1,132 @@
+{% extends 'public_base.html' %}
+
+{% block title %}회원가입 유형 선택 - Cargo AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 페이지 중앙 정렬 및 컨테이너 스타일 */
+    .select-container {
+    width: 100%;
+    max-width: 400px; /* ✅ 로그인 카드와 동일하게 맞춤 */
+    background-color: #ffffff;
+    padding: 32px; /* ✅ 로그인 페이지 카드 padding과 동일하게 */
+    border-radius: 16px; /* ✅ 로그인 카드의 둥근 모서리와 동일하게 */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* ✅ 로그인 카드와 동일한 그림자 */
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+    z-index: 10;
+    }
+
+    .select-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #4c51bf;
+    margin-bottom: 24px;
+    }
+
+    /* 버튼 그룹 레이아웃 */
+    .type-button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 15px; /* 버튼 간 간격 통일 */
+    }
+
+    /* 각 버튼 스타일 */
+    .type-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 18px; /* 패딩 조정 (로그인 버튼과 유사하게) */
+        background-color: #eaf2ff; /* 로그인 페이지의 로그인 버튼 연한 배경색 (유사하게 적용) */
+        border: none; /* 테두리 제거 (로그인 버튼과 유사) */
+        border-radius: 8px; /* 로그인 버튼과 동일한 둥근 모서리 */
+        text-decoration: none;
+        color: #212529; /* 텍스트 색상 */
+        font-size: 1.05rem; /* 폰트 크기 조정 */
+        font-weight: bold; /* 굵게 */
+        transition: all 0.2s ease; /* 로그인 버튼과 동일한 전환 효과 */
+        box-shadow: none; /* 버튼 그림자 제거 (로그인 버튼과 유사) */
+    }
+
+    /* 버튼 호버 시 효과 */
+    .type-button:hover {
+        background-color: #dbe7ff; /* 로그인 버튼 호버와 유사한 색상 */
+        transform: none; /* 호버 시 이동 효과 제거 */
+        box-shadow: none; /* 호버 시 그림자도 없음 */
+    }
+
+    /* 버튼 내 Font Awesome 아이콘 스타일 */
+    .type-button i {
+        font-size: 1.6rem; /* 아이콘 크기 조정 (로그인 버튼의 텍스트와 어울리게) */
+        margin-right: 15px;
+        color: #4c51bf; /* 로그인 페이지의 메인 파란색 (#4c51bf)으로 통일 */
+        transition: color 0.2s ease;
+    }
+    .type-button:hover i {
+        color: #3e44a0; /* 호버 시 아이콘 색상 변경 (로그인 버튼과 유사) */
+    }
+
+    /* 하단 로그인 링크 스타일 */
+    .back-to-login {
+        margin-top: 25px; /* 상단 여백 조정 */
+        font-size: 0.9rem; /* 폰트 크기 */
+        color: #495057; /* medium-text */
+    }
+    .back-to-login a {
+        color: #4c51bf; /* 로그인 페이지 링크와 동일 */
+        font-weight: bold; /* 굵게 */
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+    .back-to-login a:hover {
+        text-decoration: underline;
+        color: #3e44a0;
+    }
+
+    .bg-container {
+        background-image: url("/static/image/intro_hero.png");  /* 배경 이미지 */
+        background-size: cover;
+        background-position: bottom;
+        background-repeat: no-repeat;
+        min-height: 100vh;
+        position: relative;
+    }
+
+    .bg-container::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.6); /* 흐린 흰색 오버레이 */
+        z-index: 1;
+    }
+
+    
+
+
+    /* 나머지 기존 스타일 그대로 */
+</style>
+{% endblock %}
+
+{% block contents %}
+<div class="bg-container">
+
+    {# flexbox를 사용하여 화면 높이만큼 늘리고 내용을 중앙 정렬 #}
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="select-container">
+            <h2 class="select-title">어떤 유형으로<br>회원가입하시겠어요?</h2>
+            <div class="type-button-group">
+                <a href="{{ url_for('signup_page', user_type='shipper') }}" class="type-button">
+                    <i class="fa-solid fa-box-open"></i> 화주로 가입
+                </a>
+                <a href="{{ url_for('signup_page', user_type='driver') }}" class="type-button">
+                    <i class="fa-solid fa-truck-fast"></i> 기사로 가입
+                </a>
+            </div>
+            <p class="back-to-login">
+                이미 계정이 있으신가요? <a href="{{ url_for('login') }}">로그인</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
