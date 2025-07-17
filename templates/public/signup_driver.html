@@ -226,89 +226,116 @@
         color: #212529;
         text-align: left;
     }
+    .bg-container {
+        position: relative;
+        background-image: url("{{ url_for('static', filename='image/intro_hero.png') }}");
+        background-size: cover;
+        background-position: bottom; /* ✅ 하단에서부터 보이도록 */
+        background-repeat: no-repeat;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .bg-container::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.4);  /* ✅ 흐림 효과용 반투명 필터 */
+        backdrop-filter: blur(1px);            /* ✅ 실제 blur 효과 */
+        z-index: 1;
+    }
+
+    .signup-container {
+        position: relative;
+        z-index: 2;  /* ✅ 배경 위에 보이도록 */
+    }
 </style>
 {% endblock %}
 
 {% block contents %}
-<div class="flex items-center justify-center min-h-screen p-4">
-    <div class="signup-container">
-        <h2 class="signup-title">기사 회원가입</h2>
-        <p class="signup-subtitle">Cargo AI의 운전 기사로 등록하고<br>최적의 운송 기회를 잡으세요!</p>
+<div class="bg-container">  {# ✅ 배경 이미지 적용된 컨테이너 #}
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="signup-container">
+            <h2 class="signup-title">기사 회원가입</h2>
+            <p class="signup-subtitle">Cargo AI의 운전 기사로 등록하고<br>최적의 운송 기회를 잡으세요!</p>
 
-        <div class="progress-text"><span id="current_step">1</span> / <span id="total_steps">6</span>단계</div> {# 총 단계 6으로 변경 #}
-        <div class="progress-bar-container">
-            <div id="progress_bar_fill" class="progress-bar-fill"></div>
-        </div>
-
-        <form id="signup_form" action="/do_signup_driver" method="post" enctype="multipart/form-data">
-            {# 1단계: 기본 정보 #}
-            <div id="step_1" class="form-section active">
-                <input type="text" name="name" placeholder="이름" class="input-field" required>
-                <input type="text" name="username" placeholder="아이디" class="input-field" required>
-                <input type="password" name="password" placeholder="비밀번호" class="input-field" required>
-                <input type="password" name="confirm_password" placeholder="비밀번호 확인" class="input-field" required>
-                <input type="text" name="nickname" placeholder="닉네임" class="input-field" required>
+            <div class="progress-text"><span id="current_step">1</span> / <span id="total_steps">6</span>단계</div> {# 총 단계 6으로 변경 #}
+            <div class="progress-bar-container">
+                <div id="progress_bar_fill" class="progress-bar-fill"></div>
             </div>
 
-            {# 2단계: 연락 정보 #}
-            <div id="step_2" class="form-section">
-                <input type="tel" name="phone_number" placeholder="전화번호 (예: 010-1234-5678)" class="input-field" required>
-                <input type="email" name="email" placeholder="이메일" class="input-field" required>
-                <label for="birthdate" class="block text-left text-sm font-semibold text-gray-700 mb-1">생년월일</label>
-                <input type="date" id="birthdate" name="birthdate" class="input-field" required>
-                <div class="radio-group">
-                    <input type="radio" id="gender_male" name="gender" value="male" required><label for="gender_male">남성</label>
-                    <input type="radio" id="gender_female" name="gender" value="female"><label for="gender_female">여성</label>
+            <form id="signup_form" action="/do_signup_driver" method="post" enctype="multipart/form-data">
+                {# 1단계: 기본 정보 #}
+                <div id="step_1" class="form-section active">
+                    <input type="text" name="name" placeholder="이름" class="input-field" required>
+                    <input type="text" name="username" placeholder="아이디" class="input-field" required>
+                    <input type="password" name="password" placeholder="비밀번호" class="input-field" required>
+                    <input type="password" name="confirm_password" placeholder="비밀번호 확인" class="input-field" required>
+                    <input type="text" name="nickname" placeholder="닉네임" class="input-field" required>
                 </div>
-            </div>
 
-            {# 3단계: 주소 정보 #}
-            <div id="step_3" class="form-section">
-                <div class="address-group">
-                    <label for="address" class="text-left input-label">주소</label>
-                    <div class="address-input-wrapper">
-                        <input type="text" id="address" name="address" placeholder="주소를 입력해주세요" class="input-field" readonly required>
-                        <button type="button" onclick="execDaumPostcode()" class="address-search-btn">주소 검색</button>
+                {# 2단계: 연락 정보 #}
+                <div id="step_2" class="form-section">
+                    <input type="tel" name="phone_number" placeholder="전화번호 (예: 010-1234-5678)" class="input-field" required>
+                    <input type="email" name="email" placeholder="이메일" class="input-field" required>
+                    <label for="birthdate" class="block text-left text-sm font-semibold text-gray-700 mb-1">생년월일</label>
+                    <input type="date" id="birthdate" name="birthdate" class="input-field" required>
+                    <div class="radio-group">
+                        <input type="radio" id="gender_male" name="gender" value="male" required><label for="gender_male">남성</label>
+                        <input type="radio" id="gender_female" name="gender" value="female"><label for="gender_female">여성</label>
                     </div>
                 </div>
-            </div>
 
-            {# 4단계: 사업자 정보 #}
-            <div id="step_4" class="form-section">
-                <input type="text" name="business_name" placeholder="사업자명" class="input-field" required>
-                <input type="text" name="business_number" placeholder="사업자번호 (예: 123-45-67890)" class="input-field" required>
-            </div>
+                {# 3단계: 주소 정보 #}
+                <div id="step_3" class="form-section">
+                    <div class="address-group">
+                        <label for="address" class="text-left input-label">주소</label>
+                        <div class="address-input-wrapper">
+                            <input type="text" id="address" name="address" placeholder="주소를 입력해주세요" class="input-field" readonly required>
+                            <button type="button" onclick="execDaumPostcode()" class="address-search-btn">주소 검색</button>
+                        </div>
+                    </div>
+                </div>
 
-            {# 5단계: 프로필 사진 #}
-            <div id="step_5" class="form-section">
-                <img id="profile_picture_display" src="" alt="프로필 사진 미리보기">
-                <input type="file" id="profile_picture" name="profile_picture" accept="image/*" style="display: none;">
-                <label for="profile_picture" class="file-upload-label">
-                    <i class="fa-solid fa-cloud-arrow-up"></i> 프로필 사진 업로드
-                </label>
-                <p class="text-sm text-medium-text">선명한 본인 사진을 업로드해주세요.</p>
-            </div>
+                {# 4단계: 사업자 정보 #}
+                <div id="step_4" class="form-section">
+                    <input type="text" name="business_name" placeholder="사업자명" class="input-field" required>
+                    <input type="text" name="business_number" placeholder="사업자번호 (예: 123-45-67890)" class="input-field" required>
+                </div>
 
-            {# 6단계: 차량 등록 (빈 섹션 - JavaScript에서 특별 처리) #}
-            <div id="step_6" class="form-section">
-                <h3 class="signup-title text-base">차량 정보 등록</h3>
-                <p class="signup-subtitle">기사님 차량 정보를 등록해 주세요.</p>
-                {# 이 섹션은 실제로는 driver_vehicle_setup.html로 리디렉션되기 때문에 비워둡니다. #}
-                {# 사용자에게 다음 단계로 이동한다는 메시지 또는 로딩 스피너를 보여줄 수 있습니다. #}
-                <p class="text-medium-text mt-5">잠시 후 차량 등록 페이지로 이동합니다.</p>
-            </div>
+                {# 5단계: 프로필 사진 #}
+                <div id="step_5" class="form-section">
+                    <img id="profile_picture_display" src="" alt="프로필 사진 미리보기">
+                    <input type="file" id="profile_picture" name="profile_picture" accept="image/*" style="display: none;">
+                    <label for="profile_picture" class="file-upload-label">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> 프로필 사진 업로드
+                    </label>
+                    <p class="text-sm text-medium-text">선명한 본인 사진을 업로드해주세요.</p>
+                </div>
+
+                {# 6단계: 차량 등록 (빈 섹션 - JavaScript에서 특별 처리) #}
+                <div id="step_6" class="form-section">
+                    <h3 class="signup-title text-base">차량 정보 등록</h3>
+                    <p class="signup-subtitle">기사님 차량 정보를 등록해 주세요.</p>
+                    {# 이 섹션은 실제로는 driver_vehicle_setup.html로 리디렉션되기 때문에 비워둡니다. #}
+                    {# 사용자에게 다음 단계로 이동한다는 메시지 또는 로딩 스피너를 보여줄 수 있습니다. #}
+                    <p class="text-medium-text mt-5">잠시 후 차량 등록 페이지로 이동합니다.</p>
+                </div>
 
 
-            {# 버튼 그룹 #}
-            <div class="button-group">
-                <button type="button" id="prev_button" class="prev-button">이전</button>
-                <button type="button" id="next_button" class="next-button">다음</button>
-                <button type="submit" id="submit_button" class="submit-button" style="display: none;">가입 완료</button>
-            </div>
-        </form>
+                {# 버튼 그룹 #}
+                <div class="button-group">
+                    <button type="button" id="prev_button" class="prev-button">이전</button>
+                    <button type="button" id="next_button" class="next-button">다음</button>
+                    <button type="submit" id="submit_button" class="submit-button" style="display: none;">가입 완료</button>
+                </div>
+            </form>
 
-        <p class="back-link">이미 계정이 있으신가요? <a href="{{ url_for('login') }}">로그인</a></p>
-        <p class="back-link">다른 유형으로 가입하시겠어요? <a href="{{ url_for('user_type_select') }}">유형 선택으로 돌아가기</a></p>
+            <p class="back-link">이미 계정이 있으신가요? <a href="{{ url_for('login') }}">로그인</a></p>
+            <p class="back-link"><a href="{{ url_for('user_type_select') }}">뒤로가기</a></p>
+        </div>
     </div>
 </div>
 {% endblock %}

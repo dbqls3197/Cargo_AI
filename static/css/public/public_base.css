@@ -1,0 +1,399 @@
+<style>
+    /* 폰트 및 기본 배경 */
+    body {
+        background-color: #f8f9fa; /* 밝고 깨끗한 배경 */
+        font-family: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR', sans-serif; /* 요즘 많이 쓰는 폰트 (설치 필요, 없으면 fallback) */
+        color: #212529; /* 진한 기본 텍스트 색상 */
+    }
+
+    /* 구글 폰트 Pretendard CDN 추가 (없을 경우 fallback) */
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+    /* 메인 컨테이너 */
+    .intro-container {
+        max-width: 480px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); /* 부드럽고 깊이감 있는 그림자 */
+        overflow-x: hidden;
+        padding-bottom: 0;
+    }
+
+    /* 상단 헤더 */
+    .app-header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background-color: #ffffff;
+        padding: 18px 24px; /* 패딩 증가 */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); /* 그림자 강화 */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f0f2f5; /* 미묘한 하단 보더 */
+    }
+    .app-logo {
+        font-size: 1.6rem; /* 로고 크기 확대 */
+        font-weight: 900; /* 매우 굵게 */
+        color: #2e6ffb; /* 메인 브랜드 블루 */
+    }
+    .auth-buttons a {
+        padding: 10px 18px; /* 패딩 증가 */
+        border-radius: 10px; /* 둥근 모서리 */
+        font-size: 0.95rem; /* 폰트 크기 조정 */
+        font-weight: 700; /* 굵게 */
+        text-decoration: none;
+        transition: all 0.3s ease; /* 부드러운 전환 효과 */
+    }
+    .auth-buttons .login-btn {
+        background-color: #eaf2ff; /* 연한 블루 배경 */
+        color: #2e6ffb;
+        margin-right: 12px;
+    }
+    .auth-buttons .login-btn:hover {
+        background-color: #dbe7ff;
+    }
+    .auth-buttons .signup-btn {
+        background-color: #2e6ffb;
+        color: #ffffff;
+        box-shadow: 0 4px 10px rgba(46, 111, 251, 0.3); /* 버튼 그림자 */
+    }
+    .auth-buttons .signup-btn:hover {
+        background-color: #2457c8;
+        box-shadow: 0 6px 15px rgba(46, 111, 251, 0.4);
+    }
+
+    /* 히어로 섹션 */
+    .hero-section {
+        position: relative;
+        width: 100%;
+        padding-top: 80%; /* 이미지 영역 비율 */
+        overflow: hidden;
+        background: linear-gradient(135deg, #4a90e2, #2e6ffb); /* 부드러운 블루 그라데이션 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+    .hero-image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.3; /* 배경 이미지 투명도 더 낮춤 */
+        filter: grayscale(100%); /* 흑백 이미지 필터 */
+    }
+    .hero-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        color: #ffffff;
+        z-index: 1;
+    }
+    .hero-main-title {
+        font-size: 2.8rem;
+        font-weight: 800; /* 굵기 조정 */
+        line-height: 1.35;
+        margin-bottom: 1.2rem;
+        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+    }
+    .hero-description {
+        font-size: 1.05rem; /* 크기 조정 */
+        font-weight: 500;
+        line-height: 1.6;
+        margin-bottom: 2rem; /* 마진 증가 */
+        opacity: 0.9;
+    }
+    .hero-cta-button {
+        display: inline-block;
+        padding: 16px 32px; /* 패딩 증가 */
+        background-color: #ffc107; /* 강조 컬러 (옐로우) */
+        color: #212529; /* 진한 텍스트 */
+        font-size: 1.15rem; /* 크기 증가 */
+        font-weight: 800; /* 매우 굵게 */
+        border-radius: 35px; /* 더 둥글게 */
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 15px rgba(255, 193, 7, 0.4); /* 버튼 그림자 강화 */
+    }
+    .hero-cta-button:hover {
+        background-color: #e0a800;
+        transform: translateY(-2px); /* 약간의 움직임 */
+    }
+
+    /* 일반 섹션 스타일 */
+    .section-common {
+        padding: 60px 24px; /* 패딩 증가 */
+        text-align: center;
+        border-bottom: 1px solid #f0f2f5; /* 부드러운 구분선 */
+    }
+    .section-common:last-child {
+        border-bottom: none;
+    }
+    .section-title-lg {
+        font-size: 2.2rem; /* 제목 크기 확대 */
+        font-weight: 800; /* 매우 굵게 */
+        color: #212529;
+        margin-bottom: 1.5rem;
+        line-height: 1.4;
+    }
+    .section-subtitle-md {
+        font-size: 1.05rem;
+        color: #495057; /* 부드러운 회색 */
+        line-height: 1.7;
+        margin-bottom: 3rem; /* 마진 증가 */
+    }
+
+    /* 기능 강조 섹션 (아이콘 + 텍스트) */
+    .features-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 30px; /* 간격 증가 */
+    }
+    .feature-item-card {
+        background-color: #fff;
+        padding: 30px; /* 패딩 증가 */
+        border-radius: 18px; /* 더 둥글게 */
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); /* 그림자 강화 */
+        text-align: left;
+        transition: all 0.3s ease; /* 전환 효과 */
+    }
+    .feature-item-card:hover {
+        transform: translateY(-8px); /* 호버 시 약간 위로 */
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15); /* 그림자 더 강조 */
+    }
+    .feature-icon-lg {
+        font-size: 3rem; /* 아이콘 크기 확대 */
+        color: #2e6ffb;
+        margin-bottom: 18px; /* 마진 증가 */
+    }
+    .feature-card-title {
+        font-size: 1.35rem; /* 크기 확대 */
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 10px;
+    }
+    .feature-card-description {
+        font-size: 0.95rem;
+        color: #495057;
+        line-height: 1.6;
+    }
+
+    /* 작동 방식 섹션 */
+    .how-it-works-step {
+        background-color: #f6faff; /* 아주 연한 블루 배경 */
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+        text-align: left;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+    .step-number {
+        font-size: 1.9rem; /* 크기 조정 */
+        font-weight: 800;
+        color: #2e6ffb;
+        margin-bottom: 12px;
+        position: relative;
+        display: inline-block; /* 배경색 적용을 위해 */
+        padding-right: 8px;
+    }
+    .step-number::after { /* 가상 요소로 밑줄 또는 강조 */
+        content: '';
+        position: absolute;
+        bottom: 0px;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        background-color: rgba(46, 111, 251, 0.2); /* 연한 블루 하이라이트 */
+        z-index: -1;
+    }
+    .step-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 8px;
+    }
+    .step-description {
+        font-size: 0.95rem;
+        color: #495057;
+        line-height: 1.6;
+    }
+
+    /* --- 새로 디자인된 고객 혜택 섹션 스타일 --- */
+    .benefits-section {
+        padding: 60px 24px;
+        text-align: center;
+        background-color: #eaf2ff; /* 섹션 배경색을 더 밝은 블루 계열로 변경 */
+        border-bottom: 1px solid #e0e8f0;
+    }
+    .benefits-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #212529;
+        margin-bottom: 1.5rem;
+        line-height: 1.4;
+    }
+    .benefits-subtitle {
+        font-size: 1.05rem;
+        color: #495057;
+        line-height: 1.7;
+        margin-bottom: 3rem;
+    }
+
+    .user-type-card {
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 18px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        text-align: left;
+        margin-bottom: 30px; /* 카드 간 간격 */
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .user-type-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+    }
+    .user-type-card:last-child {
+        margin-bottom: 0; /* 마지막 카드 하단 마진 제거 */
+    }
+
+    .user-type-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+    .user-type-icon {
+        font-size: 3rem; /* 아이콘 크기 */
+        color: #2e6ffb; /* 화주/기사 구분색 */
+        margin-right: 15px;
+    }
+    .user-type-title {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #212529;
+    }
+
+    .benefit-list {
+        list-style: none; /* 기본 리스트 스타일 제거 */
+        padding: 0;
+        margin: 0;
+    }
+    .benefit-list-item {
+        display: flex;
+        align-items: flex-start; /* 아이콘과 텍스트 상단 정렬 */
+        margin-bottom: 18px; /* 항목 간 간격 */
+    }
+    .benefit-list-item:last-child {
+        margin-bottom: 0;
+    }
+    .benefit-icon-sm {
+        font-size: 1.5rem;
+        color: #28a745; /* 체크 아이콘 색상 */
+        margin-right: 12px;
+        flex-shrink: 0; /* 아이콘이 줄어들지 않도록 */
+        padding-top: 2px; /* 텍스트와 세로 정렬 미세 조정 */
+    }
+    .benefit-text-wrapper {
+        flex-grow: 1;
+    }
+    .benefit-item-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 4px;
+    }
+    .benefit-item-description {
+        font-size: 0.9rem;
+        color: #495057;
+        line-height: 1.5;
+    }
+
+
+    /* 마무리 CTA 섹션 */
+    .final-cta-section {
+        padding: 60px 24px;
+        background-color: #2e6ffb; /* 메인 브랜드 블루 배경 */
+        color: #ffffff;
+        text-align: center;
+        flex-shrink: 0;
+        border-radius: 0 0 0px 0px; /* 하단 코너만 둥글게 할 경우 */
+    }
+    .final-cta-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 2rem;
+        line-height: 1.3;
+    }
+    .final-cta-button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 18px; /* 간격 증가 */
+        max-width: 320px; /* 버튼 너비 제한 */
+        margin: 0 auto;
+    }
+    .final-cta-button {
+        padding: 16px 20px; /* 패딩 증가 */
+        font-size: 1.15rem;
+        font-weight: 800;
+        border-radius: 12px; /* 더 둥글게 */
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    }
+    .final-cta-button.login {
+        background-color: #ffc107; /* 강조 컬러 */
+        color: #212529;
+    }
+    .final-cta-button.login:hover {
+        background-color: #e0a800;
+        transform: translateY(-2px);
+    }
+    .final-cta-button.signup {
+        background-color: #ffffff;
+        color: #2e6ffb;
+    }
+    .final-cta-button.signup:hover {
+        background-color: #f0f0f0;
+        transform: translateY(-2px);
+    }
+
+    /* 푸터 */
+    footer {
+        background-color: #343a40; /* 더 어두운 푸터 색상 */
+        color: #adb5bd; /* 연한 텍스트 */
+        text-align: center;
+        padding: 20px; /* 패딩 조정 */
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+
+    .bg-container {
+    background-image: url("/static/image/intro_hero.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    position: relative;
+    z-index: 0;
+    }
+
+    .bg-container::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.3);  /* 어두운 반투명 오버레이 */
+        z-index: 1;
+    }
+
+    .auth-card {
+        position: relative;
+        z-index: 10;  /* 카드가 위로 오도록 */
+    }
+    

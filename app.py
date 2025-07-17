@@ -7,6 +7,7 @@ import threading
 import queue
 from kafka import KafkaProducer, KafkaConsumer
 import random
+import os
 
 # Flask 앱을 생성합니다.
 app = Flask(__name__)
@@ -263,7 +264,6 @@ def admin_settings():
 @login_required_shipper
 def shipper_dashboard():
     shipper_id = session['id']
-    # [수정] DB 조회 함수가 None을 반환할 경우를 대비해, or []를 추가하여 항상 리스트를 보장합니다.
     # my_requests = manager.select_requests_by_shipper_id(shipper_id) or []
     # matchings = manager.select_matching_driver_my_request_by_id(shipper_id) or []
 

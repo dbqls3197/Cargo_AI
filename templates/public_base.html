@@ -11,40 +11,28 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js" crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/public/auth.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/public/public_base.css') }}">
+    <!-- Font Awesome 6 Free -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-..." crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- 외부 스타일시트 연결 -->
     <style>
     /* Flash 메시지 스타일 */
+    .flash-box {
+    min-height: 64px; /* h-16: Tailwind 기준 */
+    text-align: center;
+    }
+
     .flash-message {
-    padding: 12px 16px;
-    border-radius: 0.5rem;
-    margin-bottom: 12px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    opacity: 1;
-    transition: opacity 0.5s ease-in-out;
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 0.375rem;
     }
 
-    .flash-success {
-    background-color: #d1fae5; /* green-100 */
-    color: #065f46;            /* green-800 */
-    }
-
-    .flash-error {
-    background-color: #fee2e2; /* red-100 */
-    color: #991b1b;            /* red-800 */
-    }
-
-    .flash-warning {
-    background-color: #fef3c7; /* yellow-100 */
-    color: #92400e;            /* yellow-800 */
-    }
-
-    .flash-info {
-    background-color: #e5e7eb; /* gray-100 */
-    color: #374151;            /* gray-800 */
-    }
+    .flash-success { background-color: #38a169; }
+    .flash-error { background-color: #e53e3e; }
+    .flash-warning { background-color: #dd6b20; }
+    .flash-info { background-color: #3182ce; }
 
     .flash-hide {
     opacity: 0;

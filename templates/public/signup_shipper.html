@@ -254,92 +254,119 @@
     .address-search-btn:hover {
         background-color: #3e44a0;
     }
+    .bg-container {
+        position: relative;
+        background-image: url("{{ url_for('static', filename='image/intro_hero.png') }}");
+        background-size: cover;
+        background-position: bottom; /* ✅ 하단에서부터 보이도록 */
+        background-repeat: no-repeat;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .bg-container::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.4);  /* ✅ 흐림 효과용 반투명 필터 */
+        backdrop-filter: blur(1px);            /* ✅ 실제 blur 효과 */
+        z-index: 1;
+    }
+
+    .signup-container {
+        position: relative;
+        z-index: 2;  /* ✅ 배경 위에 보이도록 */
+    }
     </style>
 {% endblock %}
 
 {% block contents %}
-<div class="flex items-center justify-center min-h-screen p-4">
-    <div class="signup-container">
-        <h2 class="signup-title">화주 회원가입</h2>
-        <p class="signup-subtitle">안정적인 물류 서비스를 경험하세요!</p>
+<div class="bg-container"> 
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="signup-container">
+            <h2 class="signup-title">화주 회원가입</h2>
+            <p class="signup-subtitle">안정적인 물류 서비스를 경험하세요!</p>
 
-        <div class="progress-bar-container">
-            <div class="progress-bar" id="progressBar"></div>
+            <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div class="progress-text" id="progressText">0% 완료</div>
+
+
+            <form id="signupForm" action="/do_signup_submit/shipper" method="post" enctype="multipart/form-data">
+                <div class="form-step active" data-step="1">
+                    <div class="input-label">아이디</div>
+                    <input type="text" name="user_id" placeholder="영문 소문자, 숫자 6~12자리" class="input-field" required>
+
+                    <div class="input-label">비밀번호</div>
+                    <input type="password" name="user_pw" placeholder="비밀번호" class="input-field" required>
+
+                    <div class="input-label">비밀번호 확인</div>
+                    <input type="password" name="confirm_password" placeholder="비밀번호 확인" class="input-field" required>
+
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-next" onclick="nextStep()">다음</button>
+                    </div>
+                </div>
+
+                <div class="form-step" data-step="2">
+                    <div class="input-label">이름</div>
+                    <input type="text" name="name" placeholder="이름을 입력해주세요" class="input-field" required>
+
+                    <div class="input-label">닉네임</div>
+                    <input type="text" name="nickname" placeholder="닉네임을 입력해주세요" class="input-field">
+
+                    <div class="input-label">전화번호</div>
+                    <input type="tel" name="phone" placeholder="예: 010-1234-5678" class="input-field">
+
+                    <div class="input-label">이메일 주소</div>
+                    <input type="email" name="email" placeholder="이메일 주소를 입력해주세요" class="input-field" required>
+
+                    <div class="input-label">생일</div>
+                    <input type="date" name="birth_date" id="birth_date_input" placeholder="생일 (YYYY-MM-DD)" class="input-field">
+
+                    <div class="input-label">성별</div>
+                    <div class="gender-options">
+                        <button type="button" class="gender-button" data-value="male">남성</button>
+                        <button type="button" class="gender-button" data-value="female">여성</button>
+                    </div>
+                    <input type="hidden" name="gender" id="gender_hidden_input" value="">
+
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-prev" onclick="prevStep()">이전</button>
+                        <button type="button" class="btn btn-next" onclick="nextStep()">다음</button>
+                    </div>
+                </div>
+
+                <div class="form-step" data-step="3">
+                    <div class="input-group">
+                    <div class="input-label">주소</div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="text" id="address" name="address" placeholder="주소를 입력해주세요" class="input-field" readonly>
+                        <button type="button" onclick="execDaumPostcode()" class="address-search-btn">검색</button>
+                    </div>
+                </div>
+
+
+                    <div class="input-label">프로필 사진</div>
+                    <img id="profile_img_display" src="" alt="프로필 사진 미리보기"> {# id 이름 변경 #}
+                    <input type="file" id="profile_img_input" name="profile_img" accept="image/*" class="input-field" style="display: none;"> {# id 이름 변경 #}
+                    <label for="profile_img_input" class="file-upload-label"> {# for 속성 변경 #}
+                        <i class="fa-solid fa-cloud-arrow-up"></i> 프로필 사진 업로드
+                    </label>
+
+                    <div class="form-navigation">
+                        <button type="button" class="btn btn-prev" onclick="prevStep()">이전</button>
+                        <button type="submit" class="btn btn-submit">화주로 가입 완료</button>
+                    </div>
+                </div>
+            </form>
+
+            <p class="back-link">이미 계정이 있으신가요? <a href="{{ url_for('login') }}">로그인</a></p>
+            <p class="back-link"><a href="{{ url_for('user_type_select') }}">뒤로가기</a></p>
         </div>
-        <div class="progress-text" id="progressText">0% 완료</div>
-
-
-        <form id="signupForm" action="/do_signup_submit/shipper" method="post" enctype="multipart/form-data">
-            <div class="form-step active" data-step="1">
-                <div class="input-label">아이디</div>
-                <input type="text" name="user_id" placeholder="영문 소문자, 숫자 6~12자리" class="input-field" required>
-
-                <div class="input-label">비밀번호</div>
-                <input type="password" name="user_pw" placeholder="비밀번호" class="input-field" required>
-
-                <div class="input-label">비밀번호 확인</div>
-                <input type="password" name="confirm_password" placeholder="비밀번호 확인" class="input-field" required>
-
-                <div class="form-navigation">
-                    <button type="button" class="btn btn-next" onclick="nextStep()">다음</button>
-                </div>
-            </div>
-
-            <div class="form-step" data-step="2">
-                <div class="input-label">이름</div>
-                <input type="text" name="name" placeholder="이름을 입력해주세요" class="input-field" required>
-
-                <div class="input-label">닉네임</div>
-                <input type="text" name="nickname" placeholder="닉네임을 입력해주세요" class="input-field">
-
-                <div class="input-label">전화번호</div>
-                <input type="tel" name="phone" placeholder="예: 010-1234-5678" class="input-field">
-
-                <div class="input-label">이메일 주소</div>
-                <input type="email" name="email" placeholder="이메일 주소를 입력해주세요" class="input-field" required>
-
-                <div class="input-label">생일</div>
-                <input type="date" name="birth_date" id="birth_date_input" placeholder="생일 (YYYY-MM-DD)" class="input-field">
-
-                <div class="input-label">성별</div>
-                <div class="gender-options">
-                    <button type="button" class="gender-button" data-value="male">남성</button>
-                    <button type="button" class="gender-button" data-value="female">여성</button>
-                </div>
-                <input type="hidden" name="gender" id="gender_hidden_input" value="">
-
-                <div class="form-navigation">
-                    <button type="button" class="btn btn-prev" onclick="prevStep()">이전</button>
-                    <button type="button" class="btn btn-next" onclick="nextStep()">다음</button>
-                </div>
-            </div>
-
-            <div class="form-step" data-step="3">
-                <div class="input-group">
-                <div class="input-label">주소</div>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <input type="text" id="address" name="address" placeholder="주소를 입력해주세요" class="input-field" readonly>
-                    <button type="button" onclick="execDaumPostcode()" class="address-search-btn">검색</button>
-                </div>
-            </div>
-
-
-                <div class="input-label">프로필 사진</div>
-                <img id="profile_img_display" src="" alt="프로필 사진 미리보기"> {# id 이름 변경 #}
-                <input type="file" id="profile_img_input" name="profile_img" accept="image/*" class="input-field" style="display: none;"> {# id 이름 변경 #}
-                <label for="profile_img_input" class="file-upload-label"> {# for 속성 변경 #}
-                    <i class="fa-solid fa-cloud-arrow-up"></i> 프로필 사진 업로드
-                </label>
-
-                <div class="form-navigation">
-                    <button type="button" class="btn btn-prev" onclick="prevStep()">이전</button>
-                    <button type="submit" class="btn btn-submit">화주로 가입 완료</button>
-                </div>
-            </div>
-        </form>
-
-        <p class="back-link">이미 계정이 있으신가요? <a href="{{ url_for('login') }}">로그인</a></p>
-        <p class="back-link">다른 유형으로 가입하시겠어요? <a href="{{ url_for('user_type_select') }}">유형 선택으로 돌아가기</a></p>
     </div>
 </div>
 {% endblock %}
