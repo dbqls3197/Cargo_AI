@@ -1,0 +1,31 @@
+{% extends "public_base.html" %}
+{% block title %}회원가입페이지{% endblock %}
+{% block contents %}
+<div class="auth-container">
+        <!-- Registration Screen -->
+        <div id="registration-screen" class="auth-card">
+            <h2 class="text-3xl font-bold text-indigo-700 mb-6">화물 AI 회원가입</h2>
+            <div class="mb-4 text-left">
+                <label for="reg-username-input" class="block text-gray-700 text-sm font-semibold mb-2">사용자 이름:</label>
+                <input type="text" id="reg-username-input" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="사용자 이름 입력">
+            </div>
+            <div class="mb-4 text-left">
+                <label for="reg-password-input" class="block text-gray-700 text-sm font-semibold mb-2">비밀번호:</label>
+                <input type="password" id="reg-password-input" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="비밀번호 입력">
+            </div>
+            <div class="mb-6 text-left">
+                <label for="reg-confirm-password-input" class="block text-gray-700 text-sm font-semibold mb-2">비밀번호 확인:</label>
+                <input type="password" id="reg-confirm-password-input" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="비밀번호 다시 입력">
+            </div>
+            <button onclick="register()" class="bg-indigo-600 text-white py-3 px-6 rounded-xl font-semibold hover:bg-indigo-700 transition duration-200 w-full mb-3 shadow-md">
+                <i class="fas fa-user-plus mr-2"></i> 회원가입
+            </button>
+            <a href="{{url_for('index')}}" id="login" class="text-indigo-600 hover:text-indigo-800 text-sm font-semibold">
+                이미 계정이 있으신가요? 로그인
+            </a>
+            <!-- <a href="{{url_for('register')}}" id="signup-link" class="text-indigo-600 font-medium hover:underline">
+                새 계정 만들기
+            </a> -->
+            <p class="text-xs text-gray-500 mt-4">데모용: 아무 사용자 이름/비밀번호나 입력하세요.</p>
+</div>
+{% endblock %}

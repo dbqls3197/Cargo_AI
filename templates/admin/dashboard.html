@@ -1,0 +1,43 @@
+{% extends "admin/dashboard_base.html" %}
+
+{% block title %}화물 AI 관제 - 대시보드{% endblock %}
+
+{% block head_extra %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="content-area">
+    <h2 class="text-3xl font-bold text-gray-800 mb-8">대시보드</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        <div class="bg-indigo-600 text-white p-6 rounded-xl shadow-lg"><p class="text-sm opacity-90">현재 운송 중</p><p class="text-5xl font-extrabold mt-2">124 <span class="text-2xl font-normal">건</span></p></div>
+        <div class="bg-green-600 text-white p-6 rounded-xl shadow-lg"><p class="text-sm opacity-90">가용 기사</p><p class="text-5xl font-extrabold mt-2">87 <span class="text-2xl font-normal">명</span></p></div>
+        <div class="bg-yellow-600 text-white p-6 rounded-xl shadow-lg"><p class="text-sm opacity-90">매칭 성공률</p><p class="text-5xl font-extrabold mt-2">92<span class="text-2xl font-normal">%</span></p></div>
+    </div>
+    <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+        <h3 class="text-2xl font-semibold text-gray-800 mb-5">실시간 운송 현황</h3>
+        <div class="h-96 bg-gray-100 rounded-xl flex items-center justify-center text-gray-500">[Tmap API 연동 실시간 전체 운송 지도]</div>
+    </div>
+    <div class="bg-white p-6 rounded-xl shadow-lg">
+        <h3 class="text-2xl font-semibold text-gray-800 mb-5">운송 알림</h3>
+        <div class="bg-blue-50 border border-blue-200 text-blue-800 px-5 py-4 rounded-xl mb-4 flex justify-between items-center">
+            <div>
+                <p class="font-bold">#20250709-001 화물 상차 완료</p>
+                <p class="text-sm">김철수 기사님, 서울 강남구에서 화물 상차 완료 (09:30)</p>
+            </div>
+            <button onclick="window.location.href='/realtime'" class="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700">상세 보기</button>
+        </div>
+        <div class="bg-gray-50 border border-gray-200 text-gray-800 px-5 py-4 rounded-xl flex justify-between items-center">
+            <div>
+                <p class="font-bold">#20250709-002 화물 배차 완료</p>
+                <p class="text-sm">이영희 기사님, 부산행 화물 배차 완료</p>
+            </div>
+            <button onclick="window.location.href='/realtime'" class="bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-700">상세 보기</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}베이스페이지{% endblock %}</title>
+
+    <!-- 외부 라이브러리 (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/public/auth.css') }}">
+
+    <!-- 외부 스타일시트 연결 -->
+    <style>
+    /* Flash 메시지 스타일 */
+    .flash-message {
+    padding: 12px 16px;
+    border-radius: 0.5rem;
+    margin-bottom: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out;
+    }
+
+    .flash-success {
+    background-color: #d1fae5; /* green-100 */
+    color: #065f46;            /* green-800 */
+    }
+
+    .flash-error {
+    background-color: #fee2e2; /* red-100 */
+    color: #991b1b;            /* red-800 */
+    }
+
+    .flash-warning {
+    background-color: #fef3c7; /* yellow-100 */
+    color: #92400e;            /* yellow-800 */
+    }
+
+    .flash-info {
+    background-color: #e5e7eb; /* gray-100 */
+    color: #374151;            /* gray-800 */
+    }
+
+    .flash-hide {
+    opacity: 0;
+    }
+    </style>
+
+    {% block extra_css %}
+    {% endblock %}
+</head>
+<body>
+{% block contents %}
+{% endblock %}
+    <!-- 외부 스크립트 파일 연결 -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const flashMessages = document.querySelectorAll(".flash-message");
+
+  flashMessages.forEach(msg => {
+    setTimeout(() => {
+      msg.classList.add("flash-hide");
+    }, 3000); // 3초 뒤 사라짐
+  });
+});
+</script>
+{% block extra_js %}
+{% endblock %}
+</body>
+</html>

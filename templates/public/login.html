@@ -1,0 +1,42 @@
+{% extends "public_base.html" %}
+{% block title %} 로그인페이지 {% endblock %}
+{% block contents %}
+<div class="auth-container">
+    <div id="login-screen" class="auth-card">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-box">
+            {% for category, message in messages %}
+                <div class="flash-message
+                {% if category == 'success' %}flash-success
+                {% elif category == 'error' %}flash-error
+                {% elif category == 'warning' %}flash-warning
+                {% else %}flash-info
+                {% endif %}">
+                {{ message }}
+                </div>
+            {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('login') }}" method="POST">
+        <h2 class="text-3xl font-bold text-indigo-700 mb-6">화물 AI 로그인</h2>
+        <div class="mb-4 text-left">
+            <input type="text" id="user_id" name="user_id" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="아이디" required>
+        </div>
+        <div class="mb-6 text-left">
+            <input type="password" id="password" name="password" class="shadow-sm appearance-none border border-gray-300 rounded-lg w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="비밀번호" required>
+        </div>
+        <button id="login-phone" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold mb-4 shadow-md hover:bg-indigo-700 transition">
+            로그인
+        </button>
+        <p class="text-gray-600 text-sm">
+            계정이 없으신가요?
+            <a href="{{url_for('user_type_select')}}" id="signup-link" class="text-indigo-600 font-medium hover:underline">
+                새 계정 만들기
+            </a>
+        </p>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,774 @@
+{% extends 'public_base.html' %}
+
+{% block title %}기사 회원가입 - Cargo AI{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 회원가입 페이지 공통 컨테이너 스타일 */
+    .signup-container {
+        max-width: 420px;
+        width: 100%; /* 너비를 100%로 설정하여 max-width와 잘 작동하도록 함 */
+        margin: 40px auto;
+        background-color: #ffffff;
+        padding: 30px; /* 이 padding이 내부 요소에 영향을 줍니다. */
+        border-radius: 18px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+ㅋㅋㅋ        overflow: hidden;
+        box-sizing: border-box; /* 패딩이 너비에 포함되도록 */
+    }
+    /* 제목 스타일 */
+    .signup-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #212529; /* dark-text */
+        margin-bottom: 25px; /* 하단 여백 */
+        line-height: 1.4;
+    }
+    .signup-subtitle {
+        font-size: 1rem;
+        color: #495057; /* medium-text */
+        margin-bottom: 30px;
+    }
+
+    /* 진행 바 스타일 */
+    .progress-bar-container {
+        width: 100%;
+        background-color: #e0e8f0; /* 연한 회색 배경 */
+        border-radius: 10px;
+        height: 8px; /* 바 높이 */
+        margin-bottom: 30px;
+        overflow: hidden; /* 내부 오버플로우 방지 */
+    }
+    .progress-bar-fill {
+        height: 100%;
+        width: 0%; /* JavaScript로 동적 변경 */
+        background-color: #2e6ffb; /* primary-blue */
+        border-radius: 10px;
+        transition: width 0.5s ease-in-out; /* 부드러운 전환 효과 */
+    }
+    .progress-text {
+        font-size: 0.85rem;
+        color: #495057;
+        margin-bottom: 10px;
+        text-align: right;
+    }
+
+    /* 폼 섹션 (단계별로 숨김/보임) */
+    .form-section {
+        display: none; /* 기본 숨김 */
+        width: 100%; /* 모든 폼 섹션이 부모의 100% 너비를 차지하도록 */
+        /* 필요하다면 여기에 padding을 추가하여 .signup-container의 padding을 제거하는 것도 고려 */
+    }
+    .form-section.active {
+        display: block; /* 활성 단계만 보임 */
+    }
+
+    /* 입력 필드 스타일 */
+    .input-field {
+        width: 100%;
+        padding: 15px;
+        margin-bottom: 15px;
+        border: 1px solid #e0e8f0;
+        border-radius: 10px;
+        font-size: 1rem;
+        color: #212529;
+        transition: border-color 0.2s, box-shadow 0.2s;
+        box-sizing: border-box; /* 중요: padding과 border가 width에 포함되도록 */
+    }
+    
+    .input-field:focus {
+        outline: none;
+        border-color: #2e6ffb; /* 포커스 시 테두리 색상 변경 */
+        box-shadow: 0 0 0 3px rgba(46, 111, 251, 0.2); /* 포커스 시 그림자 */
+    }
+
+    /* 라디오/체크박스 그룹 */
+    .radio-group {
+        display: flex;
+        justify-content: space-around;
+        margin-bottom: 15px;
+        gap: 10px;
+    }
+    .radio-group label {
+        flex: 1; /* 남은 공간을 고르게 분배 */
+        background-color: #f0f4f8;
+        padding: 12px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: 1px solid #e0e8f0;
+        font-weight: 500;
+        color: #495057;
+        box-sizing: border-box; /* 중요 */
+    }
+    .radio-group input[type="radio"] {
+        display: none; /* 기본 라디오 버튼 숨김 */
+    }
+    .radio-group input[type="radio"]:checked + label {
+        background-color: #2e6ffb; /* 선택 시 배경색 */
+        color: #ffffff;
+        border-color: #2e6ffb;
+        box-shadow: 0 2px 8px rgba(46, 111, 251, 0.3);
+    }
+
+    /* 파일 업로드 버튼 (프로필 사진) */
+    .file-upload-label {
+        display: block;
+        width: 100%;
+        padding: 15px;
+        background-color: #f0f4f8;
+        color: #2e6ffb;
+        border: 1px dashed #2e6ffb; /* 점선 테두리 */
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 1rem;
+        font-weight: bold;
+        transition: all 0.2s ease;
+        margin-bottom: 15px;
+    }
+    .file-upload-label:hover {
+        background-color: #eaf2ff;
+    }
+    .file-upload-label i {
+        margin-right: 10px;
+    }
+    #profile_picture_display {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin: 0 auto 15px auto;
+        border: 2px solid #e0e8f0;
+        display: none; /* 기본 숨김 */
+    }
+
+    /* 버튼 그룹 (이전/다음/완료) */
+    .button-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    .button-group button {
+        flex: 1;
+        padding: 15px;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.2s, box-shadow 0.2s;
+    }
+    .next-button {
+        background-color: #2e6ffb;
+        color: #ffffff;
+        box-shadow: 0 4px 10px rgba(46, 111, 251, 0.3);
+    }
+    .next-button:hover {
+        background-color: #2457c8;
+        box-shadow: 0 6px 15px rgba(46, 111, 251, 0.4);
+    }
+    .prev-button {
+        background-color: #cccccc;
+        color: #ffffff;
+    }
+    .prev-button:hover {
+        background-color: #aaaaaa;
+    }
+    .submit-button { /* 최종 완료 버튼 */
+        background-color: #28a745; /* 성공 녹색 */
+        color: #ffffff;
+        box-shadow: 0 4px 10px rgba(40, 167, 69, 0.3);
+    }
+    .submit-button:hover {
+        background-color: #218838;
+        box-shadow: 0 6px 15px rgba(40, 167, 69, 0.4);
+    }
+
+    /* 하단 링크 */
+    .back-link {
+        margin-top: 20px;
+        font-size: 0.9rem;
+        color: #495057;
+    }
+    .back-link a {
+        color: #2e6ffb;
+        text-decoration: none;
+        font-weight: 700;
+    }
+    .back-link a:hover {
+        text-decoration: underline;
+    }
+    .address-input-wrapper {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        width: 100%; /* 부모의 100%를 차지하도록 */
+        box-sizing: border-box;
+    }
+    .address-input-wrapper input.input-field {
+        flex-grow: 1; /* 남은 공간을 채우도록 */
+        /* width: auto; */ /* 100% 대신 flex-grow 사용 */
+    }
+
+    .address-search-btn {
+        flex-shrink: 0; /* 버튼이 줄어들지 않도록 */
+        /* 기존 스타일 유지 */
+        padding: 10px 16px;
+        height: 48px;
+        font-size: 0.95rem;
+        font-weight: bold;
+        border: none;
+        border-radius: 10px;
+        background-color: #4c51bf;
+        color: #fff;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        box-sizing: border-box; /* 중요 */
+    }
+
+    .address-search-btn:hover {
+        background-color: #3e44a0;
+    }
+
+    .input-label {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #212529;
+        text-align: left;
+    }
+    .bg-container {
+        position: relative;
+        background-image: url("{{ url_for('static', filename='image/intro_hero.png') }}");
+        background-size: cover;
+        background-position: bottom; /* ✅ 하단에서부터 보이도록 */
+        background-repeat: no-repeat;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .bg-container::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.4); /* ✅ 흐림 효과용 반투명 필터 */
+        backdrop-filter: blur(1px); /* ✅ 실제 blur 효과 */
+        z-index: 1;
+    }
+
+   .signup-container {
+    max-width: 420px;
+    width: 100%;
+    margin: 40px auto;
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 18px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    box-sizing: border-box;
+    position: relative; /* 추가됨 */
+    z-index: 2; /* 추가됨 */
+}
+
+    /* 추가된 TailwindCSS 클래스에 대한 대체 CSS (필요 시) */
+    .mb-6 { margin-bottom: 1.5rem; /* 24px */ }
+    .mb-2 { margin-bottom: 0.5rem; /* 8px */ }
+    .flex { display: flex; }
+    .flex-wrap { flex-wrap: wrap; }
+    .gap-4 { gap: 1rem; /* 16px */ }
+    .block { display: block; }
+    .text-gray-700 { color: #4a5568; }
+    .text-sm { font-size: 0.875rem; }
+    .font-bold { font-weight: 700; }
+    .text-indigo-700 { color: #4338ca; } /* Tailwind indigo-700 */
+    .bg-indigo-600 { background-color: #4f46e5; } /* Tailwind indigo-600 */
+    .text-white { color: #ffffff; }
+    .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+    .rounded-xl { border-radius: 0.75rem; }
+    .shadow-sm { box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); }
+    .w-full { width: 100%; }
+    .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .leading-tight { line-height: 1.25; }
+    .focus\:outline-none:focus { outline: 2px solid transparent; outline-offset: 2px; }
+    .focus\:ring-2:focus { --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color); --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color); box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000); }
+    .focus\:ring-indigo-500:focus { --tw-ring-color: #6366f1; } /* Tailwind indigo-500 */
+    .focus\:border-transparent:focus { border-color: transparent; }
+    .form-checkbox { /* 기본 체크박스 스타일 (Tailwind 기본 대체) */
+        appearance: none;
+        display: inline-block;
+        vertical-align: middle;
+        flex-shrink: 0;
+        height: 1.25rem; /* h-5 */
+        width: 1.25rem; /* w-5 */
+        border: 1px solid #d1d5db; /* border-gray-300 */
+        border-radius: 0.25rem; /* rounded */
+        background-color: #fff;
+        transition: all 0.15s ease-in-out;
+        cursor: pointer;
+    }
+    .form-checkbox:checked {
+        background-color: #4f46e5; /* bg-indigo-600 */
+        border-color: #4f46e5; /* border-indigo-600 */
+        background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 16 16' fill='white' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M12.207 4.793a1 1 0 00-1.414 0L7 8.586 4.207 5.793a1 1 0 00-1.414 1.414l3.5 3.5a1 1 0 001.414 0l4.5-4.5a1 1 0 000-1.414z'/%3e%3c/svg%3e");
+        background-size: 100% 100%;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+    .text-indigo-600 { color: #4f46e5; }
+
+    /* 추가된 checkbox-group 스타일 */
+    .checkbox-group label.inline-flex {
+        padding: 8px 12px;
+        border: 1px solid #e0e8f0;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+        font-size: 0.95rem;
+    }
+    .checkbox-group input[type="checkbox"]:checked + span {
+        font-weight: bold;
+        color: #2e6ffb;
+    }
+    .checkbox-group label.inline-flex:hover {
+        background-color: #f8fbfd;
+    }
+    .button-group {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.button-group button {
+    width: 120px; /* ✅ 고정 너비 */
+}
+
+</style>
+{% endblock %}
+
+{% block contents %}
+<div class="bg-container">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="signup-container">
+            <h2 class="signup-title">기사 회원가입</h2>
+            <p class="signup-subtitle">Cargo AI의 운전 기사로 등록하고<br>최적의 운송 기회를 잡으세요!</p>
+
+            <div class="progress-text"><span id="current_step">1</span> / <span id="total_steps"></span>단계</div> {# JS에서 total_steps 업데이트 #}
+            <div class="progress-bar-container">
+                <div id="progress_bar_fill" class="progress-bar-fill"></div>
+            </div>
+
+            <form id="signup_form" action="{{ url_for('do_signup_driver')}}" method="post" enctype="multipart/form-data">
+                {# 1단계: 기본 정보 #}
+                <div id="step_1" class="form-section active">
+                    <input type="text" name="name" placeholder="이름" class="input-field" required>
+                    <input type="text" name="username" placeholder="아이디" class="input-field" required>
+                    <input type="password" name="password" placeholder="비밀번호" class="input-field" required>
+                    <input type="password" name="confirm_password" placeholder="비밀번호 확인" class="input-field" required>
+                    <input type="text" name="nickname" placeholder="닉네임" class="input-field" required>
+                </div>
+
+                {# 2단계: 연락 정보 #}
+                <div id="step_2" class="form-section">
+                    <input type="tel" name="phone_number" placeholder="전화번호 (예: 010-1234-5678)" class="input-field" required>
+                    <input type="email" name="email" placeholder="이메일" class="input-field" required>
+                    <label for="birthdate" class="block text-left text-sm font-semibold text-gray-700 mb-1">생년월일</label>
+                    <input type="date" id="birthdate" name="birthdate" class="input-field" required>
+                    <div class="radio-group">
+                        <input type="radio" id="gender_male" name="gender" value="male" required><label for="gender_male">남성</label>
+                        <input type="radio" id="gender_female" name="gender" value="female"><label for="gender_female">여성</label>
+                    </div>
+                </div>
+
+                {# 3단계: 주소 및 사업자 정보 (통합) #}
+                <div id="step_3" class="form-section">
+                    <div class="input-group mb-6">
+                        <label for="business_name" class="text-left input-label">사업자명</label>
+                        <input type="text" name="business_name" placeholder="사업자명" class="input-field" required>
+                    </div>
+                    <div class="input-group mb-6">
+                        <label for="business_number" class="text-left input-label">사업자번호</label>
+                        <input type="text" name="business_number" placeholder="사업자번호 (예: 123-45-67890)" class="input-field" required>
+                    </div>
+
+                    <div class="address-group">
+                        <label for="address" class="text-left input-label">주소</label>
+                        <div class="address-input-wrapper">
+                            <input type="text" id="address" name="address" placeholder="주소를 입력해주세요" class="input-field" readonly required>
+                            <button type="button" onclick="execDaumPostcode()" class="address-search-btn">주소 검색</button>
+                        </div>
+                    </div>
+                </div>
+
+                {# 4단계: 프로필 사진 #}
+                <div id="step_4" class="form-section">
+                    <img id="profile_picture_display" src="" alt="프로필 사진 미리보기">
+                    <input type="file" id="profile_picture" name="profile_picture" accept="image/*" style="display: none;">
+                    <label for="profile_picture" class="file-upload-label">
+                        <i class="fa-solid fa-cloud-arrow-up"></i> 프로필 사진 업로드
+                    </label>
+                    <p class="text-sm text-medium-text">선명한 본인 사진을 업로드해주세요.</p>
+                </div>
+
+                {# 5단계: 차량 등록 (기존 driver_vehicle_setup.html의 내용 통합) #}
+                <div id="step_5" class="form-section">
+                    <h3 class="signup-title text-base">차량 정보 등록</h3>
+                    <p class="signup-subtitle">기사님 차량 정보를 등록해 주세요.</p>
+
+                    <div class="mb-6">
+                        <label for="vehicle-type" class="block text-gray-700 text-sm font-bold mb-2">차량 종류</label>
+                        <select id="vehicle-type" name="vehicle_type" class="shadow-sm appearance-none border rounded-xl w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" onchange="updateLoadCapacity()">
+                            <option value="" selected disabled>선택하세요</option>
+                            <option value="damos">다마스</option>
+                            <option value="labo">라보</option>
+                            <option value="cargo">카고</option>
+                            <option value="wing_body">윙바디</option>
+                            <option value="top_truck">탑차</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-6">
+                        <label for="load-capacity" class="block text-gray-700 text-sm font-bold mb-2">최대 적재량</label>
+                        <select id="load-capacity" name="load_capacity" class="shadow-sm appearance-none border rounded-xl w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                        </select>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">차량이 운송 가능한 화물 특성</label>
+                        <div class="flex flex-wrap gap-4 checkbox-group">
+                            <label for="general-cargo" class="inline-flex items-center text-gray-700">
+                                <input type="checkbox" id="general-cargo" name="cargo_type[]" value="general" class="form-checkbox h-5 w-5 text-indigo-600">
+                                <span class="ml-2">일반</span>
+                            </label>
+                            <label for="refrigerated" class="inline-flex items-center text-gray-700">
+                                <input type="checkbox" id="refrigerated" name="cargo_type[]" value="refrigerated" class="form-checkbox h-5 w-5 text-indigo-600">
+                                <span class="ml-2">냉장</span>
+                            </label>
+                            <label for="frozen" class="inline-flex items-center text-gray-700">
+                                <input type="checkbox" id="frozen" name="cargo_type[]" value="frozen" class="form-checkbox h-5 w-5 text-indigo-600">
+                                <span class="ml-2">냉동</span>
+                            </label>
+                            <label for="hazardous" class="inline-flex items-center text-gray-700">
+                                <input type="checkbox" id="hazardous" name="cargo_type[]" value="hazardous" class="form-checkbox h-5 w-5 text-indigo-600">
+                                <span class="ml-2">위험물</span>
+                            </label>
+                            <label for="toxic" class="inline-flex items-center text-gray-700">
+                                <input type="checkbox" id="toxic" name="cargo_type[]" value="toxic" class="form-checkbox h-5 w-5 text-indigo-600">
+                                <span class="ml-2">유해물질</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                {# 버튼 그룹 #}
+                <div class="button-group">
+                    <button type="button" id="prev_button" class="prev-button">이전</button>
+                    <button type="button" id="next_button" class="next-button">다음</button>
+                    <button type="submit" id="submit_button" class="submit-button" style="display: none;">가입 완료</button>
+                </div>
+            </form>
+
+            <p class="back-link">이미 계정이 있으신가요? <a href="{{ url_for('login') }}">로그인</a></p>
+            <p class="back-link"><a href="{{ url_for('user_type_select') }}">뒤로가기</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+<script>
+    let currentStep = 1;
+    const totalSteps = 5; // 총 단계 5로 변경되었습니다!
+    const formSections = document.querySelectorAll('.form-section');
+    const progressBarFill = document.getElementById('progress_bar_fill');
+    const currentStepText = document.getElementById('current_step');
+    const totalStepsText = document.getElementById('total_steps'); // 이제 사용하지 않음
+    totalStepsText.textContent = totalSteps; // JS에서 totalSteps 값을 업데이트
+
+    const prevButton = document.getElementById('prev_button');
+    const nextButton = document.getElementById('next_button');
+    const submitButton = document.getElementById('submit_button');
+    const profilePictureInput = document.getElementById('profile_picture');
+    const profilePictureDisplay = document.getElementById('profile_picture_display');
+    const form = document.getElementById('signup_form');
+
+    // 차량 정보 관련 요소들
+    const vehicleTypeSelect = document.getElementById('vehicle-type');
+    const loadCapacitySelect = document.getElementById('load-capacity');
+
+    // 폼 유효성 검사 함수
+    function validateStep(step) {
+        const currentSection = document.getElementById(`step_${step}`);
+        let isValid = true;
+
+        // 필수 입력 필드 검사
+        const inputs = currentSection.querySelectorAll('input[required], select[required], textarea[required]');
+        inputs.forEach(input => {
+            if (!input.value.trim()) {
+                isValid = false;
+                input.style.borderColor = 'red'; /* 시각적 피드백 */
+            } else {
+                input.style.borderColor = '#e0e8f0';
+            }
+        });
+
+        // 비밀번호 확인 로직 (1단계)
+        if (step === 1) {
+            const passwordInput = currentSection.querySelector('input[name="password"]');
+            const confirmPasswordInput = currentSection.querySelector('input[name="confirm_password"]');
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+
+            if (password !== confirmPassword) {
+                isValid = false;
+                alert('비밀번호와 비밀번호 확인이 일치하지 않습니다.');
+                confirmPasswordInput.style.borderColor = 'red';
+            } else {
+                confirmPasswordInput.style.borderColor = '#e0e8f0';
+            }
+        }
+
+        // 성별 라디오 버튼 확인 (2단계)
+        if (step === 2) {
+            const genderRadios = currentSection.querySelectorAll('input[name="gender"]');
+            let genderSelected = false;
+            genderRadios.forEach(radio => {
+                if (radio.checked) {
+                    genderSelected = true;
+                }
+            });
+            if (!genderSelected) {
+                isValid = false;
+                alert('성별을 선택해주세요.');
+            }
+        }
+
+        // 4단계 (프로필 사진) 유효성 검사 - 파일이 선택되었는지
+        if (step === 4) {
+            if (!profilePictureInput.files.length) {
+                isValid = false;
+                alert('프로필 사진을 업로드해주세요.');
+                document.querySelector('.file-upload-label').style.borderColor = 'red';
+            } else {
+                document.querySelector('.file-upload-label').style.borderColor = '#2e6ffb';
+            }
+        }
+
+        // 5단계 (차량 정보) 유효성 검사
+        if (step === 5) {
+            if (!vehicleTypeSelect.value) {
+                isValid = false;
+                alert('차량 종류를 선택해주세요.');
+                vehicleTypeSelect.style.borderColor = 'red';
+            } else {
+                 vehicleTypeSelect.style.borderColor = '#e0e8f0';
+            }
+
+            if (!loadCapacitySelect.value) {
+                isValid = false;
+                alert('최대 적재량을 선택해주세요.');
+                loadCapacitySelect.style.borderColor = 'red';
+            } else {
+                 loadCapacitySelect.style.borderColor = '#e0e8f0';
+            }
+
+            const cargoTypeCheckboxes = currentSection.querySelectorAll('input[name="cargo_type[]"]:checked');
+            if (cargoTypeCheckboxes.length === 0) {
+                isValid = false;
+                alert('차량이 운송 가능한 화물 특성을 최소 하나 이상 선택해주세요.');
+                currentSection.querySelector('.checkbox-group').style.border = '1px solid red'; // 예시
+            } else {
+                 currentSection.querySelector('.checkbox-group').style.border = 'none'; // 예시
+            }
+        }
+
+        return isValid;
+    }
+
+    // 단계 업데이트 함수
+    function updateStep() {
+        // 모든 섹션 숨김
+        formSections.forEach(section => section.classList.remove('active'));
+        // 현재 단계 섹션만 보임
+        document.getElementById(`step_${currentStep}`).classList.add('active');
+
+        // 진행 바 업데이트
+        const progress = (currentStep / totalSteps) * 100;
+        progressBarFill.style.width = `${progress}%`;
+        currentStepText.textContent = currentStep;
+
+        // 버튼 가시성 제어
+        prevButton.style.display = (currentStep === 1) ? 'none' : 'block';
+
+        // 마지막 단계에서는 '가입 완료' 버튼 표시, 아니면 '다음' 버튼
+        if (currentStep < totalSteps) {
+            nextButton.style.display = 'block';
+            submitButton.style.display = 'none';
+        } else { // currentStep === totalSteps (5단계)
+            nextButton.style.display = 'none';
+            submitButton.style.display = 'block';
+        }
+
+        // 5단계 (차량 정보)로 이동 시 적재량 옵션 업데이트 함수 호출
+        if (currentStep === 5) {
+            updateLoadCapacity();
+        }
+    }
+
+    // 다음 버튼 클릭
+    nextButton.addEventListener('click', () => {
+        if (validateStep(currentStep)) {
+            currentStep++;
+            updateStep();
+        }
+    });
+
+    // 이전 버튼 클릭
+    prevButton.addEventListener('click', () => {
+        currentStep--;
+        updateStep();
+    });
+
+    // 프로필 사진 미리보기 기능
+    profilePictureInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                profilePictureDisplay.src = e.target.result;
+                profilePictureDisplay.style.display = 'block'; // 이미지 보이기
+            };
+            reader.readAsDataURL(file);
+        } else {
+            profilePictureDisplay.src = '';
+            profilePictureDisplay.style.display = 'none'; // 이미지 숨기기
+        }
+    });
+
+    // 차량 종류에 따른 최대 적재량 옵션 동적 변경 로직
+    const loadCapacityOptions = {
+        'damos': [{ value: '0.55', text: '0.55t (다마스)' }],
+        'labo': [{ value: '0.55', text: '0.55t (라보)' }],
+        'cargo': [
+            { value: '', text: '선택하세요', disabled: true, selected: true },
+            { value: '1', text: '1t' },
+            { value: '1.4', text: '1.4t' },
+            { value: '2.5', text: '2.5t' },
+            { value: '3.5', text: '3.5t' },
+            { value: '5.5', text: '5.5t' },
+            { value: '8', text: '8t' },
+            { value: '12', text: '12t' },
+            { value: '18', text: '18t' },
+            { value: '25', text: '25t' },
+            { value: '30', text: '30t' }
+        ],
+        'wing_body': [
+            { value: '', text: '선택하세요', disabled: true, selected: true },
+            { value: '1', text: '1t' },
+            { value: '1.4', text: '1.4t' },
+            { value: '2.5', text: '2.5t' },
+            { value: '3.5', text: '3.5t' },
+            { value: '5.5', text: '5.5t' },
+            { value: '8', text: '8t' },
+            { value: '12', text: '12t' },
+            { value: '18', text: '18t' },
+            { value: '25', text: '25t' },
+            { value: '30', text: '30t' }
+        ],
+        'top_truck': [
+            { value: '', text: '선택하세요', disabled: true, selected: true },
+            { value: '1', text: '1t' },
+            { value: '1.4', text: '1.4t' },
+            { value: '2.5', text: '2.5t' },
+            { value: '3.5', text: '3.5t' },
+            { value: '5.5', text: '5.5t' },
+            { value: '8', text: '8t' },
+            { value: '12', text: '12t' },
+            { value: '18', text: '18t' },
+            { value: '25', text: '25t' },
+            { value: '30', text: '30t' }
+        ]
+    };
+
+    function updateLoadCapacity() {
+        const selectedVehicleType = vehicleTypeSelect.value;
+        loadCapacitySelect.innerHTML = ''; // 기존 옵션 제거
+
+        let optionsToDisplay;
+        if (selectedVehicleType === 'damos' || selectedVehicleType === 'labo') {
+            optionsToDisplay = loadCapacityOptions[selectedVehicleType];
+        } else if (selectedVehicleType in loadCapacityOptions) {
+            optionsToDisplay = loadCapacityOptions[selectedVehicleType];
+        } else {
+            optionsToDisplay = [{ value: '', text: '선택하세요', disabled: true, selected: true }];
+        }
+
+        optionsToDisplay.forEach(optionData => {
+            const newOption = document.createElement('option');
+            newOption.value = optionData.value;
+            newOption.textContent = optionData.text;
+            if (optionData.disabled) newOption.disabled = true;
+            if (optionData.selected) newOption.selected = true;
+            loadCapacitySelect.appendChild(newOption);
+        });
+
+        // Jinja 변수로부터 초기값 설정 로직 (현재 회원가입 페이지에서는 초기값이 없을 것이므로 기본 '선택하세요'가 될 것임)
+        // 이 부분은 나중에 기사 정보 수정 페이지로 이 폼을 재활용할 때 유용
+        const initialVehicleType = "{{ vehicle_type }}";
+        const initialLoadCapacity = "{{ load_capacity }}";
+
+        if (initialVehicleType && initialVehicleType !== "None" && selectedVehicleType === initialVehicleType) {
+            const optionExists = Array.from(loadCapacitySelect.options).some(option => option.value === initialLoadCapacity);
+            if (optionExists) {
+                loadCapacitySelect.value = initialLoadCapacity;
+            } else {
+                loadCapacitySelect.value = '';
+            }
+        } else if (!selectedVehicleType) {
+             loadCapacitySelect.value = '';
+        }
+    }
+
+
+    // 폼 제출 (submit_button 클릭 시)
+    form.addEventListener('submit', (event) => {
+        if (currentStep === totalSteps) { // 마지막 단계인 5단계에서만 유효성 검사 수행
+            if (!validateStep(currentStep)) {
+                event.preventDefault(); // 유효성 검사 실패 시 폼 제출 방지
+                // validateStep 내부에서 이미 alert 띄움
+            }
+        } else {
+            event.preventDefault(); // submit 버튼이 아닌 다음 버튼으로 넘어가는 경우 폼 제출 방지
+        }
+    });
+
+    // 페이지 로드 시 초기화
+    document.addEventListener('DOMContentLoaded', () => {
+        updateStep();
+        // vehicleTypeSelect의 초기값을 Jinja2 변수에서 설정 (페이지 로드 시 딱 한 번)
+        const initialVehicleType = "{{ vehicle_type }}";
+        if (initialVehicleType && initialVehicleType !== "None") {
+            vehicleTypeSelect.value = initialVehicleType;
+        } else {
+            vehicleTypeSelect.value = ''; // '선택하세요' 옵션에 맞는 값
+        }
+        updateLoadCapacity(); // 초기 로드 시 적재량 드롭다운 채우기
+    });
+</script>
+<script>
+function execDaumPostcode() {
+    new daum.Postcode({
+        oncomplete: function(data) {
+            // 선택한 주소 값을 가져와 input에 세팅
+            document.getElementById('address').value = data.address;
+        }
+    }).open();
+}
+</script>
+{% endblock %}

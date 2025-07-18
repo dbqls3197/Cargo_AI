@@ -1,0 +1,37 @@
+{% extends "driver_base.html" %}
+
+{% block title %}내가 쓴 리뷰 - 화물 AI 서비스{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto bg-white rounded-xl shadow-md p-6 space-y-6 mt-6">
+    <h2 class="text-2xl font-bold text-center text-gray-800">내가 쓴 리뷰</h2>
+
+    <!-- 리뷰 리스트 -->
+    <div class="space-y-4">
+        <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+            <div class="flex justify-between items-center mb-2">
+                <p class="font-semibold text-gray-800">김화주님 (가나다 물류)</p>
+                <span class="text-yellow-500 text-xl">★★★★★</span>
+            </div>
+            <p class="text-sm text-gray-600">항상 친절하게 맞아주셔서 감사합니다. 상하차도 빠르고 편했습니다.</p>
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded-lg shadow-sm">
+            <div class="flex justify-between items-center mb-2">
+                <p class="font-semibold text-gray-800">이사장님 (ABC 전자)</p>
+                <span class="text-yellow-500 text-xl">★★★★☆</span>
+            </div>
+            <p class="text-sm text-gray-600">대기 시간 없이 상차 완료해서 매우 만족스러웠습니다.</p>
+        </div>
+
+        <!-- 필요시 추가 -->
+        <!-- <div class="bg-gray-50 p-4 rounded-lg shadow-sm">...</div> -->
+    </div>
+
+    <div class="text-center mt-6">
+        <a href="{{ url_for('mypage') }}" class="inline-block bg-indigo-600 text-white py-3 px-6 rounded-xl font-bold hover:bg-indigo-700 transition">
+            마이페이지로 돌아가기
+        </a>
+    </div>
+</div>
+{% endblock %}

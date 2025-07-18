@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}화물 AI 관제 - 대시보드{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin/dashboard.css') }}">
+    {% block extra_css %}
+    {% endblock %}
+</head>
+<body class="p-4">
+    {% block contents %}
+    {% endblock %}
+    <script>
+        document.getElementById('nav-dashboard').classList.add('active-nav-link');
+        document.getElementById('logout-button').addEventListener('click', () => {
+            localStorage.removeItem('isLoggedIn');
+            window.location.href = window.location.origin + '/';
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<!--    <script>-->
+<!--        if (localStorage.getItem('isLoggedIn') !== 'true') {-->
+<!--            window.location.href = window.location.origin + '/';-->
+<!--        }-->
+<!--    </script>-->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js" crossorigin="anonymous"></script>
+    {% block extra_js %}
+    {% endblock %}
+</body>
+</html>

@@ -1,0 +1,182 @@
+{% extends "driver_base.html" %}
+
+{% block title %}네비게이션 - 화물기사 페이지{% endblock %}
+
+{% block content %}
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-indigo-700">네비게이션</h1>
+        <div class="flex space-x-3">
+            <button id="driver-notification-icon" class="relative text-gray-600 hover:text-indigo-600 p-1">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                </svg>
+                <span class="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center w-5 h-5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">1</span>
+            </button>
+            <button id="driver-profile-icon" class="text-gray-600 hover:text-indigo-600">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    {# 현재 운행 중 섹션 - 초기에는 숨김 #}
+    <div id="current-trip-status-section" class="bg-blue-50 p-4 rounded-xl shadow-sm mb-6" style="display: none;">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-semibold text-blue-800">현재 운행 중</h3>
+            <span class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm font-medium">진행 중</span>
+            <label class="inline-flex items-center cursor-pointer ml-4">
+                <input type="checkbox" id="driverStatusToggle" class="sr-only peer" checked>
+                <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+                <span class="ml-3 text-sm font-medium text-green-700" id="driverStatusText">운행 가능</span>
+            </label>
+        </div>
+        <div class="space-y-2">
+            <div class="flex items-center space-x-3">
+                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span class="text-sm text-gray-700" id="current-start-address">출발지: 주소 미정</span>
+            </div>
+            <div class="flex items-center space-x-3">
+                <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                <span class="text-sm text-gray-700" id="current-end-address">도착지: 주소 미정</span>
+            </div>
+            <div class="flex justify-between items-center mt-4">
+                <span class="text-sm text-gray-600" id="current-eta">예상 도착 시간: --:--</span>
+                <span class="text-sm text-blue-600 font-medium" id="current-remaining-distance">잔여 거리: 0.0km</span>
+            </div>
+        </div>
+    </div>
+
+    {# 주소 직접 입력 섹션 - 초기에는 보임 (기본 모드) #}
+    <div id="manual-input-section" class="bg-white p-4 rounded-xl shadow-sm mb-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">주소 직접 입력</h3>
+        <div class="space-y-3">
+            <div>
+                <label for="inputStartAddress" class="block text-sm font-medium text-gray-700 mb-1">출발지</label>
+                <input type="text" id="inputStartAddress" placeholder="출발지 주소를 입력하세요"
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <div>
+                <label for="inputEndAddress" class="block text-sm font-medium text-gray-700 mb-1">도착지</label>
+                <input type="text" id="inputEndAddress" placeholder="도착지 주소를 입력하세요"
+                       class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+            </div>
+            <button id="searchManualRouteButton" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold hover:bg-indigo-700 transition">
+                경로 검색
+            </button>
+        </div>
+    </div>
+
+    {# 실시간 네비게이션 섹션 - 초기에는 숨김 #}
+    <div id="realtime-navigation-section" class="mb-6" style="display: none;">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">실시간 네비게이션</h3>
+        <div class="bg-white rounded-xl shadow-md overflow-hidden">
+            <div id="map" class="h-80 bg-gray-100 relative">
+                {# 지도 로딩 오버레이 #}
+                <div class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75 z-10" id="map-loading-overlay" style="display: none;"> {# 초기에는 숨김 #}
+                    <div class="text-center">
+                        <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-2 animate-bounce">
+                            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
+                        <p class="text-sm text-gray-600">경로를 찾는 중...</p>
+                    </div>
+                </div>
+                {# 경로 정보 오버레이 #}
+                <div class="absolute top-4 left-4 bg-white rounded-lg p-3 shadow-lg max-w-xs" id="route-info-overlay" style="display: none;"> {# 초기에는 숨김 #}
+                    <div class="flex items-center space-x-2 mb-2">
+                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span class="text-xs text-gray-600" id="display-start-address">출발: 주소 미정</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-2 h-2 bg-red-500 rounded-full"></div>
+                        <span class="text-xs text-gray-600" id="display-end-address">도착: 주소 미정</span>
+                    </div>
+                </div>
+                {# 네비게이션 요약 오버레이 #}
+                <div class="absolute bottom-4 right-4 bg-blue-600 text-white rounded-lg p-3 shadow-lg" id="nav-summary-overlay" style="display: none;"> {# 초기에는 숨김 #}
+                    <div class="text-center">
+                        <div class="text-lg font-bold" id="display-total-distance">0.0km</div>
+                        <div class="text-xs" id="display-estimated-time">예상 0분</div>
+                    </div>
+                </div>
+            </div>
+            <div class="p-4 bg-gray-50 flex justify-between items-center">
+                <button id="re-route-button" class="flex items-center space-x-2 bg-white px-4 py-2 rounded-lg shadow-sm hover:bg-gray-100 transition">
+                    <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                    <span class="text-sm">경로 재검색</span>
+                </button>
+                <button id="start-guidance-button" class="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-sm hover:bg-blue-700 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                    <span class="text-sm">안내 시작</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {# 최근 경로 섹션 - 초기에는 숨김 #}
+    <div id="recent-routes-section" class="mb-6" style="display: none;">
+        <h3 class="text-lg font-semibold text-gray-800 mb-3">최근 경로</h3>
+        <div class="space-y-3">
+            <div class="bg-white p-4 rounded-xl shadow-md recent-route-item">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-medium text-gray-800">서울 강남구 → 경기 성남시</span>
+                    <span class="text-xs text-gray-500">2시간 전</span>
+                </div>
+                <div class="text-sm text-gray-600">
+                    <div class="flex justify-between">
+                        <span>거리: 25.3km</span>
+                        <span>소요시간: 45분</span>
+                    </div>
+                </div>
+                <button class="mt-3 w-full bg-gray-100 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-200 transition"
+                        data-start-addr="서울 강남구 테헤란로 123" data-end-addr="경기 성남시 분당구 판교역로 456">
+                    다시 안내받기
+                </button>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-md recent-route-item">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-medium text-gray-800">경기 수원시 → 서울 서초구</span>
+                    <span class="text-xs text-gray-500">1일 전</span>
+                </div>
+                <div class="text-sm text-gray-600">
+                    <div class="flex justify-between">
+                        <span>거리: 32.1km</span>
+                        <span>소요시간: 55분</span>
+                    </div>
+                </div>
+                <button class="mt-3 w-full bg-gray-100 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-200 transition"
+                        data-start-addr="경기 수원시" data-end-addr="서울 서초구">
+                    다시 안내받기
+                </button>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-md recent-route-item">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="font-medium text-gray-800">인천 연수구 → 서울 영등포구</span>
+                    <span class="text-xs text-gray-500">3일 전</span>
+                </div>
+                <div class="text-sm text-gray-600">
+                    <div class="flex justify-between">
+                        <span>거리: 28.7km</span>
+                        <span>소요시간: 50분</span>
+                    </div>
+                </div>
+                <button class="mt-3 w-full bg-gray-100 text-gray-700 py-2 rounded-lg text-sm hover:bg-gray-200 transition"
+                        data-start-addr="인천 연수구" data-end-addr="서울 영등포구">
+                    다시 안내받기
+                </button>
+            </div>
+        </div>
+    </div>
+
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=685e7ddf6b71b33bbeff08111988694f&autoload=false&libraries=services"></script>
+<script src="{{ url_for('static', filename='js/driver/navigation.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends "shipper_base.html" %}
+{% block title %}내 운송 내역{% endblock %}
+{% block contents %}
+    <div id="shipper-my-shipments-screen" class="content-scrollable">
+        <div class="flex items-center mb-6">
+            <a href="{{ url_for('shipper_dashboard')}}" class="back-btn text-gray-600 hover:text-indigo-600 p-1 mr-2">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+            </a>
+            <h2 class="text-xl font-bold text-gray-800">내 운송</h2>
+        </div>
+
+
+        {% if my_matchings %}
+        <div class="space-y-3">
+            {% for mat in my_matchings %}
+                {% if mat['delivery_status'] == 'in_progress' %}
+                <a href="{{ url_for('shipper_tracking') }}">
+                    <div class="bg-gray-50 p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition">
+                        <div class="bg-white p-3 rounded-lg shadow-sm">
+                            <p class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium whitespace-nowrap w-fit mb-2">🚚 운송 중</p>
+                            <p class="text-sm text-gray-500">신청시간 : {{ mat.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                            <p class="text-sm text-gray-500">출발지 : {{ mat['origin']}} </p>
+                            <p class="text-sm text-gray-500">도착지 : {{ mat['destination']}}</p>
+                            <p class="text-sm text-gray-500">하차 예정 시간 : {{ mat['dropoff_date'] }} {{ mat['dropoff_time'] }}</p>
+                        </div>
+                    </div>
+                </a>
+                {% else %}
+                <div class="bg-gray-50 p-4 rounded-xl shadow-sm">
+                    <div class="shipment-item bg-white p-4 rounded-xl shadow-sm">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium whitespace-nowrap w-fit mb-2">✅ 운송 완료</p>
+                                <p class="truncate text-gray-800" title="{{ mat['origin'] }}">
+                                    출발지 : {{ mat['origin'][:18] }}{% if mat['origin']|length > 18 %}...{% endif %}
+                                </p>
+                                <p class="truncate text-gray-800" title="{{ mat['destination'] }}">
+                                    도착지 : {{ mat['destination'][:18] }}{% if mat['destination']|length > 18 %}...{% endif %}
+                                </p>
+                                <p class="text-sm text-gray-600">
+                                    #번호 {{ mat.created_at.strftime('%Y%m%d') }} - {{ loop.index }} | {{ mat.item_type }} {{ mat.item_weight/1000 }}톤
+                                </p>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <p class="text-sm text-gray-500">
+                                {{ mat['driver_name'] }} 기사님 | {{ mat['driver_vehicle_capacity']/1000 | round() }}톤 {{ mat['vehicle_type'] }}
+                            </p>
+                            <p class="text-sm text-gray-500">예상 도착: 2025-07-09 18:00</p>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div id="no-shipments-message" class="text-center py-10">
+            <svg class="mx-auto h-12 w-12 text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path vector-effect="non-scaling-stroke" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-4m3 4v-2m3 2v-6m-7 10h12a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            <h3 class="mt-2 text-lg font-medium text-gray-900">진행 중인 운송 내역이 없습니다.</h3>
+            <p class="mt-1 text-sm text-gray-500">새로운 운송을 요청하여 시작해보세요.</p>
+            <div class="mt-6">
+                <a href="{{ url_for('shipper_request') }}" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                운송 요청하기
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}
+{% block footer %}
+<div class="footer-nav flex justify-around">
+    <a href="{{ url_for('shipper_dashboard') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
+    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+    </svg>
+    <span class="text-xs mt-1">홈</span>
+    </a>
+    <a href="{{ url_for('shipper_my_requests') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
+    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+        <path d="M3 3h11a1 1 0 011 1v4h2.382a1 1 0 01.894.553l1.618 3.236A1 1 0 0119 12v4a1 1 0 01-1 1h-1a2 2 0 11-4 0H7a2 2 0 11-4 0H2a1 1 0 01-1-1V4a1 1 0 011-1zM4 15a1 1 0 102 0 1 1 0 00-2 0zm10 0a1 1 0 102 0 1 1 0 00-2 0z"/>
+    </svg>
+    <span class="text-xs mt-1">기사 매칭</span>
+    </a>
+    <a href="{{ url_for('shipper_my_shipments') }}" class="flex flex-col items-center text-indigo-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+        <span class="text-xs mt-1">내 운송</span>
+    </a>
+    <a href="{{ url_for('shipper_payments') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+        <span class="text-xs mt-1">결제</span>
+    </a>
+    <a href="{{ url_for('shipper_my_page') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+        <span class="text-xs mt-1">마이페이지</span>
+   </a>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/shipper/my_shipments.js') }}"></script>
+{% endblock %}

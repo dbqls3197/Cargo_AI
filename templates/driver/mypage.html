@@ -1,0 +1,104 @@
+{% extends "driver_base.html" %}
+{% block title %}마이페이지 - 화물 AI 서비스{% endblock %}
+{% block content %}
+
+<div id="driver-mypage-screen">
+    <!-- 상단 헤더 -->
+    <div class="flex items-center mb-6">
+        <a href="{{ url_for('driver_dashboard') }}" class="back-btn text-gray-600 hover:text-indigo-600 p-1 mr-2">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+            </svg>
+        </a>
+        <h2 class="text-xl font-bold text-gray-800 w-full text-center mr-8">마이페이지</h2>
+    </div>
+
+    <!-- 프로필 카드 -->
+    <div class="flex items-center bg-gray-50 p-4 rounded-xl mb-6">
+        <img src="https://placehold.co/80x80/6366F1/FFFFFF?text=기사" alt="기사 프로필" class="rounded-full mr-4">
+        <div class="flex-grow">
+            <h3 class="text-lg font-bold text-gray-800">김기사님</h3>
+            <p class="text-sm text-gray-600">경기12가 3456</p>
+            <p class="text-sm text-gray-500">5톤 윙바디 / 5,000kg</p>
+        </div>
+        <button class="text-sm text-indigo-600 hover:underline">수정</button>
+    </div>
+
+    <!-- 운행 요약 -->
+    <div class="grid grid-cols-3 gap-4 text-center mb-6">
+        <div>
+            <p class="text-lg font-semibold text-gray-800">128회</p>
+            <p class="text-xs text-gray-500">총 운행</p>
+        </div>
+        <div>
+            <p class="text-lg font-semibold text-gray-800">4.8 <span class="text-yellow-500">★</span></p>
+            <p class="text-xs text-gray-500">평균 별점</p>
+        </div>
+        <div>
+            <p class="text-lg font-semibold text-indigo-600">345만</p>
+            <p class="text-xs text-gray-500">이번달 수익</p>
+        </div>
+    </div>
+
+    <!-- 최근 내가 쓴 리뷰 -->
+    <div class="bg-white p-4 rounded-xl shadow-sm mb-6">
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="text-lg font-semibold text-gray-800">내가 쓴 리뷰</h3>
+            <a href="{{ url_for('mypage_reviews') }}" class="text-sm text-indigo-600 hover:underline">더보기</a>
+        </div>
+        <div class="space-y-3">
+            <div class="border-b border-gray-100 pb-3">
+                <div class="flex justify-between items-center text-sm mb-1">
+                    <span class="font-semibold text-gray-700">김화주님 (가나다 물류)</span>
+                    <span class="text-yellow-500">★★★★★</span>
+                </div>
+                <p class="text-sm text-gray-600">항상 친절하게 맞아주셔서 감사합니다. 상하차도 편해요!</p>
+            </div>
+            <div class="border-b border-gray-100 pb-3">
+                <div class="flex justify-between items-center text-sm mb-1">
+                    <span class="font-semibold text-gray-700">이사장님 (ABC 전자)</span>
+                    <span class="text-yellow-500">★★★★☆</span>
+                </div>
+                <p class="text-sm text-gray-600">대기 시간 없이 바로 상차할 수 있어서 좋습니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 메뉴 리스트 -->
+    <div class="bg-white rounded-xl shadow-sm mb-6">
+        <ul class="divide-y divide-gray-200">
+            <li class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50">
+                <a href="{{ url_for('mypage_notice') }}" class="flex justify-between w-full items-center">
+                    <span>공지사항</span>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+            </li>
+            <li class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50">
+                <a href="{{ url_for('mypage_cs') }}" class="flex justify-between w-full items-center">
+                    <span>고객센터</span>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+            </li>
+            <li class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50">
+                <a href="{{ url_for('mypage_reviews') }}" class="flex justify-between w-full items-center">
+                    <span>내가 쓴 리뷰</span>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                    </svg>
+                </a>
+            </li>
+            <li id="logout-btn" class="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 text-red-500">
+                <span>로그아웃</span>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                </svg>
+            </li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}

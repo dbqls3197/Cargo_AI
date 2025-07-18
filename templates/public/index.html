@@ -1,0 +1,549 @@
+{% extends 'public_base.html' %}
+
+{% block title %}화물 AI 서비스 - 스마트 물류 혁신의 시작{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* 폰트 및 기본 배경 */
+    body {
+        background-color: #f8f9fa; /* 밝고 깨끗한 배경 */
+        font-family: 'Pretendard Variable', 'Pretendard', 'Noto Sans KR', sans-serif; /* 요즘 많이 쓰는 폰트 (설치 필요, 없으면 fallback) */
+        color: #212529; /* 진한 기본 텍스트 색상 */
+    }
+
+    /* 구글 폰트 Pretendard CDN 추가 (없을 경우 fallback) */
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+    /* 메인 컨테이너 */
+    .intro-container {
+        max-width: 480px;
+        margin: 0 auto;
+        background-color: #ffffff;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08); /* 부드럽고 깊이감 있는 그림자 */
+        overflow-x: hidden;
+        padding-bottom: 0;
+    }
+
+    /* 상단 헤더 */
+    .app-header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background-color: #ffffff;
+        padding: 18px 24px; /* 패딩 증가 */
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06); /* 그림자 강화 */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f0f2f5; /* 미묘한 하단 보더 */
+    }
+    .app-logo {
+        font-size: 1.6rem; /* 로고 크기 확대 */
+        font-weight: 900; /* 매우 굵게 */
+        color: #2e6ffb; /* 메인 브랜드 블루 */
+    }
+    .auth-buttons a {
+        padding: 10px 18px; /* 패딩 증가 */
+        border-radius: 10px; /* 둥근 모서리 */
+        font-size: 0.95rem; /* 폰트 크기 조정 */
+        font-weight: 700; /* 굵게 */
+        text-decoration: none;
+        transition: all 0.3s ease; /* 부드러운 전환 효과 */
+    }
+    .auth-buttons .login-btn {
+        background-color: #eaf2ff; /* 연한 블루 배경 */
+        color: #2e6ffb;
+        margin-right: 12px;
+    }
+    .auth-buttons .login-btn:hover {
+        background-color: #dbe7ff;
+    }
+    .auth-buttons .signup-btn {
+        background-color: #2e6ffb;
+        color: #ffffff;
+        box-shadow: 0 4px 10px rgba(46, 111, 251, 0.3); /* 버튼 그림자 */
+    }
+    .auth-buttons .signup-btn:hover {
+        background-color: #2457c8;
+        box-shadow: 0 6px 15px rgba(46, 111, 251, 0.4);
+    }
+
+    /* 히어로 섹션 */
+    .hero-section {
+        position: relative;
+        width: 100%;
+        padding-top: 80%; /* 이미지 영역 비율 */
+        overflow: hidden;
+        background: linear-gradient(135deg, #4a90e2, #2e6ffb); /* 부드러운 블루 그라데이션 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+    .hero-image-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0.3; /* 배경 이미지 투명도 더 낮춤 */
+        filter: grayscale(100%); /* 흑백 이미지 필터 */
+    }
+    .hero-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 90%;
+        color: #ffffff;
+        z-index: 1;
+    }
+    .hero-main-title {
+        font-size: 2.8rem;
+        font-weight: 800; /* 굵기 조정 */
+        line-height: 1.35;
+        margin-bottom: 1.2rem;
+        text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.5);
+    }
+    .hero-description {
+        font-size: 1.05rem; /* 크기 조정 */
+        font-weight: 500;
+        line-height: 1.6;
+        margin-bottom: 2rem; /* 마진 증가 */
+        opacity: 0.9;
+    }
+    .hero-cta-button {
+        display: inline-block;
+        padding: 16px 32px; /* 패딩 증가 */
+        background-color: #ffc107; /* 강조 컬러 (옐로우) */
+        color: #212529; /* 진한 텍스트 */
+        font-size: 1.15rem; /* 크기 증가 */
+        font-weight: 800; /* 매우 굵게 */
+        border-radius: 35px; /* 더 둥글게 */
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 15px rgba(255, 193, 7, 0.4); /* 버튼 그림자 강화 */
+    }
+    .hero-cta-button:hover {
+        background-color: #e0a800;
+        transform: translateY(-2px); /* 약간의 움직임 */
+    }
+
+    /* 일반 섹션 스타일 */
+    .section-common {
+        padding: 60px 24px; /* 패딩 증가 */
+        text-align: center;
+        border-bottom: 1px solid #f0f2f5; /* 부드러운 구분선 */
+    }
+    .section-common:last-child {
+        border-bottom: none;
+    }
+    .section-title-lg {
+        font-size: 2.2rem; /* 제목 크기 확대 */
+        font-weight: 800; /* 매우 굵게 */
+        color: #212529;
+        margin-bottom: 1.5rem;
+        line-height: 1.4;
+    }
+    .section-subtitle-md {
+        font-size: 1.05rem;
+        color: #495057; /* 부드러운 회색 */
+        line-height: 1.7;
+        margin-bottom: 3rem; /* 마진 증가 */
+    }
+
+    /* 기능 강조 섹션 (아이콘 + 텍스트) */
+    .features-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 30px; /* 간격 증가 */
+    }
+    .feature-item-card {
+        background-color: #fff;
+        padding: 30px; /* 패딩 증가 */
+        border-radius: 18px; /* 더 둥글게 */
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); /* 그림자 강화 */
+        text-align: left;
+        transition: all 0.3s ease; /* 전환 효과 */
+    }
+    .feature-item-card:hover {
+        transform: translateY(-8px); /* 호버 시 약간 위로 */
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15); /* 그림자 더 강조 */
+    }
+    .feature-icon-lg {
+        font-size: 3rem; /* 아이콘 크기 확대 */
+        color: #2e6ffb;
+        margin-bottom: 18px; /* 마진 증가 */
+    }
+    .feature-card-title {
+        font-size: 1.35rem; /* 크기 확대 */
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 10px;
+    }
+    .feature-card-description {
+        font-size: 0.95rem;
+        color: #495057;
+        line-height: 1.6;
+    }
+
+    /* 작동 방식 섹션 */
+    .how-it-works-step {
+        background-color: #f6faff; /* 아주 연한 블루 배경 */
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+        text-align: left;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+    .step-number {
+        font-size: 1.9rem; /* 크기 조정 */
+        font-weight: 800;
+        color: #2e6ffb;
+        margin-bottom: 12px;
+        position: relative;
+        display: inline-block; /* 배경색 적용을 위해 */
+        padding-right: 8px;
+    }
+    .step-number::after { /* 가상 요소로 밑줄 또는 강조 */
+        content: '';
+        position: absolute;
+        bottom: 0px;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        background-color: rgba(46, 111, 251, 0.2); /* 연한 블루 하이라이트 */
+        z-index: -1;
+    }
+    .step-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 8px;
+    }
+    .step-description {
+        font-size: 0.95rem;
+        color: #495057;
+        line-height: 1.6;
+    }
+
+    /* --- 새로 디자인된 고객 혜택 섹션 스타일 --- */
+    .benefits-section {
+        padding: 60px 24px;
+        text-align: center;
+        background-color: #eaf2ff; /* 섹션 배경색을 더 밝은 블루 계열로 변경 */
+        border-bottom: 1px solid #e0e8f0;
+    }
+    .benefits-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #212529;
+        margin-bottom: 1.5rem;
+        line-height: 1.4;
+    }
+    .benefits-subtitle {
+        font-size: 1.05rem;
+        color: #495057;
+        line-height: 1.7;
+        margin-bottom: 3rem;
+    }
+
+    .user-type-card {
+        background-color: #ffffff;
+        padding: 30px;
+        border-radius: 18px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        text-align: left;
+        margin-bottom: 30px; /* 카드 간 간격 */
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .user-type-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.15);
+    }
+    .user-type-card:last-child {
+        margin-bottom: 0; /* 마지막 카드 하단 마진 제거 */
+    }
+
+    .user-type-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+    .user-type-icon {
+        font-size: 3rem; /* 아이콘 크기 */
+        color: #2e6ffb; /* 화주/기사 구분색 */
+        margin-right: 15px;
+    }
+    .user-type-title {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #212529;
+    }
+
+    .benefit-list {
+        list-style: none; /* 기본 리스트 스타일 제거 */
+        padding: 0;
+        margin: 0;
+    }
+    .benefit-list-item {
+        display: flex;
+        align-items: flex-start; /* 아이콘과 텍스트 상단 정렬 */
+        margin-bottom: 18px; /* 항목 간 간격 */
+    }
+    .benefit-list-item:last-child {
+        margin-bottom: 0;
+    }
+    .benefit-icon-sm {
+        font-size: 1.5rem;
+        color: #28a745; /* 체크 아이콘 색상 */
+        margin-right: 12px;
+        flex-shrink: 0; /* 아이콘이 줄어들지 않도록 */
+        padding-top: 2px; /* 텍스트와 세로 정렬 미세 조정 */
+    }
+    .benefit-text-wrapper {
+        flex-grow: 1;
+    }
+    .benefit-item-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #212529;
+        margin-bottom: 4px;
+    }
+    .benefit-item-description {
+        font-size: 0.9rem;
+        color: #495057;
+        line-height: 1.5;
+    }
+
+
+    /* 마무리 CTA 섹션 */
+    .final-cta-section {
+        padding: 60px 24px;
+        background-color: #2e6ffb; /* 메인 브랜드 블루 배경 */
+        color: #ffffff;
+        text-align: center;
+        flex-shrink: 0;
+        border-radius: 0 0 0px 0px; /* 하단 코너만 둥글게 할 경우 */
+    }
+    .final-cta-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 2rem;
+        line-height: 1.3;
+    }
+    .final-cta-button-group {
+        display: flex;
+        flex-direction: column;
+        gap: 18px; /* 간격 증가 */
+        max-width: 320px; /* 버튼 너비 제한 */
+        margin: 0 auto;
+    }
+    .final-cta-button {
+        padding: 16px 20px; /* 패딩 증가 */
+        font-size: 1.15rem;
+        font-weight: 800;
+        border-radius: 12px; /* 더 둥글게 */
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    }
+    .final-cta-button.login {
+        background-color: #ffc107; /* 강조 컬러 */
+        color: #212529;
+    }
+    .final-cta-button.login:hover {
+        background-color: #e0a800;
+        transform: translateY(-2px);
+    }
+    .final-cta-button.signup {
+        background-color: #ffffff;
+        color: #2e6ffb;
+    }
+    .final-cta-button.signup:hover {
+        background-color: #f0f0f0;
+        transform: translateY(-2px);
+    }
+
+    /* 푸터 */
+    footer {
+        background-color: #343a40; /* 더 어두운 푸터 색상 */
+        color: #adb5bd; /* 연한 텍스트 */
+        text-align: center;
+        padding: 20px; /* 패딩 조정 */
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+</style>
+{% endblock %}
+
+{% block contents %}
+<div class="intro-container">
+    {# 상단 헤더: 로고와 로그인/회원가입 버튼 #}
+    <header class="app-header">
+        <span class="app-logo">Cargo AI</span> {# 앱 이름 수정 #}
+        <div class="auth-buttons">
+            <a href="{{ url_for('login') }}" class="login-icon-btn"><i class="fa-solid fa-user"></i></a> {# 로그인 아이콘 버튼 #}
+            <a href="#" class="signup-icon-btn"><i class="fa-solid fa-user-plus"></i></a> {# 회원가입 아이콘 버튼 #}
+        </div>
+    </header>
+
+    {# 히어로 섹션: 서비스의 핵심 메시지 #}
+    <div class="hero-section">
+        <img src="{{ url_for('static', filename='image/intro_hero.jpg') }}" alt="Cargo AI 서비스 배경" class="hero-image-overlay">
+        <div class="hero-content">
+            <h1 class="hero-main-title">AI가 제시하는<br>새로운 물류의 기준</h1>
+            <p class="hero-description">복잡한 운송 과정을 간소화하고, 투명하고 효율적인 화물 운송 경험을 제공합니다.</p>
+            <a href="{{ url_for('login') }}" class="hero-cta-button">서비스 시작하기</a> {# 회원가입 유형 선택 페이지로 연결 #}
+        </div>
+    </div>
+
+    {# 핵심 가치/장점 소개 섹션 #}
+    <div class="section-common">
+        <h2 class="section-title-lg">AI 기반 스마트 물류 플랫폼</h2>
+        <p class="section-subtitle-md">화주와 기사 모두에게 최적화된 솔루션으로 운송의 미래를 만들어갑니다.</p>
+        <div class="features-grid">
+            <div class="feature-item-card">
+                <div class="feature-icon-lg">📊</div> {# 아이콘은 Font Awesome 등으로 교체 권장 #}
+                <h3 class="feature-card-title">정교한 AI 매칭</h3>
+                <p class="feature-card-description">화물 종류, 적재량, 운송 경로, 차량 특성 등 다양한 데이터를 분석하여 최적의 매칭을 제공합니다.</p>
+            </div>
+            <div class="feature-item-card">
+                <div class="feature-icon-lg">⚡</div>
+                <h3 class="feature-card-title">신속하고 효율적인 운송</h3>
+                <p class="feature-card-description">불필요한 대기 시간과 공차 운행을 최소화하여 시간과 비용을 절감합니다.</p>
+            </div>
+            <div class="feature-item-card">
+                <div class="feature-icon-lg">🔒</div>
+                <h3 class="feature-card-title">안전하고 신뢰할 수 있는 서비스</h3>
+                <p class="feature-card-description">검증된 기사 네트워크와 실시간 추적 시스템으로 운송의 안정성을 보장합니다.</p>
+            </div>
+            <div class="feature-item-card">
+                <div class="feature-icon-lg">📈</div>
+                <h3 class="feature-card-title">투명한 운송 과정 및 정산</h3>
+                <p class="feature-card-description">모든 운송 과정과 정산 내역을 투명하게 공개하여 신뢰를 높입니다.</p>
+            </div>
+        </div>
+    </div>
+
+    {# 작동 방식 섹션 #}
+    <div class="section-common" style="background-color: #f6faff;"> {# 아주 연한 블루 배경 #}
+        <h2 class="section-title-lg">화물 AI 서비스, <br>이렇게 이용하세요!</h2>
+        <p class="section-subtitle-md">간단한 몇 단계만 거치면 스마트 운송을 시작할 수 있습니다.</p>
+        <div class="grid grid-cols-1 gap-6">
+            <div class="how-it-works-step">
+                <div class="step-number">STEP 01</div>
+                <h3 class="step-title">간편 회원가입 및 정보 등록</h3>
+                <p class="step-description">화주라면 화물 정보, 기사라면 차량 정보를 쉽고 <br>빠르게 등록합니다.</p>
+            </div>
+            <div class="how-it-works-step">
+                <div class="step-number">STEP 02</div>
+                <h3 class="step-title">AI 매칭 및 운송 요청/수락</h3>
+                <p class="step-description">AI가 최적의 매칭을 찾아주고, <br>화주는 운송 요청, 기사는 요청을 수락합니다.</p>
+            </div>
+            <div class="how-it-works-step">
+                <div class="step-number">STEP 03</div>
+                <h3 class="step-title">안전하고 빠른 운송 완료</h3>
+                <p class="step-description">실시간 추적과 안전한 운송을 통해 <br>목적지까지 화물을 전달합니다.</p>
+            </div>
+            <div class="how-it-works-step">
+                <div class="step-number">STEP 04</div>
+                <h3 class="step-title">간편 정산 및 리뷰</h3>
+                <p class="step-description">운송 완료 후 시스템을 통해 <br>간편하게 정산하고 상호 평가를 남깁니다.</p>
+            </div>
+        </div>
+    </div>
+
+    {# --- 새로 디자인된 고객 혜택 섹션 --- #}
+    <div class="benefits-section">
+        <h2 class="benefits-title">누구에게나 최고의 선택</h2>
+        <p class="benefits-subtitle">화주와 기사, 모두에게 혁신적인 가치를 제공합니다.</p>
+
+        <div class="user-type-card">
+            <div class="user-type-header">
+                <div class="user-type-icon">📦</div> {# 화주 아이콘 #}
+                <h3 class="user-type-title">화주를 위한 혜택</h3>
+            </div>
+            <ul class="benefit-list">
+                <li class="benefit-list-item">
+                    <div class="benefit-icon-sm">✔</div>
+                    <div class="benefit-text-wrapper">
+                        <h4 class="benefit-item-title">운송 효율 극대화</h4>
+                        <p class="benefit-item-description">AI 기반으로 최적 운임을 산정하고, <br>가장 빠른 운송 경로를 제시합니다.</p>
+                    </div>
+                </li>
+                <li class="benefit-list-item">
+                    <div class="benefit-icon-sm">✔</div>
+                    <div class="benefit-text-wrapper">
+                        <h4 class="benefit-item-title">간편한 운송 관리</h4>
+                        <p class="benefit-item-description">앱 하나로 운송 요청, 실시간 추적, <br>정산까지 모든 과정을 관리합니다.</p>
+                    </div>
+                </li>
+                <li class="benefit-list-item">
+                    <div class="benefit-icon-sm">✔</div>
+                    <div class="benefit-text-wrapper">
+                        <h4 class="benefit-item-title">안전한 화물 보호</h4>
+                        <p class="benefit-item-description">신뢰할 수 있는 기사 네트워크와 체계적인 <br>보험 시스템을 갖춥니다.</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <div class="user-type-card">
+            <div class="user-type-header">
+                <div class="user-type-icon">🚚</div> {# 기사 아이콘 #}
+                <h3 class="user-type-title">기사를 위한 혜택</h3>
+            </div>
+            <ul class="benefit-list">
+                <li class="benefit-list-item">
+                    <div class="benefit-icon-sm">✔</div>
+                    <div class="benefit-text-wrapper">
+                        <h4 class="benefit-item-title">수익 증대 기회</h4>
+                        <p class="benefit-item-description">다양한 운송 건을 제공하고, <br>효율적인 배차로 공차율을 낮춥니다.</p>
+                    </div>
+                </li>
+                <li class="benefit-list-item">
+                    <div class="benefit-icon-sm">✔</div>
+                    <div class="benefit-text-wrapper">
+                        <h4 class="benefit-item-title">개인 맞춤형 배차</h4>
+                        <p class="benefit-item-description">차량과 운행 선호도에 맞춰 가장 적합한 운송을 제안합니다.</p>
+                    </div>
+                </li>
+                <li class="benefit-list-item">
+                    <div class="benefit-icon-sm">✔</div>
+                    <div class="benefit-text-wrapper">
+                        <h4 class="benefit-item-title">간편한 업무 환경</h4>
+                        <p class="benefit-item-description">앱 하나로 배차, 내비게이션, 정산까지 <br>모든 업무를 편리하게 처리합니다.</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+    {# --- 고객 혜택 섹션 끝 --- #}
+
+    {# 마무리 CTA 섹션 #}
+    <div class="final-cta-section flex-grow">
+        <h2 class="final-cta-title">지금 바로 Cargo AI <br>서비스와 함께하세요!</h2>
+
+        <div class="final-cta-button-group">
+            <a href="{{ url_for('login') }}" class="final-cta-button login">로그인</a>
+            <a href="#" class="final-cta-button signup">회원가입</a> {# 실제 회원가입 라우트 연결 필요 #}
+        </div>
+    </div>
+
+    {# 푸터 #}
+    <footer class="bg-gray-800 text-white text-center p-5 text-sm flex-shrink-0">
+        <p>&copy; 2025 화물 AI 서비스. All rights reserved.</p>
+    </footer>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+    // 추가적인 JavaScript (예: 스크롤 애니메이션 라이브러리, 이미지 슬라이더 등)
+</script>
+{% endblock %}

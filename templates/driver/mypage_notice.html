@@ -1,0 +1,26 @@
+{% extends "driver_base.html" %}
+
+{% block title %}공지사항 - 화물 AI 서비스{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto bg-white rounded-xl shadow-md p-6 space-y-6 mt-6">
+    <h2 class="text-2xl font-bold text-center text-gray-800">공지사항</h2>
+
+    <div class="space-y-4">
+        <div class="bg-gray-50 p-4 rounded-lg shadow-sm hover:bg-gray-100 transition cursor-pointer">
+            <p class="font-semibold text-gray-800 mb-1">[시스템 점검 안내]</p>
+            <p class="text-sm text-gray-600">2025년 7월 20일(토) 00:00 ~ 06:00 시스템 점검 예정입니다.</p>
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded-lg shadow-sm hover:bg-gray-100 transition cursor-pointer">
+            <p class="font-semibold text-gray-800 mb-1">[긴급 공지] 악천후 운송 주의</p>
+            <p class="text-sm text-gray-600">현재 일부 지역 폭우 예보가 있습니다. 운송 시 안전 운행 부탁드립니다.</p>
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded-lg shadow-sm hover:bg-gray-100 transition cursor-pointer">
+            <p class="font-semibold text-gray-800 mb-1">[신규 기능 업데이트 안내]</p>
+            <p class="text-sm text-gray-600">기사용 리뷰 시스템이 추가되었습니다. 마이페이지에서 확인하세요.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

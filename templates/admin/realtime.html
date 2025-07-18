@@ -1,0 +1,40 @@
+{% extends "admin/dashboard_base.html" %}
+
+{% block title %}화물 AI 관제 - 실시간 관제{% endblock %}
+
+{% block head_extra %}
+    {% endblock %}
+
+{% block content %}
+<div class="content-area">
+    <h2 class="text-3xl font-bold text-gray-800 mb-8">실시간 관제</h2>
+    <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+        <h3 class="text-2xl font-semibold text-gray-800 mb-5">특정 운송 상세 추적</h3>
+        <div id="driver-map-container" class="h-96 bg-gray-100 rounded-xl flex items-center justify-center text-gray-500">[기사를 선택해주세요]</div>
+    </div>
+    <div class="bg-white p-6 rounded-xl shadow-lg mb-8">
+        <h3 class="text-2xl font-semibold text-gray-800 mb-5">기사 목록</h3>
+        <div class="flex flex-col md:flex-row gap-4 mb-5">
+            <input type="text" id="driver-search" placeholder="기사 이름, ID로 검색..." class="w-full p-3 border border-gray-300 rounded-lg">
+            <select id="driver-status-filter" class="w-full md:w-auto p-3 border border-gray-300 rounded-lg bg-white">
+                <option value="all">모든 상태</option><option value="운송 중">운송 중</option><option value="대기 중">대기 중</option><option value="휴식 중">휴식 중</option>
+            </select>
+            <select id="driver-sort-by" class="w-full md:w-auto p-3 border border-gray-300 rounded-lg bg-white">
+                <option value="name">이름 순</option><option value="status">상태 순</option>
+            </select>
+        </div>
+        <div id="driver-list-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 max-h-80 overflow-y-auto p-2">
+            </div>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-xl shadow-lg"><h3 class="text-xl font-semibold text-gray-800 mb-4">운송 진행 현황</h3><div id="transport-progress-list" class="space-y-3"></div></div>
+        <div class="bg-white p-6 rounded-xl shadow-lg"><h3 class="text-xl font-semibold text-gray-800 mb-4">주요 경로 정보</h3><div id="route-info-list" class="space-y-2 text-gray-700"></div></div>
+        <div class.bg-white p-6 rounded-xl shadow-lg"><h3 class="text-xl font-semibold text-gray-800 mb-4">운송 정보</h3><div id="transport-info-list" class="space-y-2 text-gray-700"></div></div>
+        <div class="bg-white p-6 rounded-xl shadow-lg"><h3 class="text-xl font-semibold text-gray-800 mb-4">최근 활동 기록</h3><ul id="recent-logs-list" class="space-y-3 text-sm"></ul></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/admin/realtime.js') }}"></script>
+{% endblock %}

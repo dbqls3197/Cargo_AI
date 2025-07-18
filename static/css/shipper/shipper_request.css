@@ -1,0 +1,6 @@
+ .content-scrollable {
+        height: 100%;
+        overflow-y: auto;
+        padding: 1.5rem;
+        padding-bottom: 6rem;
+    }
