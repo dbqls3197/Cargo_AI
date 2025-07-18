@@ -287,9 +287,9 @@ def shipper_dashboard():
     shipper_id = session['id']
     my_requests = manager.select_requests_by_shipper_id(shipper_id) or []
     my_requests_count = len(my_requests)
-    # matchings = manager.select_matching_driver_my_request_by_id(shipper_id) or []
-
-    return render_template('shipper/dashboard.html', my_requests = my_requests, my_requests_count=my_requests_count)
+    not_matched = [req for req in my_requests if req['is_matched'] == 0] or []
+    print(f"not_matched:{not_matched}")
+    return render_template('shipper/dashboard.html', my_requests = my_requests, my_requests_count=my_requests_count, not_matched=not_matched)
 
 ## 화주 운송 요청
 @app.route('/shipper/shipper_request')
@@ -348,20 +348,25 @@ def driver_matching_result():
     return render_template("shipper/driver_matching_result.html", my_request=my_request, driver=driver,
                            my_matching=my_matching)
 
+# ------------------------------------------------------------------
 
 ## 화주 운송 내역
 @app.route('/shipper/my_shipments')
 @login_required_shipper
 def shipper_my_shipments():
-    user_id = session['id']
-    my_matchings = manager.select_matching_info(user_id)
-    return render_template('shipper/my_shipments.html', my_matchings=my_matchings)
+    shipper_id = session['id']
+    my_matchings = manager.select_matching_info(shipper_id)# 매칭정보 가져옴
+    print(f"my_matchings:{my_matchings}")
+    in_progress = [mat for mat in my_matchings if mat['status'] == 0] or []
+    completed = [mat for mat in my_matchings if mat['status'] == 1] or []
+    print(f"completed: {completed}")
+    return render_template('shipper/my_shipments.html', in_progress= in_progress, completed=completed, my_matchings= my_matchings)
 
 
-@app.route('/shipper/tracking')
+@app.route('/shipper/tracking/<match_id>')
 @login_required_shipper
-def shipper_tracking():
-    return render_template('shipper/shipper_tracking.html')
+def shipper_tracking(match_id):
+    return render_template('shipper/shipper_tracking.html', match_id = match_id)
 
 
 

@@ -120,22 +120,34 @@ class DBManager:
         finally:
             self.disconnect()
 
-    ## 매칭 완료 정보 조회
-    def select_matching_info(self, request_id):
+    ## shipper_id로 매칭 정보, 운전자 정보 조회
+    def select_matching_info(self, shipper_id):
         try:
             self.connect()
-            query="""
-            select *, fr.shipper_id 
-            from matches m
-            INNER JOIN freight_request fr 
-            ON fr.request_id = m.request_id
-            where m.request_id = %s
+            query ="""
+            SELECT 
+            m.*, 
+            fr.shipper_id,
+            fr.request_time,
+            fr.weight,
+            d.name,
+            d.phone,
+            v.truck_type,
+            v.capacity ,
+            v.vehicle_num,
+            v.truck_info
+            FROM matches m
+            INNER JOIN freight_request fr ON fr.id = m.request_id
+            INNER JOIN drivers d ON d.driver_id = m.driver_id
+            INNER JOIN vehicles v ON d.driver_id = v.driver_id
+            WHERE fr.shipper_id = %s;
             """
-            self.cursor.execute(query,(request_id,))
+            self.cursor.execute(query,(shipper_id,))
             print("매칭 정보 조회 성공")
             return self.cursor.fetchall()
         except Exception as e:
             print(f"매칭 정보 조회 실패 : {e}")
+            return []
         finally:
             self.disconnect()
 
@@ -254,7 +266,7 @@ class DBManager:
             query = """
                     UPDATE freight_request 
                     SET is_matched = 1
-                    WHERE request_id = %s 
+                    WHERE id = %s 
                     """
             self.cursor.execute(query,(request_id,))
             self.connection.commit()
@@ -263,7 +275,7 @@ class DBManager:
             print(f"❌ 매칭상태 업데이트 실패: {e}")
         finally:
             self.disconnect()
-            
+
     ## 매칭 내역 조회
     def select_matching_driver_my_request_by_id(self, shipper_id):
         try:

@@ -1,5 +1,8 @@
 {% extends "shipper_base.html" %}
 {% block title %}화주페이지{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+{% endblock %}
 {% block contents %}
 <div id="shipper-app" class="app-container">
     <div id="shipper-main-screen" class="content-scrollable">
@@ -83,4 +86,20 @@
         <span class="text-xs mt-1">마이페이지</span>
    </a>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+<script>
+  const swiper = new Swiper(".mySwiper", {
+    slidesPerView: 1.2,
+    spaceBetween: 20,
+    centeredSlides: true,
+    grabCursor: true,
+    pagination: {
+      el: ".swiper-pagination",
+      clickable: true,
+    },
+  });
+</script>
 {% endblock %}
