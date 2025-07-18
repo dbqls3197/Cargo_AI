@@ -30,14 +30,10 @@
         {% for req in my_requests %}
             <div class="border border-gray-300 rounded-lg p-4 shadow hover:shadow-md transition cursor-pointer"
                 onclick="location.href='/shipper/driver_matching?id={{ req['id'] }}'">
-            <div class="text-sm text-gray-500 mb-2">신청 번호 #{{ loop.index }}</div>
-            <div class="font-semibold text-sm mb-1">요청 시간 : {{ req['created_at'] }}</div>
+            <div class="text-sm text-gray-500 mb-2">신청 번호 #{{ req.request_time.strftime('%Y%M%d') }}-{{ req['id'] }}</div>
             <div class="font-semibold text-sm mb-1">출발지 : {{ req['origin'] }}</div>
             <div class="font-semibold text-sm mb-1">도착지 : {{ req['destination'] }}</div>
-            <div class="font-semibold text-sm mb-1">물품: {{ req['item_type'] }} / 무게: {{ req['item_weight'] }}kg</div>
-            <div class="font-semibold text-sm mb-1">차량: {{ req['vehicle_type'] }}</div>
-            <div class="font-semibold text-sm mb-1">상차: {{ req['pickup_date'] }} {{ req['pickup_time'] }}</div>
-            <div class="font-semibold text-sm mb-1">하차: {{ req['dropoff_date'] }} {{ req['dropoff_time'] }}</div>
+            <div class="font-semibold text-sm mb-1">물품 종류 : {{ req['cargo_info'] }} / 무게: {{ req['weight'] | int }}kg</div>
             </div>
         {% endfor %}
     {% else %}

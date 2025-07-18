@@ -8,6 +8,7 @@ import queue
 from kafka import KafkaProducer, KafkaConsumer
 import random
 import os
+from werkzeug.utils import secure_filename
 
 # Flask 앱을 생성합니다.
 app = Flask(__name__)
@@ -17,6 +18,17 @@ received_data_list = []
 clients = []
 
 app.secret_key = "your_super_secret_key"
+
+# 파일 업로드 경로 설정
+app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'uploads')
+# 업로드 폴더가 없으면 생성
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # API 키들
 TMAP_API_KEY = "eEl7AGPzATadBLtufoN4i6dSx6RZGpcT8Bpq5zsj"
@@ -100,8 +112,6 @@ def signup_page(user_type):
 # --- 기사 회원가입 데이터 처리 라우트 ---
 @app.route('/do_signup_driver', methods=['POST'])
 def do_signup_driver():
-    """기사 회원가입 폼 데이터를 처리하고 최종 완료 페이지로 리디렉션합니다."""
-    # 폼 데이터 받기 및 처리 (DB 저장 등)
     name = request.form.get('name')
     username = request.form.get('username')
     email = request.form.get('email')
@@ -109,20 +119,23 @@ def do_signup_driver():
 
     print(f"기사 회원가입 데이터 수신 (최종 단계):")
     print(f"  이름: {name}, 아이디: {username}, 이메일: {email}")
-    if profile_picture:
-        print(f"  프로필 사진: {profile_picture.filename}")
-        if not os.path.exists(app.config['UPLOAD_FOLDER']):
-            os.makedirs(app.config['UPLOAD_FOLDER'])
-        if profile_picture and allowed_file(profile_picture.filename):
-            filename = secure_filename(profile_picture.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            profile_picture.save(filepath)
-            print(f"  프로필 사진 저장됨: {filepath}")
+
+    if profile_picture and allowed_file(profile_picture.filename):
+        # 저장 경로 생성 (없으면 생성)
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+
+        filename = secure_filename(profile_picture.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        profile_picture.save(filepath)
+
+        print(f"  프로필 사진 저장됨: {filepath}")
     else:
         print(f"  프로필 사진: 없음 또는 허용되지 않는 파일 형식")
 
-    # 모든 회원가입 정보 처리 후, 새로운 완료 페이지로 리디렉션
-    return redirect(url_for('signup_success_driver_page'))
+    # DB 저장 코드가 있다면 여기에 추가
+
+    return render_template('public/signup_success_driver.html')
+    
 
 
 # --- 화주 회원가입 데이터 처리 라우트 ---
@@ -151,9 +164,12 @@ def do_signup_submit(user_type):
         # 모든 화주 회원가입 정보 처리 (DB 저장 등)
 
         # 화주 회원가입 완료 후, 기사 회원가입 완료 페이지와 동일한 페이지로 리디렉션
-        return redirect(url_for('signup_success_driver_page'))  # <-- 변경: signup_success_driver_page로 통일
+        return render_template('public/signup_success_shipper.html') # <-- 변경: signup_success_driver_page로 통일
 
-    return redirect(url_for('/'))  # 또는 오류 페이지
+    return redirect(url_for('signup_page'))  # 또는 오류 페이지
+
+
+
 
 
 ## 로그인 페이지
@@ -264,11 +280,12 @@ def admin_settings():
 @login_required_shipper
 def shipper_dashboard():
     shipper_id = session['id']
-    # my_requests = manager.select_requests_by_shipper_id(shipper_id) or []
+    my_requests = manager.select_requests_by_shipper_id(shipper_id) or []
+    my_requests_count = len(my_requests)
     # matchings = manager.select_matching_driver_my_request_by_id(shipper_id) or []
 
 
-    return render_template('shipper/dashboard.html', )
+    return render_template('shipper/dashboard.html', my_requests = my_requests, my_requests_count=my_requests_count)
 
 @app.route('/shipper/shipper_request')
 @login_required_shipper
@@ -293,10 +310,10 @@ def submit_shipper_request():
 @login_required_shipper
 def shipper_my_requests():
     shipper_id = session['id']  # shipper_id로 받아야 DB컬럼과 일치
-    all_requests = manager.select_shipper_requests_by_id(shipper_id)
-
-    print(f"🔍 나의 요청 목록: {all_requests}")
-    return render_template("shipper/my_requests.html", my_requests=all_requests)
+    all_requests = manager.select_requests_by_shipper_id(shipper_id)
+    non_matched = [mat for mat in all_requests if mat['is_matched'] == 0]
+    print(f"🔍 나의 요청 목록: {non_matched}")
+    return render_template("shipper/my_requests.html", my_requests= non_matched )
 
 
 @app.route('/shipper/driver_matching')
@@ -304,10 +321,10 @@ def shipper_my_requests():
 def driver_matching():
     request_id = request.args.get('id')
     my_request = manager.select_request_by_id(request_id)
-    vehicle_type = my_request['vehicle_type']
-    all_drivers = manager.select_matching_driver()
-    drivers = [driver for driver in all_drivers if driver.get('vehicle_type') == vehicle_type]
-    return render_template('shipper/driver_matching.html', drivers=drivers, request_id=request_id)
+    truck_info = my_request['cargo_info']
+    all_drivers = manager.select_matching_drivers_info()
+    drivers = [driver for driver in all_drivers if driver.get('truck_info') == truck_info] or []
+    return render_template('shipper/driver_matching.html', my_request = my_request, drivers=drivers, request_id=request_id)
 
 
 @app.route('/shipper/matching_result', methods=['POST'])
@@ -317,8 +334,9 @@ def driver_matching_result():
     driver_id = request.form['driver_id']
     user_id = session['id']
     my_request = manager.select_request_by_id(request_id)
-    driver = manager.select_driver_by_id(driver_id)
-    manager.create_matching_table()
+    print(my_request)
+    driver = manager.select_matching_driver_all_info(driver_id)
+    print(driver)
     manager.insert_matching_result(user_id, my_request, driver)
     manager.update_request_status_to_matched(request_id)
     my_matching = manager.select_matching_driver_my_request(user_id, driver_id, request_id)

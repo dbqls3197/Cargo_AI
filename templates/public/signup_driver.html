@@ -266,7 +266,7 @@
                 <div id="progress_bar_fill" class="progress-bar-fill"></div>
             </div>
 
-            <form id="signup_form" action="/do_signup_driver" method="post" enctype="multipart/form-data">
+            <form id="signup_form" action="{{ url_for('do_signup_driver')}}" method="post" enctype="multipart/form-data">
                 {# 1단계: 기본 정보 #}
                 <div id="step_1" class="form-section active">
                     <input type="text" name="name" placeholder="이름" class="input-field" required>

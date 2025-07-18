@@ -44,7 +44,6 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("confirm-pickupTime").textContent = document.getElementById("pickupTime").value;
         document.getElementById("confirm-special_request").textContent = document.getElementById("special_request").value;
 
-        // 긴급 여부 텍스트 표시
         const isFastChecked = document.getElementById("fast_request").checked;
         document.getElementById("confirm-fast_request").textContent = isFastChecked ? "긴급" : "일반";
 
@@ -65,6 +64,16 @@ document.addEventListener("DOMContentLoaded", () => {
         window.location.href = "/shipper/dashboard";
     });
 
+    // ✅ MySQL datetime 형식으로 포맷하는 함수
+    function formatToMySQLDatetime(date) {
+        return date.getFullYear() + '-' +
+            String(date.getMonth() + 1).padStart(2, '0') + '-' +
+            String(date.getDate()).padStart(2, '0') + ' ' +
+            String(date.getHours()).padStart(2, '0') + ':' +
+            String(date.getMinutes()).padStart(2, '0') + ':' +
+            String(date.getSeconds()).padStart(2, '0');
+    }
+
     // 제출
     const requestForm = document.getElementById("shipper-request-form");
     requestForm.addEventListener("submit", function (e) {
@@ -72,14 +81,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!confirm("운송을 요청하시겠습니까?")) return;
 
+        const pickupDate = document.querySelector('#pickupDate').value;
+        const pickupTime = document.querySelector('#pickupTime').value;
+        const pickupDatetime = new Date(`${pickupDate}T${pickupTime}`);
+        const pickupDeadlineFormatted = formatToMySQLDatetime(pickupDatetime); // ✅ 수정된 부분
+
         const data = {
             origin: document.querySelector('#origin').value,
             destination: document.querySelector('#destination').value,
             cargo_info: document.querySelector('#cargo_info').value,
             weight: document.querySelector('#weight').value,
             cargo_type: document.querySelector('#cargo_type').value,
-            pickup_date: document.querySelector('#pickupDate').value,
-            pickup_time: document.querySelector('#pickupTime').value,
+            pickup_date: pickupDate,
+            pickup_time: pickupTime,
+            pickup_deadline: pickupDeadlineFormatted, // ✅ 수정된 부분
             fast_request: document.querySelector('#fast_request').checked ? 1 : 0,
             special_request: document.querySelector('#special_request').value,
             price: document.querySelector('#price').value
@@ -102,14 +117,14 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("요청 중 오류 발생: " + err);
         });
     });
-});
 
-// 주소 검색 함수
-window.searchAddress = function (targetInputId) {
-    new daum.Postcode({
-        oncomplete: function (data) {
-            const address = data.roadAddress || data.jibunAddress;
-            document.getElementById(targetInputId).value = address;
-        }
-    }).open();
-};
+    // 주소 검색 함수
+    window.searchAddress = function (targetInputId) {
+        new daum.Postcode({
+            oncomplete: function (data) {
+                const address = data.roadAddress || data.jibunAddress;
+                document.getElementById(targetInputId).value = address;
+            }
+        }).open();
+    };
+});

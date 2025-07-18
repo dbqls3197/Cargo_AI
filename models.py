@@ -64,11 +64,11 @@ class DBManager:
             self.disconnect()
 
     # 운송 요청 조회
-    def select_shipper_requests_by_id(self, shipper_id):
+    def select_requests_by_shipper_id(self, shipper_id):
         try:
             self.connect()
             query = """
-            select * from freight_request where user_id = %s
+            select * from freight_request where shipper_id = %s
             """
             value = (shipper_id,)
             self.cursor.execute(query, value)
@@ -81,11 +81,14 @@ class DBManager:
             self.disconnect()
 
     # 매칭될 기사 조회
-    def select_matching_driver(self):
+    def select_matching_drivers_info(self):
         try:
             self.connect()
             query = """
-            select * from drivers
+            SELECT *
+            FROM vehicles v
+            INNER JOIN drivers d
+            ON v.driver_id = d.driver_id; 
             """
             self.cursor.execute(query)
             print("화물 매칭 기사 데이터 조회 성공")
@@ -94,6 +97,27 @@ class DBManager:
             print(f"화물 매칭 기사 데이터 조회 실패: {e}")
         finally:
             self.disconnect()
+
+
+    # 매칭 후 기사 데이터 조회
+    def select_matching_driver_all_info(self, driver_id):
+        try:
+            self.connect()
+            query= """
+            SELECT *
+            FROM vehicles v
+            INNER JOIN drivers d
+            ON v.driver_id = d.driver_id
+            where d.driver_id = %s;
+            """
+            self.cursor.execute(query, (driver_id,))
+            print("매칭 완료된 기사 정보 조회")
+            return self.cursor.fetchone()
+        except Exception as e:
+            print(f"매칭 완료 기사 정보 조회 실패 : {e}")
+        finally:
+            self.disconnect()
+
 
     # 관리자 정보 조회
     def select_admin_by_id(self, admin_id):
@@ -128,14 +152,14 @@ class DBManager:
             self.disconnect()
 
     # 화주 운송 요청 정보 조회(운송요청아이디)
-    def select_request_by_id(self, shipper_id):
+    def select_request_by_id(self, id):
         try:
             self.connect()
             query = """
             SELECT * FROM freight_request
-            WHERE shipper_id = %s
+            WHERE id = %s
             """
-            value = (shipper_id,)
+            value = (id,)
             self.cursor.execute(query, value)
             print("운송 요청 아이디로 정보 조회 성공")
             return self.cursor.fetchone()
