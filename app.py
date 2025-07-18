@@ -187,30 +187,44 @@ def do_signup_submit(user_type):
 @app.route('/login', methods=['GET','POST'])
 def login():
     if request.method == 'POST':
-        session['id'] = request.form['user_id']
-        session['pw'] = request.form['password']
-        user_id = session['id']
-        user = manager.select_shipper_by_id(user_id)
-        driver = manager.select_driver_by_id(user_id)
-        admin = manager.select_admin_by_id(user_id)
-        print(user)
+        user_id_input = request.form['user_id'] # 사용자 입력 ID
+        user_pw_input = request.form['password'] # 사용자 입력 PW
+
+        # 세션에 일단 ID와 PW 저장 (선택 사항, 필요에 따라 로그인 성공 후에만 저장할 수도 있음)
+        session['id'] = user_id_input
+        session['pw'] = user_pw_input
+
+        # manager를 통해 사용자, 운전자, 관리자 정보 조회
+        user = manager.select_shipper_by_id(user_id_input)
+        driver = manager.select_driver_by_id(user_id_input)
+        admin = manager.select_admin_by_id(user_id_input)
+
+        # print(user) # 디버깅용
+
         if user:
             session['role'] = 'shipper'
-            if user['shipper_pw'] == session['pw']:
+            if user['shipper_pw'] == user_pw_input: # 세션 PW 대신 직접 입력 PW 사용
+                # 필요한 경우 여기에 shipper_id도 세션에 저장
+                session['loggedInUserId'] = user['shipper_id'] # 예시: 발송인 ID 저장
                 return redirect(url_for('shipper_dashboard'))
             else :
                 flash("비밀번호가 일치하지 않습니다.", "error")
                 return redirect(url_for('login'))
         elif driver:
             session['role'] = 'driver'
-            if driver['driver_pw'] == session['pw']:
+            if driver['driver_pw'] == user_pw_input: # 세션 PW 대신 직접 입력 PW 사용
+                # ⭐️⭐️⭐️ 가장 중요한 수정 부분: driver_id를 세션에 저장 ⭐️⭐️⭐️
+                session['loggedInDriverId'] = driver['driver_id']
+                print(f"로그인 성공: 운전자 ID {driver['driver_id']} 세션에 저장됨") # 디버깅용
                 return redirect(url_for('driver_dashboard'))
             else :
                 flash("비밀번호가 일치하지 않습니다.", "error")
                 return redirect(url_for('login'))
         elif admin:
             session['role'] = 'admin'
-            if admin['admin_pw'] == session['pw'] :
+            if admin['admin_pw'] == user_pw_input : # 세션 PW 대신 직접 입력 PW 사용
+
+                session['loggedInAdminId'] = admin['admin_id'] # 예시: 관리자 ID 저장
                 return redirect(url_for('admin_dashboard'))
             else :
                 flash("비밀번호가 일치하지 않습니다.", "error")
@@ -219,6 +233,7 @@ def login():
             flash("일치하는 아이디가 없습니다.", "error")
             return redirect(url_for('login'))
     return render_template("public/login.html")
+
 
 
 @app.route('/logout')
@@ -231,6 +246,16 @@ def logout():
 @app.route('/register')
 def register():
     return render_template('public/register.html')
+
+@app.route('/api/get_current_driver_id', methods=['GET'])
+def get_current_driver_id():
+    # 로그인 여부 및 역할 확인
+    if 'id' not in session or session.get('role') != 'driver':
+        return jsonify({'success': False, 'message': '로그인된 드라이버가 아닙니다.'}), 401
+    
+    # 세션에서 드라이버 ID를 가져와 반환
+    driver_id = session.get('id') # 또는 session.get('loggedInDriverIdForJs') 사용 가능
+    return jsonify({'success': True, 'driver_id': driver_id})
 
 
 # -----------------------------------------------------------------------------
@@ -409,11 +434,33 @@ def shipper_payments():
 def shipper_payments_result():
     user_id = session['id']
     all_matchings = manager.select_matching_driver_my_request_by_id(user_id)
-    # update payments  set  paymentType=?, is_paid=1 where id=3
-    # "update payments  set  is_paid=1 where id=" + user_id
-    # return redirect('/shipper/dashboard')
+    
+    # 결제 상태 업데이트
+    try:
+        # 새로운 연결 생성
+        manager.connect()
+        
+        # 방법 1: 특정 payment_id를 받아서 업데이트하는 경우
+        payment_id = request.args.get('payment_id')
+        if payment_id:
+            query = "UPDATE payments SET is_paid=1 WHERE id=%s"
+            manager.cursor.execute(query, (payment_id,))
+        else:
+            # 방법 2: 현재 사용자의 모든 미결제 건을 완료 처리하는 경우
+            query = "UPDATE payments SET is_paid=1 WHERE shipper_id=%s AND is_paid=0"
+            manager.cursor.execute(query, (user_id,))
+        
+        manager.connection.commit()
+        print("✅ 결제 상태 업데이트 완료")
+        
+    except Exception as e:
+        print(f"결제 상태 업데이트 오류: {e}")
+        if manager.connection:
+            manager.connection.rollback()
+    finally:
+        manager.disconnect()
+    
     return redirect(url_for('shipper_dashboard'))
-
 
 
 @app.route("/api/process_payment", methods=["POST"])
@@ -437,29 +484,41 @@ def shipper_my_page():
 # -----------------------------------------------------------------------------
 # 화물기사 페이지
 # -----------------------------------------------------------------------------
+
+# 기사 대시보드
 @app.route('/driver/dashboard')
 @login_required_driver
 def driver_dashboard():
     return render_template('driver/dashboard.html')
 
-
+# 기사 운송 요청 목록
 @app.route('/driver/request/<int:request_id>')
 @login_required_driver
 def request_detail(request_id):
     return render_template('driver/request_detail.html', request_id=request_id)
 
-
+# 기사 운송 요청 목록 페이지
 @app.route('/driver/request_accept_success')
 @login_required_driver
 def request_accept_success():
     return render_template('driver/request_accept_success.html')
 
-
+# 기사 운송 요청 목록
 @app.route("/driver/navigation")
 @login_required_driver
 def navigation_page():
-    return render_template("driver/navigation.html")
+    # 세션에서 loggedInDriverId를 가져옵니다.
+    # 이 값은 로그인 시 session['loggedInDriverId']에 저장되었습니다.
+    logged_in_driver_id = session.get('loggedInDriverId')
 
+    if logged_in_driver_id:
+        print(f"Flask: navigation_page 렌더링 - logged_in_driver_id: {logged_in_driver_id}")
+        return render_template("driver/navigation.html", logged_in_driver_id=logged_in_driver_id)
+    else:
+        # loggedInDriverId가 세션에 없으면 로그인 페이지로 리다이렉트
+        # (login_required_driver 데코레이터가 이미 처리하지만, 명시적으로 처리할 수도 있습니다.)
+        flash("드라이버 ID를 찾을 수 없습니다. 다시 로그인해주세요.", "error")
+        return redirect(url_for('login'))
 
 matches = [
     {"id": 1, "company": "(주)가나다 물류", "date": "2025-07-08", "cargo": "가구", "weight": 165, "price": 103000,
@@ -525,6 +584,61 @@ def mypage_reviews():
 def matching_page():
     return render_template('driver/matching.html')
 
+@app.route('/update_driver_status', methods=['POST'])
+def update_driver_status():
+    if session.get('role') != 'driver':
+        return jsonify({'success': False, 'message': '권한이 없습니다'}), 403 
+    
+    driver_id = session.get('loggedInDriverId') # 세션에서 드라이버 ID 가져오기
+    if not driver_id:
+        return jsonify({'success': False, 'message': '로그인된 드라이버 ID를 찾을 수 없습니다.'}), 401
+
+    status = request.json.get('status') 
+    if status not in [0, 1]:
+        return jsonify({'success': False, 'message': '유효하지 않은 상태 값입니다. (0 또는 1만 허용)'}), 400
+
+    try:
+        success = manager.update_driver_status(driver_id, status)
+
+        if success:
+            return jsonify({'success': True, 'message': '운전자 상태가 성공적으로 업데이트되었습니다.'}), 200
+        else:
+            return jsonify({'success': False, 'message': '운전자 상태 업데이트에 실패했습니다.'}), 500
+    except Exception as e:
+        print(f"운전자 상태 업데이트 중 서버 오류 발생: {e}")
+        return jsonify({'success': False, 'message': f'서버 오류: {str(e)}'}), 500
+
+@app.route('/get_driver_status', methods=['GET'])
+@login_required_driver 
+def get_driver_status():
+    driver_id = request.args.get('driver_id')
+    print(f"DEBUG: /get_driver_status 호출됨. driver_id: {driver_id}")
+
+    if not driver_id:
+        return jsonify({'success': False, 'message': '드라이버 ID가 필요합니다.'}), 400
+
+    try:
+        driver_data = manager.select_driver_by_id(driver_id)
+
+        if driver_data:
+            status = driver_data.get('is_active') 
+
+            if status is not None: # is_active 값이 존재한다면
+                print(f"DEBUG: 드라이버 {driver_id}의 is_active 상태: {status}")
+                return jsonify({'success': True, 'status': status}), 200 # 클라이언트에는 'status'로 반환
+            else:
+                print(f"ERROR: 드라이버 {driver_id}의 is_active 상태 정보를 찾을 수 없습니다 (DB 컬럼 확인 필요).")
+                return jsonify({'success': False, 'message': '드라이버 상태 정보를 찾을 수 없습니다.'}), 404
+        else:
+            print(f"ERROR: ID {driver_id}를 가진 드라이버를 찾을 수 없습니다.")
+            return jsonify({'success': False, 'message': '해당 드라이버를 찾을 수 없습니다.'}), 404
+    except Exception as e:
+        print(f"API 오류: 드라이버 상태 조회 중 서버 오류 발생: {e}")
+        return jsonify({'success': False, 'message': f'서버 오류: {str(e)}'}), 500
+
+
+
+
 # -----------------------------------------------------------------------------
 # 외부 API 연동 및 유틸리티 함수
 # -----------------------------------------------------------------------------
@@ -565,9 +679,9 @@ def route_process():
         if response.status_code != 200: return jsonify({"error": f"TMAP API 오류"}), 500
         route_data = response.json()
         coords = [({"lat": lat, "lon": lon}) for feature in route_data['features'] if
-                  feature['geometry']['type'] == "LineString" for lon, lat in feature['geometry']['coordinates']]
+                feature['geometry']['type'] == "LineString" for lon, lat in feature['geometry']['coordinates']]
         total_distance = next((f['properties'].get("totalDistance", 0) for f in route_data['features'] if
-                               f['geometry']['type'] == "Point"), 0)
+                                f['geometry']['type'] == "Point"), 0)
         total_time = next(
             (f['properties'].get("totalTime", 0) for f in route_data['features'] if f['geometry']['type'] == "Point"),
             0)
@@ -685,4 +799,4 @@ def get_all_users():
 # -----------------------------------------------------------------------------
 # 앱 실행
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5555, debug=True)
+    app.run(host='0.0.0.0', port=5004, debug=True)

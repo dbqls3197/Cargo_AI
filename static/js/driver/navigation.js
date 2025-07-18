@@ -1,4 +1,21 @@
+// static/js/driver/navigation.js
+
 document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM 콘텐츠 로드됨 - navigation.js 초기화 시작");
+
+    // 1. loggedInDriverId 가져오기 및 유효성 검사
+    // 이 스크립트가 실행될 때쯤 navigation.html의 인라인 스크립트에서 이미 loggedInDriverId가 설정되어 있어야 합니다.
+    const loggedInDriverId = localStorage.getItem('loggedInDriverId');
+
+    if (!loggedInDriverId) {
+        console.error("Driver ID가 localStorage에 없습니다. 로그인이 필요합니다.");
+        alert("로그인이 필요합니다. 다시 로그인해주세요.");
+        window.location.href = '/login'; // 로그인 페이지 URL로 변경
+        return; // Driver ID가 없으므로 더 이상 스크립트 실행하지 않음
+    }
+    console.log("Navigation.js에서 감지된 Driver ID:", loggedInDriverId);
+
+    // 모든 UI 요소들을 가져옵니다.
     const driverStatusToggle = document.getElementById('driverStatusToggle');
     const driverStatusText = document.getElementById('driverStatusText');
     const startGuidanceButton = document.getElementById('start-guidance-button');
@@ -32,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const mapContainer = document.getElementById('map');
 
 
-    // UI 텍스트 및 스타일 업데이트 함수 (이 함수는 그대로 둡니다)
+    // UI 텍스트 및 스타일 업데이트 함수
     function updateDriverStatusTextUI(isChecked) {
         if (isChecked) {
             driverStatusText.textContent = '운행 가능';
@@ -49,14 +66,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 운전자 상태를 서버로 전송하는 함수
     async function sendDriverStatusToServer(status) {
-        // test_driver_id 대신 localStorage에서 driverId를 가져옵니다.
+        // localStorage에서 driverId를 가져옵니다.
         const driverId = localStorage.getItem('loggedInDriverId');
 
         if (!driverId) {
-            console.error('Driver ID를 찾을 수 없습니다. 로그인 상태를 확인하세요.');
+            console.error('sendDriverStatusToServer: Driver ID를 찾을 수 없습니다. 로그인 상태를 확인하세요.');
             alert('로그인이 필요합니다. 다시 로그인 해주세요.');
             // UI를 원래 상태로 되돌리기 (옵션)
-            if (driverStatusToggle) { // 토글이 존재하는지 다시 한번 확인
+            if (driverStatusToggle) {
                 driverStatusToggle.checked = !driverStatusToggle.checked;
                 updateDriverStatusTextUI(driverStatusToggle.checked);
             }
@@ -64,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            const response = await fetch('/update_driver_status', { // 이 URL은 백엔드에서 상태를 업데이트할 엔드포인트입니다.
+            const response = await fetch('/update_driver_status', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -99,11 +116,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // 페이지 로드 시 운전자의 초기 상태를 DB에서 가져와 토글에 반영하는 함수
     async function loadDriverStatus() {
-        // test_driver_id 대신 localStorage에서 driverId를 가져옵니다.
+        // localStorage에서 driverId를 가져옵니다.
         const driverId = localStorage.getItem('loggedInDriverId');
 
         if (!driverId) {
-            console.warn('Driver ID를 찾을 수 없습니다. 초기 상태 로드를 건너뜁니다.');
+            console.warn('loadDriverStatus: Driver ID를 찾을 수 없습니다. 초기 상태 로드를 건너뜁니다.');
             // driverStatusToggle이 있다면 기본값을 설정합니다.
             if (driverStatusToggle) {
                 driverStatusToggle.checked = false; // 기본적으로 운행 불가
@@ -139,16 +156,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Initial state for driver status toggle
+    // driverStatusToggle 및 driverStatusText 요소가 HTML에 존재하는지 확인 후 이벤트 리스너 설정
     if (driverStatusToggle && driverStatusText) {
-        // 토글 변경 이벤트 리스너 (이 부분은 그대로 둡니다)
+        // 토글 변경 이벤트 리스너
         driverStatusToggle.addEventListener('change', function() {
             const statusValue = this.checked ? 0 : 1; // 0: 운행 가능(운행 중), 1: 운행 불가(운행 종료)
             updateDriverStatusTextUI(this.checked); // UI 먼저 업데이트
             sendDriverStatusToServer(statusValue); // DB 업데이트 요청
         });
+        // 페이지 로드 완료 후 초기 운전자 상태 로드
+        loadDriverStatus(); // loggedInDriverId가 확인된 후에 호출
     } else {
-        console.error("driverStatusToggle 또는 driverStatusText 요소를 찾을 수 없습니다.");
+        console.error("driverStatusToggle 또는 driverStatusText 요소를 찾을 수 없습니다. HTML 구조를 확인하세요.");
     }
 
     // 지도를 실제로 생성하는 함수. 이제 이 함수가 필요한 시점에만 호출됩니다.
@@ -307,7 +326,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.json())
         .then(data => {
-            // console.log('위치 데이터 전송 성공:', data);
+            // console.log('위치 데이터 전송 성공:', data); // 너무 많은 로그를 피하기 위해 주석 처리
         })
         .catch(error => {
             console.error('위치 데이터 전송 실패:', error);
@@ -315,42 +334,47 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function updateGuidanceButtonState() {
-        if (guidanceActive) {
-            startGuidanceButton.innerHTML = `
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9"></path>
-                </svg>
-                <span class="text-sm">안내 종료</span>
-            `;
-            startGuidanceButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
-            startGuidanceButton.classList.add('bg-green-600', 'hover:bg-green-700');
-        } else {
-            startGuidanceButton.innerHTML = `
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
-                </svg>
-                <span class="text-sm">안내 시작</span>
-            `;
-            startGuidanceButton.classList.remove('bg-green-600', 'hover:bg-green-700');
-            startGuidanceButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+        if (startGuidanceButton) { // startGuidanceButton이 존재하는지 확인
+            if (guidanceActive) {
+                startGuidanceButton.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9v-9"></path>
+                    </svg>
+                    <span class="text-sm">안내 종료</span>
+                `;
+                startGuidanceButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                startGuidanceButton.classList.add('bg-green-600', 'hover:bg-green-700');
+            } else {
+                startGuidanceButton.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                    <span class="text-sm">안내 시작</span>
+                `;
+                startGuidanceButton.classList.remove('bg-green-600', 'hover:bg-green-700');
+                startGuidanceButton.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            }
         }
     }
 
-    startGuidanceButton.addEventListener('click', function() {
-        if (guidanceActive) {
-            stopNavigation();
-        } else {
-            const currentStartAddress = currentStartAddressElem.textContent.replace('출발지: ', '');
-            const currentEndAddress = currentEndAddressElem.textContent.replace('도착지: ', '');
+    if (startGuidanceButton) { // startGuidanceButton이 존재하는지 확인
+        startGuidanceButton.addEventListener('click', function() {
+            if (guidanceActive) {
+                stopNavigation();
+            } else {
+                const currentStartAddress = currentStartAddressElem.textContent.replace('출발지: ', '');
+                const currentEndAddress = currentEndAddressElem.textContent.replace('도착지: ', '');
 
-            if (!currentStartAddress || !currentEndAddress || currentStartAddress.includes('미정') || currentEndAddress.includes('미정')) {
-                alert("출발지 또는 도착지 주소가 설정되지 않았습니다. 경로를 먼저 검색해주세요.");
-                return;
+                if (!currentStartAddress || !currentEndAddress || currentStartAddress.includes('미정') || currentEndAddress.includes('미정')) {
+                    alert("출발지 또는 도착지 주소가 설정되지 않았습니다. 경로를 먼저 검색해주세요.");
+                    return;
+                }
+                const initialSpeed = 60;
+                startNavigationSimulation(initialSpeed, currentStartAddress, currentEndAddress);
             }
-            const initialSpeed = 60;
-            startNavigationSimulation(initialSpeed, currentStartAddress, currentEndAddress);
-        }
-    });
+        });
+    }
+
 
     kakao.maps.load(function() {
         const urlParams = new URLSearchParams(window.location.search);
@@ -360,31 +384,25 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 페이지 로드 시 모든 UI 요소의 초기 display 상태를 설정합니다.
         // HTML에서 style="display: none;"을 제거했으므로, 여기서 명시적으로 설정합니다.
-        currentTripStatusSection.style.display = 'none';
-        realtimeNavigationSection.style.display = 'none';
-        recentRoutesSection.style.display = 'none';
-        mapLoadingOverlay.style.display = 'none';
-        routeInfoOverlay.style.display = 'none';
-        navSummaryOverlay.style.display = 'none';
+        if (currentTripStatusSection) currentTripStatusSection.style.display = 'none';
+        if (realtimeNavigationSection) realtimeNavigationSection.style.display = 'none';
+        if (recentRoutesSection) recentRoutesSection.style.display = 'none';
+        if (mapLoadingOverlay) mapLoadingOverlay.style.display = 'none';
+        if (routeInfoOverlay) routeInfoOverlay.style.display = 'none';
+        if (navSummaryOverlay) navSummaryOverlay.style.display = 'none';
 
         // '주소 직접 입력' 섹션은 기본적으로 보이게 합니다.
-        manualInputSection.style.display = 'block';
-
-        // 페이지 로드 완료 후 초기 운전자 상태 로드
-        // driverStatusToggle이 존재하는 경우에만 loadDriverStatus 호출
-        if (driverStatusToggle) {
-            loadDriverStatus();
-        }
+        if (manualInputSection) manualInputSection.style.display = 'block';
 
         async function loadAndDrawRoute(startAddress, endAddress) {
             // 경로 검색 시작 시 로딩 오버레이 표시 및 지도 섹션 보이게 설정
-            mapLoadingOverlay.style.display = 'flex';
-            realtimeNavigationSection.style.display = 'block';
+            if (mapLoadingOverlay) mapLoadingOverlay.style.display = 'flex';
+            if (realtimeNavigationSection) realtimeNavigationSection.style.display = 'block';
 
             // 다른 UI 요소들도 함께 숨겨서 깔끔하게 로딩 화면만 보이도록
-            currentTripStatusSection.style.display = 'none';
-            manualInputSection.style.display = 'none';
-            recentRoutesSection.style.display = 'none';
+            if (currentTripStatusSection) currentTripStatusSection.style.display = 'none';
+            if (manualInputSection) manualInputSection.style.display = 'none';
+            if (recentRoutesSection) recentRoutesSection.style.display = 'none';
 
             // 경로를 가져오기 전에 지도가 생성되지 않았다면, 여기서 생성합니다.
             if (!map) {
@@ -398,9 +416,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (!startAddress || !endAddress) {
                 alert("출발지 또는 도착지 주소가 유효하지 않습니다.");
-                mapLoadingOverlay.style.display = 'none';
-                manualInputSection.style.display = 'block';
-                realtimeNavigationSection.style.display = 'none'; // 에러 시 지도 섹션 숨김
+                if (mapLoadingOverlay) mapLoadingOverlay.style.display = 'none';
+                if (manualInputSection) manualInputSection.style.display = 'block';
+                if (realtimeNavigationSection) realtimeNavigationSection.style.display = 'none'; // 에러 시 지도 섹션 숨김
                 return;
             }
 
@@ -413,9 +431,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
                 if (data.error) {
                     alert("경로를 가져오는 데 실패했습니다: " + data.error);
-                    mapLoadingOverlay.style.display = 'none';
-                    manualInputSection.style.display = 'block';
-                    realtimeNavigationSection.style.display = 'none'; // 에러 시 지도 섹션 숨김
+                    if (mapLoadingOverlay) mapLoadingOverlay.style.display = 'none';
+                    if (manualInputSection) manualInputSection.style.display = 'block';
+                    if (realtimeNavigationSection) realtimeNavigationSection.style.display = 'none'; // 에러 시 지도 섹션 숨김
                     return;
                 }
 
@@ -426,9 +444,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 if (routeCoordinates.length === 0) {
                     alert("경로 데이터가 없습니다. 주소를 다시 확인해주세요.");
-                    mapLoadingOverlay.style.display = 'none';
-                    manualInputSection.style.display = 'block';
-                    realtimeNavigationSection.style.display = 'none'; // 에러 시 지도 섹션 숨김
+                    if (mapLoadingOverlay) mapLoadingOverlay.style.display = 'none';
+                    if (manualInputSection) manualInputSection.style.display = 'block';
+                    if (realtimeNavigationSection) realtimeNavigationSection.style.display = 'none'; // 에러 시 지도 섹션 숨김
                     return;
                 }
 
@@ -480,45 +498,45 @@ document.addEventListener('DOMContentLoaded', function() {
                 map.setBounds(bounds); // 경로 전체가 보이도록 지도 범위 설정
 
                 // UI 업데이트
-                currentStartAddressElem.textContent = `출발지: ${startAddress}`;
-                currentEndAddressElem.textContent = `도착지: ${endAddress}`;
-                document.getElementById('display-start-address').textContent = `출발: ${startAddress}`;
-                document.getElementById('display-end-address').textContent = `도착: ${endAddress}`;
-                document.getElementById('display-total-distance').textContent = `${(totalDistance / 1000).toFixed(1)}km`;
-                document.getElementById('current-remaining-distance').textContent = `잔여 거리: ${(totalDistance / 1000).toFixed(1)}km`;
+                if (currentStartAddressElem) currentStartAddressElem.textContent = `출발지: ${startAddress}`;
+                if (currentEndAddressElem) currentEndAddressElem.textContent = `도착지: ${endAddress}`;
+                if (document.getElementById('display-start-address')) document.getElementById('display-start-address').textContent = `출발: ${startAddress}`;
+                if (document.getElementById('display-end-address')) document.getElementById('display-end-address').textContent = `도착: ${endAddress}`;
+                if (document.getElementById('display-total-distance')) document.getElementById('display-total-distance').textContent = `${(totalDistance / 1000).toFixed(1)}km`;
+                if (document.getElementById('current-remaining-distance')) document.getElementById('current-remaining-distance').textContent = `잔여 거리: ${(totalDistance / 1000).toFixed(1)}km`;
 
                 const estimatedMinutes = Math.ceil(totalTime / 60);
-                document.getElementById('display-estimated-time').textContent = `예상 ${estimatedMinutes}분`;
+                if (document.getElementById('display-estimated-time')) document.getElementById('display-estimated-time').textContent = `예상 ${estimatedMinutes}분`;
                 const now = new Date();
                 now.setMinutes(now.getMinutes() + estimatedMinutes);
-                document.getElementById('current-eta').textContent = `예상 도착 시간: ${now.getHours() % 12 || 12}:${now.getMinutes().toString().padStart(2, '0')} ${now.getHours() >= 12 ? '오후' : '오전'}`;
+                if (document.getElementById('current-eta')) document.getElementById('current-eta').textContent = `예상 도착 시간: ${now.getHours() % 12 || 12}:${now.getMinutes().toString().padStart(2, '0')} ${now.getHours() >= 12 ? '오후' : '오전'}`;
 
                 // 경로 검색 완료 후 UI 섹션 표시
-                mapLoadingOverlay.style.display = 'none';
-                currentTripStatusSection.style.display = 'block';
-                recentRoutesSection.style.display = 'block';
-                routeInfoOverlay.style.display = 'block';
-                navSummaryOverlay.style.display = 'block';
+                if (mapLoadingOverlay) mapLoadingOverlay.style.display = 'none';
+                if (currentTripStatusSection) currentTripStatusSection.style.display = 'block';
+                if (recentRoutesSection) recentRoutesSection.style.display = 'block';
+                if (routeInfoOverlay) routeInfoOverlay.style.display = 'block';
+                if (navSummaryOverlay) navSummaryOverlay.style.display = 'block';
 
             } catch (error) {
                 console.error("경로 데이터를 가져오거나 지도에 그리는 중 오류 발생:", error);
                 alert("경로를 표시하는 데 문제가 생겼습니다. 개발자 도구(F12)의 콘솔 탭을 확인해주세요.");
-                mapLoadingOverlay.style.display = 'none';
-                manualInputSection.style.display = 'block';
-                realtimeNavigationSection.style.display = 'none'; // 에러 시 지도 섹션 숨김
+                if (mapLoadingOverlay) mapLoadingOverlay.style.display = 'none';
+                if (manualInputSection) manualInputSection.style.display = 'block';
+                if (realtimeNavigationSection) realtimeNavigationSection.style.display = 'none'; // 에러 시 지도 섹션 숨김
             }
         }
 
         // 초기 페이지 로드 시 모드에 따른 UI 상태 설정
         if (navigationMode === 'request' && initialStartAddrParam && initialEndAddrParam) {
             // 운송 요청에서 넘어온 경우
-            manualInputSection.style.display = 'none';
-            currentTripStatusSection.style.display = 'block';
-            realtimeNavigationSection.style.display = 'block'; // 지도를 담는 div를 보이게 함
-            recentRoutesSection.style.display = 'block';
-            mapLoadingOverlay.style.display = 'flex';
-            routeInfoOverlay.style.display = 'none';
-            navSummaryOverlay.style.display = 'none';
+            if (manualInputSection) manualInputSection.style.display = 'none';
+            if (currentTripStatusSection) currentTripStatusSection.style.display = 'block';
+            if (realtimeNavigationSection) realtimeNavigationSection.style.display = 'block'; // 지도를 담는 div를 보이게 함
+            if (recentRoutesSection) recentRoutesSection.style.display = 'block';
+            if (mapLoadingOverlay) mapLoadingOverlay.style.display = 'flex';
+            if (routeInfoOverlay) routeInfoOverlay.style.display = 'none';
+            if (navSummaryOverlay) navSummaryOverlay.style.display = 'none';
 
             // 경로 요청이 있는 경우, 여기서 지도를 생성합니다.
             if (!map) {
@@ -535,49 +553,55 @@ document.addEventListener('DOMContentLoaded', function() {
             // 주소 직접 입력 모드 또는 파라미터가 없는 경우
             // 이미 위에서 초기 display를 설정했으므로, 여기서는 특정 상태만 재설정합니다.
             // manualInputSection.style.display = 'block'; (이미 위에서 기본으로 설정)
-            currentTripStatusSection.style.display = 'none';
-            realtimeNavigationSection.style.display = 'none';
-            recentRoutesSection.style.display = 'none';
-            mapLoadingOverlay.style.display = 'none';
+            if (currentTripStatusSection) currentTripStatusSection.style.display = 'none';
+            if (realtimeNavigationSection) realtimeNavigationSection.style.display = 'none';
+            if (recentRoutesSection) recentRoutesSection.style.display = 'none';
+            if (mapLoadingOverlay) mapLoadingOverlay.style.display = 'none';
 
             // 초기 UI 상태 (주소 미정, 정보 오버레이 숨김)
-            currentStartAddressElem.textContent = `출발지: 주소 미정`;
-            currentEndAddressElem.textContent = `도착지: 주소 미정`;
-            document.getElementById('display-start-address').textContent = `출발: 주소 미정`;
-            document.getElementById('display-end-address').textContent = `도착: 주소 미정`;
-            document.getElementById('display-total-distance').textContent = `0.0km`;
-            document.getElementById('current-remaining-distance').textContent = `잔여 거리: 0.0km`;
-            document.getElementById('display-estimated-time').textContent = `예상 0분`;
-            document.getElementById('current-eta').textContent = `예상 도착 시간: --:--`;
-            routeInfoOverlay.style.display = 'none';
-            navSummaryOverlay.style.display = 'none';
+            if (currentStartAddressElem) currentStartAddressElem.textContent = `출발지: 주소 미정`;
+            if (currentEndAddressElem) currentEndAddressElem.textContent = `도착지: 주소 미정`;
+            if (document.getElementById('display-start-address')) document.getElementById('display-start-address').textContent = `출발: 주소 미정`;
+            if (document.getElementById('display-end-address')) document.getElementById('display-end-address').textContent = `도착: 주소 미정`;
+            if (document.getElementById('display-total-distance')) document.getElementById('display-total-distance').textContent = `0.0km`;
+            if (document.getElementById('current-remaining-distance')) document.getElementById('current-remaining-distance').textContent = `잔여 거리: 0.0km`;
+            if (document.getElementById('display-estimated-time')) document.getElementById('display-estimated-time').textContent = `예상 0분`;
+            if (document.getElementById('current-eta')) document.getElementById('current-eta').textContent = `예상 도착 시간: --:--`;
+            if (routeInfoOverlay) routeInfoOverlay.style.display = 'none';
+            if (navSummaryOverlay) navSummaryOverlay.style.display = 'none';
         }
 
         // "경로 재검색" 버튼 클릭 이벤트
-        document.getElementById('re-route-button').addEventListener('click', function() {
-            const currentStartAddress = currentStartAddressElem.textContent.replace('출발지: ', '');
-            const currentEndAddress = currentEndAddressElem.textContent.replace('도착지: ', '');
-            if (currentStartAddress === '주소 미정' || currentEndAddress === '주소 미정') {
-                alert("재검색할 주소가 없습니다. 주소를 먼저 입력하거나 선택해주세요.");
-                return;
-            }
-            alert("경로를 재검색합니다."); // alert 추가
-            loadAndDrawRoute(currentStartAddress, currentEndAddress);
-        });
+        const reRouteButton = document.getElementById('re-route-button');
+        if (reRouteButton) {
+            reRouteButton.addEventListener('click', function() {
+                const currentStartAddress = currentStartAddressElem.textContent.replace('출발지: ', '');
+                const currentEndAddress = currentEndAddressElem.textContent.replace('도착지: ', '');
+                if (currentStartAddress === '주소 미정' || currentEndAddress === '주소 미정') {
+                    alert("재검색할 주소가 없습니다. 주소를 먼저 입력하거나 선택해주세요.");
+                    return;
+                }
+                alert("경로를 재검색합니다."); // alert 추가
+                loadAndDrawRoute(currentStartAddress, currentEndAddress);
+            });
+        }
+
 
         // "주소 직접 입력" 섹션의 "경로 검색" 버튼 클릭 이벤트
-        searchManualRouteButton.addEventListener('click', function() {
-            const startAddr = inputStartAddress.value.trim();
-            const endAddr = inputEndAddress.value.trim();
+        if (searchManualRouteButton) {
+            searchManualRouteButton.addEventListener('click', function() {
+                const startAddr = inputStartAddress.value.trim();
+                const endAddr = inputEndAddress.value.trim();
 
-            if (!startAddr || !endAddr) {
-                alert("출발지와 도착지 주소를 모두 입력해주세요.");
-                return;
-            }
+                if (!startAddr || !endAddr) {
+                    alert("출발지와 도착지 주소를 모두 입력해주세요.");
+                    return;
+                }
 
-            alert("경로를 안내합니다."); // alert 먼저 띄우기
-            loadAndDrawRoute(startAddr, endAddr);
-        });
+                alert("경로를 안내합니다."); // alert 먼저 띄우기
+                loadAndDrawRoute(startAddr, endAddr);
+            });
+        }
 
         // "다시 안내받기" 버튼 클릭 이벤트
         document.querySelectorAll('.recent-route-item button').forEach(button => {

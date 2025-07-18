@@ -172,19 +172,26 @@ class DBManager:
 
     # 운전자 id로 운전자 정보 조회
     def select_driver_by_id(self, driver_id):
-        try:
-            self.connect()
-            query = """
-            SELECT * FROM drivers
+        query = """
+            SELECT 
+                id, name, driver_id, driver_pw, nickname, 
+                business_registration_num, phone, email, birth_date, 
+                gender, address, profile_img, rating, last_login, 
+                created_at, is_active, total_requests, accepted_requests, 
+                last_break_hours, latitude, longitude, location_updated_at 
+            FROM drivers 
             WHERE driver_id = %s
-            """
-            value = (driver_id,)
-            self.cursor.execute(query, value)
-            print("운전자 정보 아이디로 조회 성공")
-            return self.cursor.fetchone()
-
+        """
+        self.connect()
+        try:
+            self.cursor.execute(query, (driver_id,))
+            result = self.cursor.fetchone()
+            if result:
+                columns = [col[0] for col in self.cursor.description]
+                return dict(zip(columns, result))
+            return None
         except Exception as e:
-            print(f"운전자 정보 아이디로 조회 실패: {e}")
+            print(f"select_driver_by_id 오류: {e}")
             return None
         finally:
             self.disconnect()
@@ -352,3 +359,18 @@ class DBManager:
         finally:
             self.disconnect()
 
+
+    # 운전자 상태 업데이트 함수 (아래 2번 문제 해결을 위해 필요)
+    def update_driver_status(self, driver_id, status_value):
+            query = "UPDATE drivers SET is_active = %s WHERE driver_id = %s"
+            self.connect()
+            try:
+                self.cursor.execute(query, (status_value, driver_id))
+                self.connection.commit()
+                return True
+            except Exception as e:
+                print(f"DB 오류: 운전자 상태 업데이트 실패 - {e}")
+                self.connection.rollback()
+                return False
+            finally:
+                self.disconnect()
