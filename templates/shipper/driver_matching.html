@@ -1,6 +1,6 @@
 {% extends "shipper_base.html" %}
 
-{% block title %}기사 매칭 페이지{% endblock %}
+{% block title %}기사 선택 페이지{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -36,7 +36,7 @@
         <div class="font-semibold text-sm mb-1">도착지 : {{ my_request['destination'] }}</div>
         <div class="font-semibold text-sm mb-1">물품 종류 : {{ my_request['cargo_info'] }} / 무게: {{ my_request['weight'] | int }}kg</div>
         <div class="font-semibold text-sm mb-1">차량 타입 : {{ my_request['cargo_type'] }}</div>
-        <div class="font-semibold text-sm mb-1">희망 상차 날짜: {{ my_request['pickup_deadline'] }}</div>
+        <div class="font-semibold text-sm mb-1">희망 상차 시간 : {{ my_request['pickup_deadline'] }}</div>
         </div>
     </div>
 

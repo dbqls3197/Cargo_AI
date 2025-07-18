@@ -23,6 +23,7 @@
                 <img src="{{ payment.profile_img_url or 'https://placehold.co/40x40/6366F1/FFFFFF?text=기' }}"
                     alt="기사 프로필" class="rounded-full mr-3">
                 <div>
+                    <p class="font-semibold text-gray-800">{{ payment.id }} </p>
                     <p class="font-semibold text-gray-800">{{ payment.driver_name }} 기사님</p>
                     <p class="text-sm text-gray-500">출발지 : {{ payment.origin }}</p>
                     <p class="text-sm text-gray-500">도착지 : {{ payment.destination }}</p> 
@@ -30,23 +31,16 @@
                 </div>
             </div>
             <div class="bg-gray-50 p-3 rounded-lg text-sm space-y-2">
-                <div class="flex justify-between">
+                <div class="text-indigo-600">
                     <span>운송 운임</span>
                     <span>{{ "{:,.0f}".format(payment.fee) }}원</span>
-                </div>
-                <div class="flex justify-between">
-                    <span>플랫폼 수수료 (5%)</span>
-                    <span>{{ "{:,.0f}".format(payment.fee * 0.05) }}원</span>
-                </div>
-                <div class="flex justify-between font-bold text-base border-t pt-2 mt-2">
-                    <span>최종 결제 금액</span>
-                    <span class="text-indigo-600">{{ "{:,.0f}".format(payment.fee * 1.05) }}원</span>
                 </div>
             </div>
             <button
             class="pay-now-btn w-full mt-3 bg-indigo-600 text-white py-2 rounded-xl font-semibold hover:bg-indigo-700 transition"
-            data-match-id="{{ payment.match_id }}">
-            결제하기
+            data-match-id="{{ payment.match_id }}"
+            data-id="{{ payment.id }}">
+            결제하기 
             </button>
         </div>
         {% endfor %}

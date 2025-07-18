@@ -7,11 +7,23 @@ import threading
 import queue
 from kafka import KafkaProducer, KafkaConsumer
 import random
+import base64
 import os
 from werkzeug.utils import secure_filename
 
 # Flask 앱을 생성합니다.
 app = Flask(__name__)
+
+# --------------------------------------------------------------
+# pip install flask-cors
+# 토스 결제 서버 연동 : CORS 설정
+# 토스 결제 페이지  : localhost:8000
+# --------------------------------------------------------------
+from flask_cors import CORS
+app = Flask(__name__)
+CORS(app)
+
+
 
 # 전역 변수들
 received_data_list = []
@@ -49,7 +61,7 @@ except Exception as e:
     producer = None
 
 
-# --- 사용자 인증 데코레이터 ---
+# --- 사용자 인증 데코레이터 -----------------------------------------------------------------
 def login_required_shipper(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -72,6 +84,7 @@ def login_required_driver(f):
     return decorated_function
 
 
+
 def login_required_admin(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -81,6 +94,7 @@ def login_required_admin(f):
         return f(*args, **kwargs)
 
     return decorated_function
+
 
 
 # --- 공용 페이지 ---
@@ -135,8 +149,6 @@ def do_signup_driver():
     # DB 저장 코드가 있다면 여기에 추가
 
     return render_template('public/signup_success_driver.html')
-    
-
 
 # --- 화주 회원가입 데이터 처리 라우트 ---
 @app.route('/do_signup_submit/<user_type>', methods=['POST'])
@@ -167,10 +179,6 @@ def do_signup_submit(user_type):
         return render_template('public/signup_success_shipper.html') # <-- 변경: signup_success_driver_page로 통일
 
     return redirect(url_for('signup_page'))  # 또는 오류 페이지
-
-
-
-
 
 ## 로그인 페이지
 @app.route('/login', methods=['GET','POST'])
@@ -215,11 +223,6 @@ def logout():
     session.clear()
     flash('성공적으로 로그아웃되었습니다.')
     return redirect(url_for('index'))
-
-
-@app.route('/register')
-def register():
-    return render_template('public/register.html')
 
 
 # -----------------------------------------------------------------------------
@@ -276,6 +279,8 @@ def admin_settings():
 # -----------------------------------------------------------------------------
 # 화주 페이지
 # -----------------------------------------------------------------------------
+
+## 화주 대시보드
 @app.route('/shipper/dashboard')
 @login_required_shipper
 def shipper_dashboard():
@@ -284,15 +289,15 @@ def shipper_dashboard():
     my_requests_count = len(my_requests)
     # matchings = manager.select_matching_driver_my_request_by_id(shipper_id) or []
 
-
     return render_template('shipper/dashboard.html', my_requests = my_requests, my_requests_count=my_requests_count)
 
+## 화주 운송 요청
 @app.route('/shipper/shipper_request')
 @login_required_shipper
 def shipper_request():
     return render_template('shipper/shipper_request.html')
 
-
+## 화주 운송 요청 저장
 @app.route("/shipper/request/submit", methods=["POST"])
 @login_required_shipper
 def submit_shipper_request():
@@ -305,7 +310,7 @@ def submit_shipper_request():
         print(f"[에러] 운송 요청 저장 중 오류: {e}")
         return jsonify({"success": False, "message": "운송 요청 저장 중 오류 발생"})
 
-
+## 화주 비매칭 운송 요청 목록
 @app.route("/shipper/my_requests")
 @login_required_shipper
 def shipper_my_requests():
@@ -315,7 +320,7 @@ def shipper_my_requests():
     print(f"🔍 나의 요청 목록: {non_matched}")
     return render_template("shipper/my_requests.html", my_requests= non_matched )
 
-
+## 화주 기사 매칭
 @app.route('/shipper/driver_matching')
 @login_required_shipper
 def driver_matching():
@@ -326,29 +331,30 @@ def driver_matching():
     drivers = [driver for driver in all_drivers if driver.get('truck_info') == truck_info] or []
     return render_template('shipper/driver_matching.html', my_request = my_request, drivers=drivers, request_id=request_id)
 
-
+## 화주 매칭 결과
 @app.route('/shipper/matching_result', methods=['POST'])
 @login_required_shipper
 def driver_matching_result():
     request_id = request.form['request_id']
     driver_id = request.form['driver_id']
-    user_id = session['id']
     my_request = manager.select_request_by_id(request_id)
-    print(my_request)
+    print(f"my_request:{my_request}")
     driver = manager.select_matching_driver_all_info(driver_id)
-    print(driver)
-    manager.insert_matching_result(user_id, my_request, driver)
-    manager.update_request_status_to_matched(request_id)
-    my_matching = manager.select_matching_driver_my_request(user_id, driver_id, request_id)
+    print(f"driver:{driver}")
+    manager.insert_matching_result(request_id, driver_id)
+    my_matching = manager.select_matching_driver_my_request(driver_id, request_id)
+    print(f"my_matching: {my_matching}")
+    manager.update_matching_status(request_id)
     return render_template("shipper/driver_matching_result.html", my_request=my_request, driver=driver,
                            my_matching=my_matching)
 
 
+## 화주 운송 내역
 @app.route('/shipper/my_shipments')
 @login_required_shipper
 def shipper_my_shipments():
     user_id = session['id']
-    my_matchings = manager.select_matching_driver_my_request_by_id(user_id)
+    my_matchings = manager.select_matching_info(user_id)
     return render_template('shipper/my_shipments.html', my_matchings=my_matchings)
 
 
@@ -358,6 +364,10 @@ def shipper_tracking():
     return render_template('shipper/shipper_tracking.html')
 
 
+
+# -------------------------------------------------------------------------------------------------
+# 화주 결제 페이지
+# -------------------------------------------------------------------------------------------------
 @app.route('/shipper/payments')
 @login_required_shipper
 def shipper_payments():
@@ -382,6 +392,21 @@ def shipper_payments():
     all_payment = manager.select_payments_by_id(user_id)
     payments = [pay for pay in all_payment if pay.get('is_paid') == 0]
     return render_template('shipper/payments.html', payments=payments)
+
+
+# -------------------------------------------------------------------------------------------------
+# 화주 토스결제 완료 후 돌아오는 페이지
+# -------------------------------------------------------------------------------------------------
+@app.route('/shipper/payments_result')
+@login_required_shipper
+def shipper_payments_result():
+    user_id = session['id']
+    all_matchings = manager.select_matching_driver_my_request_by_id(user_id)
+    # update payments  set  paymentType=?, is_paid=1 where id=3
+    # "update payments  set  is_paid=1 where id=" + user_id
+    # return redirect('/shipper/dashboard')
+    return redirect(url_for('shipper_dashboard'))
+
 
 
 @app.route("/api/process_payment", methods=["POST"])
@@ -492,7 +517,6 @@ def mypage_reviews():
 @login_required_driver
 def matching_page():
     return render_template('driver/matching.html')
-
 
 # -----------------------------------------------------------------------------
 # 외부 API 연동 및 유틸리티 함수

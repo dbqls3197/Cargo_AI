@@ -80,6 +80,7 @@ class DBManager:
         finally:
             self.disconnect()
 
+
     # 매칭될 기사 조회
     def select_matching_drivers_info(self):
         try:
@@ -97,6 +98,7 @@ class DBManager:
             print(f"화물 매칭 기사 데이터 조회 실패: {e}")
         finally:
             self.disconnect()
+
 
 
     # 매칭 후 기사 데이터 조회
@@ -118,6 +120,24 @@ class DBManager:
         finally:
             self.disconnect()
 
+    ## 매칭 완료 정보 조회
+    def select_matching_info(self, request_id):
+        try:
+            self.connect()
+            query="""
+            select *, fr.shipper_id 
+            from matches m
+            INNER JOIN freight_request fr 
+            ON fr.request_id = m.request_id
+            where m.request_id = %s
+            """
+            self.cursor.execute(query,(request_id,))
+            print("매칭 정보 조회 성공")
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"매칭 정보 조회 실패 : {e}")
+        finally:
+            self.disconnect()
 
     # 관리자 정보 조회
     def select_admin_by_id(self, admin_id):
@@ -132,7 +152,7 @@ class DBManager:
         finally:
             self.disconnect()
 
-    # # 화주 운송 요청 정보 조회(화주 아이디)
+    ## 화주 운송 요청 정보 조회(화주 아이디)
     def select_request_by_user_id(self, shipper_id):
         try:
             self.connect()
@@ -151,7 +171,7 @@ class DBManager:
         finally:
             self.disconnect()
 
-    # 화주 운송 요청 정보 조회(운송요청아이디)
+    ## 화주 운송 요청 정보 조회(운송요청아이디)
     def select_request_by_id(self, id):
         try:
             self.connect()
@@ -170,7 +190,7 @@ class DBManager:
         finally:
             self.disconnect()
 
-    # 운전자 id로 운전자 정보 조회
+    ## 운전자 id로 운전자 정보 조회
     def select_driver_by_id(self, driver_id):
         try:
             self.connect()
@@ -189,28 +209,17 @@ class DBManager:
         finally:
             self.disconnect()
 
-    # 매칭 완료 정보 저장
-    def insert_matching_result(self, request_id, driver_id, pickup_time=None, delivery_time=None):
+    ## 매칭 완료 정보 저장
+    def insert_matching_result(self, request_id, driver_id):
         try:
             self.connect()
 
             query = """
             INSERT INTO matches (
-                request_id, driver_id, status, created_at, pickup_time, delivery_time
-            ) VALUES (%s, %s, %s, %s, %s, %s)
+                request_id, driver_id
+            ) VALUES (%s, %s)
             """
-
-            now = datetime.now()
-
-            values = (
-                request_id,  # freight_request.id
-                driver_id,  # drivers.id
-                'matched',  # 기본 매칭 상태
-                now,  # created_at
-                pickup_time,  # datetime or None
-                delivery_time  # datetime or None
-            )
-
+            values = (request_id, driver_id)
             self.cursor.execute(query, values)
             self.connection.commit()
             print("✅ 매칭 결과 저장 성공")
@@ -219,26 +228,43 @@ class DBManager:
         finally:
             self.disconnect()
 
-    # 매칭완료결과 확인
-    def select_matching_driver_my_request(self, shipper_id, driver_id, request_id):
+    ## 매칭완료결과 확인
+    def select_matching_driver_my_request(self, driver_id, request_id):
         try:
             self.connect()
             query = """
-            SELECT m.*, d.name AS driver_name, d.phone AS driver_phone, fr.origin, fr.destination
+            SELECT m.*, d.name AS name, d.phone AS driver_phone, fr.origin, fr.destination
             FROM matches m
             JOIN freight_request fr ON m.request_id = fr.id
-            JOIN drivers d ON m.driver_id = d.id
-            WHERE fr.shipper_id = %s AND m.driver_id = %s AND m.request_id = %s
+            JOIN drivers d ON m.driver_id = d.driver_id
+            WHERE m.driver_id = %s AND m.request_id = %s
             """
-            self.cursor.execute(query, (shipper_id, driver_id, request_id))
+            self.cursor.execute(query, (driver_id, request_id))
             print("✅ 매칭결과 조회 성공")
-            return self.cursor.fetchall()
+            return self.cursor.fetchone()
         except Exception as e:
             print(f"❌ 매칭결과 조회 실패: {e}")
         finally:
             self.disconnect()
 
-    # 매칭 내역 조회
+    ## 매칭 상태 변경
+    def update_matching_status(self, request_id):
+        try: 
+            self.connect()
+            query = """
+                    UPDATE freight_request 
+                    SET is_matched = 1
+                    WHERE request_id = %s 
+                    """
+            self.cursor.execute(query,(request_id,))
+            self.connection.commit()
+            print("매치상태 업데이트 성공")
+        except Exception as e:
+            print(f"❌ 매칭상태 업데이트 실패: {e}")
+        finally:
+            self.disconnect()
+            
+    ## 매칭 내역 조회
     def select_matching_driver_my_request_by_id(self, shipper_id):
         try:
             self.connect()
@@ -258,7 +284,7 @@ class DBManager:
         finally:
             self.disconnect()
 
-    # 화주 아이디로 정보 조회
+    ## 화주 아이디로 정보 조회
     def select_shipper_by_id(self, shipper_id):
         try:
             self.connect()
@@ -271,111 +297,89 @@ class DBManager:
         finally:
             self.disconnect()
 
-    # # 화주 결제 내역 테이블 생성
-    # def create_my_payments_table(self):
-    #     try:
-    #         self.connect()
-    #         create_query = """
-    #         CREATE TABLE IF NOT EXISTS my_payments (
-    #             payment_id INT AUTO_INCREMENT PRIMARY KEY,
-    #             user_id VARCHAR(255) NOT NULL,
-    #             match_id INT NOT NULL,
-    #             driver_id VARCHAR(50) NOT NULL,
-    #             fee INT NOT NULL,
-    #             commission INT NOT NULL,
-    #             total_amount INT NOT NULL,
-    #             is_paid TINYINT DEFAULT 0,
-    #             paid_at DATETIME DEFAULT NULL,
-    #             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    #             origin TEXT,
-    #             destination TEXT,
-    #             driver_name VARCHAR(100),
-    #             driver_phone VARCHAR(20),
-    #             FOREIGN KEY (match_id) REFERENCES matching_driver_my_request(match_id)
-    #         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-    #         """
-    #         self.cursor.execute(create_query)
-    #         self.connection.commit()
-    #         print("결제 내역 테이블 생성 완료")
-    #     except Exception as e:
-    #         print(f"결제 내역 테이블 생성 오류: {e}")
-    #     finally:
-    #         self.disconnect()
 
-    # # 결제 내역 테이블 정보 삽입
-    # def insert_payment(self, payment_data):
-    #     try:
-    #         self.connect()
-    #         insert_query = """
-    #         INSERT INTO my_payments (
-    #             user_id, match_id, driver_id,
-    #             fee, commission, total_amount,
-    #             origin, destination,
-    #             driver_name, driver_phone
-    #         ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-    #         """
-    #         values = (
-    #             payment_data["user_id"],
-    #             payment_data["match_id"],
-    #             payment_data["driver_id"],
-    #             payment_data["fee"],
-    #             payment_data["commission"],
-    #             payment_data["total_amount"],
-    #             payment_data.get("origin"),
-    #             payment_data.get("destination"),
-    #             payment_data.get("driver_name"),
-    #             payment_data.get("driver_phone")
-    #         )
-    #         self.cursor.execute(insert_query, values)
-    #         self.connection.commit()
-    #         print("결제 정보 삽입 성공")
-    #     except Exception as e:
-    #         print(f"결제 정보 삽입 오류: {e}")
-    #     finally:
-    #         self.disconnect()
+    ## 결제 테이블 생성
+    def create_my_payments_table(self):
+        try:
+            self.connect()
+            query = """
+            CREATE TABLE IF NOT EXISTS payments (
+                id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                user_id VARCHAR(255) NOT NULL,
+                match_id BIGINT NOT NULL,
+                driver_id VARCHAR(255) NOT NULL,
+                fee INT NOT NULL,
+                origin VARCHAR(255),
+                destination VARCHAR(255),
+                driver_name VARCHAR(255),
+                driver_phone VARCHAR(255),
+                is_paid TINYINT DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+            self.cursor.execute(query)
+            self.connection.commit()
+            print("✅ payments 테이블 생성 또는 확인 완료")
+        except Exception as e:
+            print(f"❌ payments 테이블 생성 실패: {e}")
+        finally:
+            self.disconnect()
 
-    # # 결제 내역 id로 조회하기
-    # def select_payments_by_id(self,user_id):
-    #     try:
-    #         self.connect()
-    #         query = "select * from my_payments WHERE user_id = %s"
-    #         self.cursor.execute(query, (user_id,))
-    #         print("화주 테이블 조회")
-    #         return self.cursor.fetchall()
-    #     except Exception as e:
-    #         print(f"화주 테이블 조회 실패: {e}")
-    #     finally:
-    #         self.disconnect()
+    ## 결제 정보 삽입
+    def insert_payment(self, data):
+        try:
+            self.connect()
+            query = """
+            INSERT INTO payments (
+                user_id, match_id, driver_id, fee,
+                origin, destination, driver_name, driver_phone
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            values = (
+                data['user_id'], data['match_id'], data['driver_id'], data['fee'],
+                data.get('origin'), data.get('destination'),
+                data.get('driver_name'), data.get('driver_phone')
+            )
+            self.cursor.execute(query, values)
+            self.connection.commit()
+            print("✅ 결제 정보 삽입 성공")
+        except Exception as e:
+            print(f"❌ 결제 정보 삽입 실패: {e}")
+        finally:
+            self.disconnect()
 
-    # 결제 내역 match_id로 조회
+    ## 결제 내역 아이디로 조회
+    def select_payments_by_id(self, user_id):
+        try:
+            self.connect()
+            query = """
+            SELECT * FROM payments
+            WHERE shipper_id  = %s
+            ORDER BY created_at DESC
+            """
+            self.cursor.execute(query, (user_id,))
+            print("✅ 결제 내역 조회 성공")
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"❌ 결제 내역 조회 실패: {e}")
+            return []
+        finally:
+            self.disconnect()
 
-    # def select_payments_by_match_id(self, match_id):
-    #     try:
-    #         self.connect()
-    #         query = "select * from my_payments WHERE match_id = %s"
-    #         self.cursor.execute(query, (match_id,))
-    #         print("화주 테이블 조회")
-    #         return self.cursor.fetchone()
-    #     except Exception as e:
-    #         print(f"화주 테이블 조회 실패: {e}")
-    #     finally:
-    #         self.disconnect()
-
-    # # 결제 상태 업데이트
-    # def update_payment_is_paid(self, match_id):
-    #     try:
-    #         self.connect()
-    #         query = """
-    #                 UPDATE my_payments
-    #                 SET is_paid = 1, paid_at = NOW()
-    #                 WHERE match_id = %s AND is_paid = 0
-    #                 """
-    #         self.cursor.execute(query, (match_id,))
-    #         self.connection.commit()
-    #         print("is_paid 상태 업데이트 완료")
-    #     except Exception as e:
-    #         print(f"is_paid 상태 업데이트 실패: {e}")
-    #     finally:
-    #         self.disconnect()
-
+    ## 결제 상태 업데이트
+    def update_payment_is_paid(self, match_id):
+        try:
+            self.connect()
+            query = """
+            UPDATE payments
+            SET is_paid = 1
+            WHERE match_id = %s
+            """
+            self.cursor.execute(query, (match_id,))
+            self.connection.commit()
+            print("✅ 결제 상태 업데이트 완료 (is_paid = 1)")
+        except Exception as e:
+            print(f"❌ 결제 상태 업데이트 실패: {e}")
+        finally:
+            self.disconnect()
 
