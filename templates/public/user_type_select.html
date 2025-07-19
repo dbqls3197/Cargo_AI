@@ -6,23 +6,23 @@
 <style>
     /* 페이지 중앙 정렬 및 컨테이너 스타일 */
     .select-container {
-        max-width: 380px; /* 로그인 페이지와 동일한 너비로 통일 */
-        background-color: #ffffff;
-        padding: 30px; /* 로그인 페이지와 동일한 패딩으로 통일 */
-        border-radius: 10px; /* 로그인 페이지와 동일한 둥근 모서리로 통일 */
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* 로그인 페이지와 동일한 그림자로 통일 */
-        text-align: center;
-        overflow: hidden;
+    width: 100%;
+    max-width: 400px; /* ✅ 로그인 카드와 동일하게 맞춤 */
+    background-color: #ffffff;
+    padding: 32px; /* ✅ 로그인 페이지 카드 padding과 동일하게 */
+    border-radius: 16px; /* ✅ 로그인 카드의 둥근 모서리와 동일하게 */
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1); /* ✅ 로그인 카드와 동일한 그림자 */
+    text-align: center;
+    overflow: hidden;
+    position: relative;
+    z-index: 10;
     }
 
-    /* 제목 스타일 */
     .select-title {
-        font-size: 1.8rem; /* 로그인 페이지 h2와 동일한 폰트 크기 (h2.text-2xl) */
-        font-weight: bold; /* 로그인 페이지 h2와 동일한 굵기 */
-        color: #4c51bf; /* 로그인 페이지 h2의 indigo-700 (직접 지정) */
-        margin-bottom: 30px; /* 로그인 페이지 h2와 동일한 하단 여백 (mb-6에서 변경) */
-        line-height: 1.4; /* 줄 간격 */
-        letter-spacing: normal; /* 자간 초기화 (로그인 페이지와 일관) */
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #4c51bf;
+    margin-bottom: 24px;
     }
 
     /* 버튼 그룹 레이아웃 */
@@ -83,10 +83,34 @@
         text-decoration: underline;
         color: #3e44a0;
     }
+
+    .bg-container {
+        background-image: url("/static/image/intro_hero.png");  /* 배경 이미지 */
+        background-size: cover;
+        background-position: bottom;
+        background-repeat: no-repeat;
+        min-height: 100vh;
+        position: relative;
+    }
+
+    .bg-container::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: rgba(255, 255, 255, 0.6); /* 흐린 흰색 오버레이 */
+        z-index: 1;
+    }
+
+    
+
+
+    /* 나머지 기존 스타일 그대로 */
 </style>
 {% endblock %}
 
 {% block contents %}
+<div class="bg-container">
+
     {# flexbox를 사용하여 화면 높이만큼 늘리고 내용을 중앙 정렬 #}
     <div class="flex items-center justify-center min-h-screen p-4">
         <div class="select-container">
@@ -104,4 +128,5 @@
             </p>
         </div>
     </div>
+</div>
 {% endblock %}

@@ -1,6 +1,6 @@
 {% extends "shipper_base.html" %}
 
-{% block title %}운송 신청 목록 - 화물 AI 서비스{% endblock %}
+{% block title %}매칭 대기 페이지{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{{ url_for('static', filename='css/shipper/my_requests.css') }}">
@@ -22,7 +22,7 @@
         <svg class="w-5 h-5 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
             <path d="M8.257 3.099c.366-.446.957-.533 1.414 0l6 7.001c.487.569.117 1.4-.707 1.4H5.036c-.824 0-1.194-.831-.707-1.4l6-7zM11 14a1 1 0 11-2 0 1 1 0 012 0z" />
         </svg>
-        <span><strong>원하는 운송 요청 카드를 클릭하면</strong> 기사 선택 페이지로 이동합니다.</span>
+        <span><strong>운송 요청 카드를 클릭하면</strong> 기사 선택 페이지로 이동합니다.</span>
     </div>
 
     {% if my_requests %}
@@ -30,14 +30,10 @@
         {% for req in my_requests %}
             <div class="border border-gray-300 rounded-lg p-4 shadow hover:shadow-md transition cursor-pointer"
                 onclick="location.href='/shipper/driver_matching?id={{ req['id'] }}'">
-            <div class="text-sm text-gray-500 mb-2">신청 번호 #{{ loop.index }}</div>
-            <div class="font-semibold text-sm mb-1">요청 시간 : {{ req['created_at'] }}</div>
+            <div class="text-sm text-gray-500 mb-2">신청 번호 #{{ req.request_time.strftime('%Y%M%d') }}-{{ req['id'] }}</div>
             <div class="font-semibold text-sm mb-1">출발지 : {{ req['origin'] }}</div>
             <div class="font-semibold text-sm mb-1">도착지 : {{ req['destination'] }}</div>
-            <div class="font-semibold text-sm mb-1">물품: {{ req['item_type'] }} / 무게: {{ req['item_weight'] }}kg</div>
-            <div class="font-semibold text-sm mb-1">차량: {{ req['vehicle_type'] }}</div>
-            <div class="font-semibold text-sm mb-1">상차: {{ req['pickup_date'] }} {{ req['pickup_time'] }}</div>
-            <div class="font-semibold text-sm mb-1">하차: {{ req['dropoff_date'] }} {{ req['dropoff_time'] }}</div>
+            <div class="font-semibold text-sm mb-1">물품 종류 : {{ req['cargo_info'] }} / 무게: {{ req['weight'] | int }}kg</div>
             </div>
         {% endfor %}
     {% else %}

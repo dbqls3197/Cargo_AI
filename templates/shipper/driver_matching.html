@@ -1,6 +1,6 @@
 {% extends "shipper_base.html" %}
 
-{% block title %}기사 매칭 페이지{% endblock %}
+{% block title %}기사 선택 페이지{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -10,6 +10,11 @@
         padding: 1.5rem;
         padding-bottom: 6rem;
     }
+
+    .border{
+        background-color: rgb(204, 203, 203);
+    }
+
 </style>
 {% endblock %}
 
@@ -22,27 +27,32 @@
         <span class="text-xl font-bold">🚚 기사님을 선택해주세요 <strong>(2/3)</strong></span>
     </div>
     
-    <div class="w-full bg-gray-200 rounded-full h-2.5 mb-6">
-        <div class="bg-indigo-600 h-2.5 rounded-full" style="width: 66%"></div>
+    <div class="grid gap-4">
+        <div class="border border-gray-300 rounded-lg p-4 shadow hover:shadow-md transition cursor-pointer"
+                onclick="location.href='/shipper/driver_matching?id={{ request_id }}'">
+        <div class="text-sm text-gray-500 mb-2">신청 번호 # {{ my_request.request_time.strftime('%Y%M%d') }}-{{ request_id }}</div>
+        <div class="font-semibold text-sm mb-1">요청 시간 : {{ my_request['request_time'] }}</div>
+        <div class="font-semibold text-sm mb-1">출발지 : {{ my_request['origin'] }}</div>
+        <div class="font-semibold text-sm mb-1">도착지 : {{ my_request['destination'] }}</div>
+        <div class="font-semibold text-sm mb-1">물품 종류 : {{ my_request['cargo_info'] }} / 무게: {{ my_request['weight'] | int }}kg</div>
+        <div class="font-semibold text-sm mb-1">차량 타입 : {{ my_request['cargo_type'] }}</div>
+        <div class="font-semibold text-sm mb-1">희망 상차 시간 : {{ my_request['pickup_deadline'] }}</div>
+        </div>
     </div>
 
-    <div class="relative h-48 bg-gray-200 rounded-xl mb-6 flex items-center justify-center text-gray-500">
-        <p>지도 표시 영역 (Tmap API 연동 예정)</p>
-        <img src="https://placehold.co/350x192/E5E7EB/9CA3AF?text=Map+Placeholder" alt="지도" class="absolute inset-0 w-full h-full object-cover rounded-xl">
-    </div>
 
     <div class="mb-4 space-y-3">
-        <h3 class="text-lg font-semibold text-gray-800 mb-0">매칭된 기사님</h3>
+        <h3 class="text-lg font-semibold text-gray-800 mb-0" style="margin-top:30px;">매칭된 기사님</h3>
 
         <!-- 기사 1 -->
         {% for driver in drivers %} 
         <form action="{{ url_for('driver_matching_result') }}" method = 'POST'>
         <input type="hidden" name="request_id" value="{{ request_id }}">
         <input type="hidden" name="driver_id" value="{{ driver['driver_id'] }}">
-        <div class="bg-white p-4 rounded-xl shadow-md flex items-center">
+        <div class="bg-gray-200 p-4 rounded-xl shadow-md flex items-center">
             <img src="https://placehold.co/60x60/6366F1/FFFFFF?text=기사" class="rounded-full mr-4">
             <div class="flex-grow">
-                <p class="font-semibold text-gray-800">{{ driver['name']}}기사님</p>
+                <p class="font-semibold text-gray-900">{{ driver['name']}}기사님</p>
                 <p class="flex items-center">
                 평점:
                 {% set full_stars = driver['rating'] | int %}
@@ -79,21 +89,16 @@
                 <div class="text-xs text-gray-600 mt-1">
                     <div class="flex items-center">
                         <span class="w-30 inline-block whitespace-nowrap">
-                            {{ driver['vehicle_capacity']/1000 | round(1) }}톤 / {{ driver['vehicle_type'] }}
+                            {{ driver['capacity']/1000 | round(1) }}톤 / {{ driver['truck_type'] }} / {{ driver['truck_info']}}
                         </span>
                     </div>
                     <div class="flex items-center">
                     <span>
-                        운송 이력 {{ driver['total_deliveries'] }}건
+                        운송 이력 {{ driver['total_requests'] }}건
                     </span>
                     </div>
-                    {% if driver['accident_history'] == None %}
-                    <div class="flex items-center"><span class="w-20 inline-block">사고이력 없음</span>
-                    {% else %}
-                    <div class="flex items-center"><span class="w-20 inline-block">사고이력 있음</span>
-                    {% endif %}
-                        <span>/ 평균지연 {{ driver['avg_delay_time'] }}분</span></div>
-                    <div class="flex items-center"><span class="w-20 inline-block">거리 5km</span><span>/ 예상도착 10분</span></div>
+                    <div class="flex items-center"><span class="w-30 inline-block">거리 5km </span></div>
+                    <div class="flex items-center"><span class="w-30 inline-block">예상도착 : 10분 후</span></div>
                 </div>
                 <p class="text-sm text-indigo-600 font-semibold mt-1">AI 추천 점수: 92점 </p>
                 <p class="text-sm text-indigo-600 font-semibold mt-1">수락 예상 확률: 85%</p>

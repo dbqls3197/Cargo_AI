@@ -1,5 +1,8 @@
 {% extends "shipper_base.html" %}
 {% block title %}화주페이지{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+{% endblock %}
 {% block contents %}
 <div id="shipper-app" class="app-container">
     <div id="shipper-main-screen" class="content-scrollable">
@@ -28,23 +31,31 @@
             <h3 class="text-lg font-semibold text-gray-800 mb-3">내 운송 내역</h3>
             <div class="flex justify-between items-center text-gray-600 mb-2">
                 <span>총 신청 건수</span>
-                <span class="font-bold text-indigo-600"> 건</span>
+                <span class="font-bold text-indigo-600"> {{ my_requests_count }}건</span>
             </div>
             <div class="flex justify-between items-center text-gray-600 mb-2">
-                <span>진행 중</span>
-                <span class="font-bold text-indigo-600"> 건</span>
+                <span>운송 진행 중</span>
+                <span class="font-bold text-indigo-600"> {{ in_progress_count }}건</span>
             </div>
             <div class="flex justify-between items-center text-gray-600">
                 <span>완료된 운송</span>
-                <span class="font-bold"> 건</span>
+                <span class="font-bold"> {{ completed_count }}건</span>
             </div>
-            {% for ip in in_progress %}
+            
+            {% for nm in not_matched %}
             <div class="mt-4 p-3 bg-white rounded-lg shadow-sm">
-                <p class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium whitespace-nowrap w-fit mb-2">🚚 운송 중</p>
-                <p class="text-sm text-gray-500">신청시간 : <p>
-                <p class="text-sm text-gray-500">출발지 :  </p>
-                <p class="text-sm text-gray-500">도착지 : </p>
-                <p class="text-sm text-gray-500">상차 예정 시간 : </p>
+                <p class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium whitespace-nowrap w-fit mb-2">🕒 추천 기사 대기중</p>
+                <p class="text-sm text-gray-500">신청시간 : {{ nm['request_time']}} <p>
+                <p class="text-sm text-gray-500">출발지 :  {{ nm['origin'] }}</p>
+                <p class="text-sm text-gray-500">도착지 : {{ nm['destination'] }} </p>
+                <p class="text-sm text-gray-500">운송 방식 : 
+                    {% if nm['fast_request'] == 1 %}
+                    긴급 운송
+                    {% else %}
+                    일반
+                    {% endif %}
+                </p>
+                <p class="text-sm text-gray-500">상차 예정 시간 : {{ nm['pickup_deadline'] }} </p>
             </div>
             {% endfor %}
         </div>
@@ -84,3 +95,4 @@
    </a>
 </div>
 {% endblock %}
+

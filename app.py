@@ -235,7 +235,7 @@ def login():
     return render_template("public/login.html")
 
 
-
+## 로그아웃
 @app.route('/logout')
 def logout():
     session.clear()
@@ -243,9 +243,6 @@ def logout():
     return redirect(url_for('index'))
 
 
-@app.route('/register')
-def register():
-    return render_template('public/register.html')
 
 @app.route('/api/get_current_driver_id', methods=['GET'])
 def get_current_driver_id():
@@ -313,17 +310,23 @@ def admin_settings():
 # 화주 페이지
 # -----------------------------------------------------------------------------
 
-# 화주 대시보드
+## 화주 대시보드
 @app.route('/shipper/dashboard')
 @login_required_shipper
 def shipper_dashboard():
     shipper_id = session['id']
     my_requests = manager.select_requests_by_shipper_id(shipper_id) or []
     my_requests_count = len(my_requests)
-    # matchings = manager.select_matching_driver_my_request_by_id(shipper_id) or []
-
-
-    return render_template('shipper/dashboard.html', my_requests = my_requests, my_requests_count=my_requests_count)
+    not_matched = [req for req in my_requests if req['is_matched'] == 0] or []
+    my_matchings = manager.select_matching_info(shipper_id)# 매칭정보 가져옴
+    in_progress = [mat for mat in my_matchings if mat['status'] == 0] or []
+    completed = [mat for mat in my_matchings if mat['status'] == 1] or []
+    in_progress_count = len(in_progress)
+    completed_count = len(completed)
+    print(f"not_matched:{not_matched}")
+    return render_template('shipper/dashboard.html', my_requests = my_requests, my_requests_count=my_requests_count, not_matched=not_matched,
+                           in_progress_count=in_progress_count, completed_count=completed_count
+                           )
 
 # 화주 운송 요청 페이지 
 @app.route('/shipper/shipper_request')
@@ -344,7 +347,8 @@ def submit_shipper_request():
         print(f"[에러] 운송 요청 저장 중 오류: {e}")
         return jsonify({"success": False, "message": "운송 요청 저장 중 오류 발생"})
 
-# 화주 운송 요청 목록
+
+## 화주 비매칭 운송 요청 목록
 @app.route("/shipper/my_requests")
 @login_required_shipper
 def shipper_my_requests():
@@ -354,7 +358,8 @@ def shipper_my_requests():
     print(f"🔍 나의 요청 목록: {non_matched}")
     return render_template("shipper/my_requests.html", my_requests= non_matched )
 
-# 화주 운송 요청 상세 페이지
+
+## 화주 기사 매칭
 @app.route('/shipper/driver_matching')
 @login_required_shipper
 def driver_matching():
@@ -365,36 +370,42 @@ def driver_matching():
     drivers = [driver for driver in all_drivers if driver.get('truck_info') == truck_info] or []
     return render_template('shipper/driver_matching.html', my_request = my_request, drivers=drivers, request_id=request_id)
 
-# 화주 운송 요청 기사 매칭 결과 페이지
+## 화주 매칭 결과
 @app.route('/shipper/matching_result', methods=['POST'])
 @login_required_shipper
 def driver_matching_result():
     request_id = request.form['request_id']
     driver_id = request.form['driver_id']
-    user_id = session['id']
     my_request = manager.select_request_by_id(request_id)
-    print(my_request)
+    print(f"my_request:{my_request}")
     driver = manager.select_matching_driver_all_info(driver_id)
-    print(driver)
-    manager.insert_matching_result(user_id, my_request, driver)
-    manager.update_request_status_to_matched(request_id)
-    my_matching = manager.select_matching_driver_my_request(user_id, driver_id, request_id)
-    return render_template("shipper/driver_matching_result.html", my_request=my_request, driver=driver, my_matching=my_matching)
+    print(f"driver:{driver}")
+    manager.insert_matching_result(request_id, driver_id)
+    my_matching = manager.select_matching_driver_my_request(driver_id, request_id)
+    print(f"my_matching: {my_matching}")
+    manager.update_matching_status(request_id)
+    return render_template("shipper/driver_matching_result.html", my_request=my_request, driver=driver,
+                           my_matching=my_matching)
 
 
+## 화주 운송 내역
 @app.route('/shipper/my_shipments')
 @login_required_shipper
 def shipper_my_shipments():
-    user_id = session['id']
-    my_matchings = manager.select_matching_driver_my_request_by_id(user_id)
-    return render_template('shipper/my_shipments.html', my_matchings=my_matchings)
+    shipper_id = session['id']
+    my_matchings = manager.select_matching_info(shipper_id)# 매칭정보 가져옴
+    print(f"my_matchings:{my_matchings}")
+    in_progress = [mat for mat in my_matchings if mat['status'] == 0] or []
+    completed = [mat for mat in my_matchings if mat['status'] == 1] or []
+    print(f"completed: {completed}")
+    return render_template('shipper/my_shipments.html', in_progress= in_progress, completed=completed, my_matchings= my_matchings)
 
 
-@app.route('/shipper/tracking')
+## 운송 내역 기사 추적
+@app.route('/shipper/tracking/<match_id>')
 @login_required_shipper
-def shipper_tracking():
-    return render_template('shipper/shipper_tracking.html')
-
+def shipper_tracking(match_id):
+    return render_template('shipper/shipper_tracking.html', match_id = match_id)
 
 
 # -------------------------------------------------------------------------------------------------

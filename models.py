@@ -80,7 +80,8 @@ class DBManager:
         finally:
             self.disconnect()
 
-    # 매칭될 기사 조회
+
+    # 화물 매칭 기사 조회
     def select_matching_drivers_info(self):
         try:
             self.connect()
@@ -97,9 +98,9 @@ class DBManager:
             print(f"화물 매칭 기사 데이터 조회 실패: {e}")
         finally:
             self.disconnect()
-
-
-    # 매칭 후 기사 데이터 조회
+    
+    
+    # 기사 아이디로 기사 데이터 조회
     def select_matching_driver_all_info(self, driver_id):
         try:
             self.connect()
@@ -111,13 +112,12 @@ class DBManager:
             where d.driver_id = %s;
             """
             self.cursor.execute(query, (driver_id,))
-            print("매칭 완료된 기사 정보 조회")
+            print("기사 아이디로 기사+ 차량 데이터 정보 조회")
             return self.cursor.fetchone()
         except Exception as e:
-            print(f"매칭 완료 기사 정보 조회 실패 : {e}")
+            print(f"기사 아이디로 기사+ 차량 데이터 정보 조회 실패 : {e}")
         finally:
             self.disconnect()
-
 
     # 관리자 정보 조회
     def select_admin_by_id(self, admin_id):
@@ -132,7 +132,43 @@ class DBManager:
         finally:
             self.disconnect()
 
-    # # 화주 운송 요청 정보 조회(화주 아이디)
+     ## 화주 아이디로 매칭 정보, 운전자 정보 조회
+    def select_matching_info(self, shipper_id):
+        try:
+            self.connect()
+            query ="""
+            SELECT 
+            m.*, 
+            fr.shipper_id,
+            fr.request_time,
+            fr.weight,
+            fr.origin,
+            fr.destination,
+            fr.cargo_type,
+            fr.cargo_info,
+            d.name,
+            d.phone,
+            v.truck_type,
+            v.capacity ,
+            v.vehicle_num,
+            v.truck_info
+            FROM matches m
+            INNER JOIN freight_request fr ON fr.id = m.request_id
+            INNER JOIN drivers d ON d.driver_id = m.driver_id
+            INNER JOIN vehicles v ON d.driver_id = v.driver_id
+            WHERE fr.shipper_id = %s;
+            """
+            self.cursor.execute(query,(shipper_id,))
+            print("화주 아이디로 매칭 정보, 운전자 정보 조회 성공")
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"화주 아이디로 매칭 정보, 운전자 정보 조회 실패 : {e}")
+            return []
+        finally:
+            self.disconnect()
+
+
+    ## 화주 운송 요청 정보 조회(화주 아이디)
     def select_request_by_user_id(self, shipper_id):
         try:
             self.connect()
@@ -151,7 +187,7 @@ class DBManager:
         finally:
             self.disconnect()
 
-    # 화주 운송 요청 정보 조회(운송요청아이디)
+     ## 화주 운송 요청 정보 조회(운송요청아이디)
     def select_request_by_id(self, id):
         try:
             self.connect()
@@ -170,54 +206,36 @@ class DBManager:
         finally:
             self.disconnect()
 
-    # 운전자 id로 운전자 정보 조회
+    ## 운전자 id로 운전자 정보 조회
     def select_driver_by_id(self, driver_id):
-        query = """
-            SELECT 
-                id, name, driver_id, driver_pw, nickname, 
-                business_registration_num, phone, email, birth_date, 
-                gender, address, profile_img, rating, last_login, 
-                created_at, is_active, total_requests, accepted_requests, 
-                last_break_hours, latitude, longitude, location_updated_at 
-            FROM drivers 
-            WHERE driver_id = %s
-        """
-        self.connect()
         try:
-            self.cursor.execute(query, (driver_id,))
-            result = self.cursor.fetchone()
-            if result:
-                columns = [col[0] for col in self.cursor.description]
-                return dict(zip(columns, result))
-            return None
+            self.connect()
+            query = """
+            SELECT * FROM drivers
+            WHERE driver_id = %s
+            """
+            value = (driver_id,)
+            self.cursor.execute(query, value)
+            print("운전자 정보 아이디로 조회 성공")
+            return self.cursor.fetchone()
+
         except Exception as e:
-            print(f"select_driver_by_id 오류: {e}")
+            print(f"운전자 정보 아이디로 조회 실패: {e}")
             return None
         finally:
             self.disconnect()
 
-    # 매칭 완료 정보 저장
-    def insert_matching_result(self, request_id, driver_id, pickup_time=None, delivery_time=None):
+    ## 매칭 완료 정보 저장
+    def insert_matching_result(self, request_id, driver_id):
         try:
             self.connect()
 
             query = """
             INSERT INTO matches (
-                request_id, driver_id, status, created_at, pickup_time, delivery_time
-            ) VALUES (%s, %s, %s, %s, %s, %s)
+                request_id, driver_id
+            ) VALUES (%s, %s)
             """
-
-            now = datetime.now()
-
-            values = (
-                request_id,  # freight_request.id
-                driver_id,  # drivers.id
-                'matched',  # 기본 매칭 상태
-                now,  # created_at
-                pickup_time,  # datetime or None
-                delivery_time  # datetime or None
-            )
-
+            values = (request_id, driver_id)
             self.cursor.execute(query, values)
             self.connection.commit()
             print("✅ 매칭 결과 저장 성공")
@@ -226,26 +244,45 @@ class DBManager:
         finally:
             self.disconnect()
 
-    # 매칭완료결과 확인
-    def select_matching_driver_my_request(self, shipper_id, driver_id, request_id):
+    ## 매칭완료결과 확인
+    def select_matching_driver_my_request(self, driver_id, request_id):
         try:
             self.connect()
             query = """
-            SELECT m.*, d.name AS driver_name, d.phone AS driver_phone, fr.origin, fr.destination
+            SELECT m.*, d.name AS name, d.phone AS driver_phone, fr.origin, fr.destination
             FROM matches m
             JOIN freight_request fr ON m.request_id = fr.id
-            JOIN drivers d ON m.driver_id = d.id
-            WHERE fr.shipper_id = %s AND m.driver_id = %s AND m.request_id = %s
+            JOIN drivers d ON m.driver_id = d.driver_id
+            WHERE m.driver_id = %s AND m.request_id = %s
             """
-            self.cursor.execute(query, (shipper_id, driver_id, request_id))
+            self.cursor.execute(query, (driver_id, request_id))
             print("✅ 매칭결과 조회 성공")
-            return self.cursor.fetchall()
+            return self.cursor.fetchone()
         except Exception as e:
             print(f"❌ 매칭결과 조회 실패: {e}")
         finally:
             self.disconnect()
 
-    # 매칭 내역 조회
+
+    ## 매칭 상태 변경
+    def update_matching_status(self, request_id):
+        try: 
+            self.connect()
+            query = """
+                    UPDATE freight_request 
+                    SET is_matched = 1
+                    WHERE id = %s 
+                    """
+            self.cursor.execute(query,(request_id,))
+            self.connection.commit()
+            print("매치상태 업데이트 성공")
+        except Exception as e:
+            print(f"❌ 매칭상태 업데이트 실패: {e}")
+        finally:
+            self.disconnect()
+
+
+     ## 매칭 내역 조회
     def select_matching_driver_my_request_by_id(self, shipper_id):
         try:
             self.connect()
@@ -265,7 +302,7 @@ class DBManager:
         finally:
             self.disconnect()
 
-    # 화주 아이디로 정보 조회
+    ## 화주 아이디로 정보 조회
     def select_shipper_by_id(self, shipper_id):
         try:
             self.connect()

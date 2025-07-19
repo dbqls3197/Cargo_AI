@@ -1,5 +1,5 @@
 {% extends "shipper_base.html" %}
-{% block title %}내 운송 내역{% endblock %}
+{% block title %}내 운송 내역 페이지{% endblock %}
 {% block contents %}
     <div id="shipper-my-shipments-screen" class="content-scrollable">
         <div class="flex items-center mb-6">
@@ -8,50 +8,71 @@
             </a>
             <h2 class="text-xl font-bold text-gray-800">내 운송</h2>
         </div>
+        <div class="mb-4 p-3 bg-yellow-50 border border-yellow-300 text-yellow-800 text-sm rounded-lg flex items-center">
+        <svg class="w-5 h-5 mr-2 text-yellow-500" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M8.257 3.099c.366-.446.957-.533 1.414 0l6 7.001c.487.569.117 1.4-.707 1.4H5.036c-.824 0-1.194-.831-.707-1.4l6-7zM11 14a1 1 0 11-2 0 1 1 0 012 0z" />
+        </svg>
+        <p><strong>운송 중인 화물 카드를 클릭하면</strong> 기사의 위치를 <br>확인 할 수 있습니다.</p>
+        </div>
 
 
         {% if my_matchings %}
-        <div class="space-y-3">
-            {% for mat in my_matchings %}
-                {% if mat['delivery_status'] == 'in_progress' %}
-                <a href="{{ url_for('shipper_tracking') }}">
+        <div class="space-y-10">
+                {% for inp in in_progress %}
+                
+                <a href="{{ url_for('shipper_tracking', match_id=inp['id']) }}" class="block mb-6">
                     <div class="bg-gray-50 p-4 rounded-xl shadow-sm cursor-pointer hover:shadow-md transition">
                         <div class="bg-white p-3 rounded-lg shadow-sm">
                             <p class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium whitespace-nowrap w-fit mb-2">🚚 운송 중</p>
-                            <p class="text-sm text-gray-500">신청시간 : {{ mat.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
-                            <p class="text-sm text-gray-500">출발지 : {{ mat['origin']}} </p>
-                            <p class="text-sm text-gray-500">도착지 : {{ mat['destination']}}</p>
-                            <p class="text-sm text-gray-500">하차 예정 시간 : {{ mat['dropoff_date'] }} {{ mat['dropoff_time'] }}</p>
+                            <p class="text-sm text-gray-600">
+                                #번호 {{ inp.request_time.strftime('%Y%m%d') }} - {{ inp['request_id'] }}
+                            </p>
+                            <p class="text-sm text-gray-600">신청 차량 종류 : {{ inp.cargo_type }}</p>
+                            <p class="text-sm text-gray-600">신청 화물 무게: {{ inp.weight/1000 }}톤</p>
+                            <p class="text-sm text-gray-500">신청시간 : {{ inp.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                            <p class="text-sm text-gray-500">출발지 : {{ inp['origin']}} </p>
+                            <p class="text-sm text-gray-500">도착지 : {{ inp['destination']}}</p>
                         </div>
                     </div>
                 </a>
-                {% else %}
+                {% endfor %}
+                {% for com in completed %}
                 <div class="bg-gray-50 p-4 rounded-xl shadow-sm">
                     <div class="shipment-item bg-white p-4 rounded-xl shadow-sm">
                         <div class="flex justify-between items-start">
                             <div>
                                 <p class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full font-medium whitespace-nowrap w-fit mb-2">✅ 운송 완료</p>
-                                <p class="truncate text-gray-800" title="{{ mat['origin'] }}">
-                                    출발지 : {{ mat['origin'][:18] }}{% if mat['origin']|length > 18 %}...{% endif %}
-                                </p>
-                                <p class="truncate text-gray-800" title="{{ mat['destination'] }}">
-                                    도착지 : {{ mat['destination'][:18] }}{% if mat['destination']|length > 18 %}...{% endif %}
-                                </p>
                                 <p class="text-sm text-gray-600">
-                                    #번호 {{ mat.created_at.strftime('%Y%m%d') }} - {{ loop.index }} | {{ mat.item_type }} {{ mat.item_weight/1000 }}톤
+                                    #번호 {{ com.request_time.strftime('%Y%m%d') }} - {{ com['request_id'] }}
                                 </p>
+                                <p class="truncate text-gray-800" title="{{ com['origin'] }}">
+                                    출발지 : {{ com['origin'] }}
+                                </p>
+                                <p class="truncate text-gray-800" title="{{ com['destination'] }}">
+                                    도착지 : {{ com['destination'] }}
+                                </p>
+                                <p class="text-sm text-gray-600">신청 차량 종류 : {{ com.cargo_type }}</p>
+                                <p class="text-sm text-gray-600">신청 화물 무게: {{ com.weight/1000 }}톤</p>
+                                <p class="text-sm text-gray-500">신청시간 : {{ com.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                                <p class="text-sm text-gray-500">출발지 : {{ com['origin']}} </p>
+                                <p class="text-sm text-gray-500">도착지 : {{ com['destination']}}</p>
                             </div>
                         </div>
                         <div class="mt-3">
                             <p class="text-sm text-gray-500">
-                                {{ mat['driver_name'] }} 기사님 | {{ mat['driver_vehicle_capacity']/1000 | round() }}톤 {{ mat['vehicle_type'] }}
+                                기사명 : {{ com['name'] }} 기사님
                             </p>
-                            <p class="text-sm text-gray-500">예상 도착: 2025-07-09 18:00</p>
+                            <p class="text-sm text-gray-500">
+                                차량 정보 : {{ com['truck_type'] }} {{ com['capacity']/1000 | round() }}톤 
+                            </p>
+                            <p class="text-sm text-gray-500">
+                                차량 번호 : {{ com['vehicle_num'] }}
+                            </p>
+                            <p class="text-sm text-gray-500">운송 완료 시간: 2025-07-09 18:00</p>
                         </div>
                     </div>
                 </div>
-                {% endif %}
-            {% endfor %}
+                {% endfor %}
         </div>
         {% else %}
         <div id="no-shipments-message" class="text-center py-10">

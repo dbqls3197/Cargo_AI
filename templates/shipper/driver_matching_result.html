@@ -1,6 +1,6 @@
 {% extends "shipper_base.html" %}
 
-{% block title %}매칭 결과 - 화물 AI 서비스{% endblock %}
+{% block title %}매칭 완료 페이지{% endblock %}
 
 {% block contents %}
 <div class="p-4">
@@ -11,21 +11,19 @@
     <div class="w-full bg-gray-200 rounded-full h-2.5 mb-6">
         <div class="bg-indigo-600 h-2.5 rounded-full" style="width: 100%"></div>
     </div>
-    {% for mat in my_matching %}
     <div class="bg-white p-4 rounded-xl shadow-md mb-4">
-        <p class="text-gray-600 mb-2 text-sm">번호 #{{ loop.index }}</p>
-        <p class="text-gray-600 mb-2 text-sm">매칭시간 #{{ mat['created_at'] }}</p>
-        <p class="font-semibold">출발지: {{ mat['origin'] }} </p>
-        <p class="font-semibold">도착지: {{ mat['destination'] }}</p>
-        <p class="text-sm text-gray-700">물품: {{ mat['item_type']}} / 무게: {{ mat['item_weight']}} kg</p>
-        <p class="text-sm text-gray-700">상차: {{ mat['pickup_date'] }} {{ mat['pickup_time'] }} </p>
-        <p class="text-sm text-gray-700">하차: {{ mat['dropoff_date'] }} {{ mat['dropoff_time'] }}</p>
+        <p class="text-gray-600 mb-2 text-sm">번호 # {{ my_request.request_time.strftime('%Y%M%d') }}-{{ my_request['id'] }}</p>
+        <p class="text-gray-600 mb-2 text-sm">매칭시간 #{{ my_matching['request_time'] }}</p>
+        <p class="font-semibold">출발지: {{ my_request['origin'] }} </p>
+        <p class="font-semibold">도착지: {{ my_request['destination'] }}</p>
+        <p class="text-sm text-gray-700">물품: {{ my_request['cargo_info']}} / 무게: {{ my_request['weight']}} kg</p>
+        <p class="text-sm text-gray-700">상차 요청 시간 : {{ my_request['request_time'] }} </p>
     </div>
 
     <div class="bg-white p-4 rounded-xl shadow-md flex items-center mb-6">
         
         <div class="flex-grow">
-            <p class="font-semibold text-gray-800">기사님 
+            <p class="font-semibold text-gray-800">{{ driver['name'] }} 기사님 
             <span class="text-yellow-500">
                 <p class="flex items-center">
                 평점:
@@ -62,11 +60,10 @@
                 </p>
             </span>
             </p>
-            <p class="text-sm text-gray-600">차량: {{ mat['vehicle_type']}} | 운송 건</p>
+            <p class="text-sm text-gray-600">차량: {{ driver['truck_type']}} | 운송 {{ driver['total_requests'] }}건</p>
             <p class="text-sm text-indigo-600 mt-1">AI 추천 점수: 점 | 수락 예상 확률: </p>
         </div>
     </div>
-    {% endfor %}
     <div class="text-center">
         <p class="text-lg font-bold text-indigo-700">매칭이 완료되었습니다!</p>
         <p class="text-sm text-gray-600 mt-2">기사님과 연결 중입니다. 곧 연락을 드릴 예정입니다.</p>
