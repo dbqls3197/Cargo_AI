@@ -78,7 +78,7 @@ class DBManager:
             print(f"❌ 기사 회원정보 삽입 실패: {e}")
         finally:
             self.disconnect()
-            
+
     # 운송 요청 저장
     def insert_freight_request(self, shipper_id, data):
         try:
@@ -145,9 +145,10 @@ class DBManager:
             print(f"화물 매칭 기사 데이터 조회 실패: {e}")
         finally:
             self.disconnect()
+
     
     
-    # 기사 아이디로 기사 데이터 조회
+     # 기사 아이디로 기사 데이터 조회
     def select_matching_driver_all_info(self, driver_id):
         try:
             self.connect()
@@ -189,10 +190,6 @@ class DBManager:
             fr.shipper_id,
             fr.request_time,
             fr.weight,
-            fr.origin,
-            fr.destination,
-            fr.cargo_type,
-            fr.cargo_info,
             d.name,
             d.phone,
             v.truck_type,
@@ -234,6 +231,7 @@ class DBManager:
         finally:
             self.disconnect()
 
+
      ## 화주 운송 요청 정보 조회(운송요청아이디)
     def select_request_by_id(self, id):
         try:
@@ -253,7 +251,7 @@ class DBManager:
         finally:
             self.disconnect()
 
-    ## 운전자 id로 운전자 정보 조회
+     ## 운전자 id로 운전자 정보 조회
     def select_driver_by_id(self, driver_id):
         try:
             self.connect()
@@ -271,6 +269,7 @@ class DBManager:
             return None
         finally:
             self.disconnect()
+
 
     ## 매칭 완료 정보 저장
     def insert_matching_result(self, request_id, driver_id):
@@ -291,7 +290,7 @@ class DBManager:
         finally:
             self.disconnect()
 
-    ## 매칭완료결과 확인
+     ## 매칭완료결과 확인
     def select_matching_driver_my_request(self, driver_id, request_id):
         try:
             self.connect()
@@ -311,6 +310,7 @@ class DBManager:
             self.disconnect()
 
 
+
     ## 매칭 상태 변경
     def update_matching_status(self, request_id):
         try: 
@@ -327,6 +327,7 @@ class DBManager:
             print(f"❌ 매칭상태 업데이트 실패: {e}")
         finally:
             self.disconnect()
+
 
 
      ## 매칭 내역 조회
@@ -361,6 +362,7 @@ class DBManager:
             print(f"화주 테이블 조회 실패: {e}")
         finally:
             self.disconnect()
+
 
     def create_my_payments_table(self):
         try:
@@ -458,3 +460,35 @@ class DBManager:
                 return False
             finally:
                 self.disconnect()
+
+     ## 모든 화물 정보 조회
+    def select_requests_all_info(self):
+        try:
+            self.connect()
+            query = """
+            select * from freight_request 
+            """
+            self.cursor.execute(query)
+            print("화물 운송 신청 데이터 조회 성공")
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"화물 운송 신청 데이터 조회 실패: {e}")
+            return []
+        finally:
+            self.disconnect()
+
+    ## 운전자 id로 기사추천 매칭 정보 조회
+    def select_all_recommend_matches(self, driver_id):
+        try:
+            self.connect()
+            query="""
+            select * from recommended_matches where dirver_id = %s
+            """
+            self.cursor.execute(query)
+            print("화물기사 추천 테이블 조회 성공")
+            return self.cursor.fetchall
+        except Exception as e:
+            print(f"화물기사 추천 테이블 조회 실패 : {e}")
+            return []
+        finally:
+            self.disconnect()
