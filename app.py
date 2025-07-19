@@ -127,60 +127,79 @@ def signup_page(user_type):
 # --- 기사 회원가입 데이터 처리 라우트 ---
 @app.route('/do_signup_driver', methods=['POST'])
 def do_signup_driver():
-    name = request.form.get('name')
-    username = request.form.get('username')
-    email = request.form.get('email')
-    profile_picture = request.files.get('profile_picture')
+    # 1) 폼 데이터 수집
+    name            = request.form['name']
+    driver_id       = request.form['username']
+    driver_pw       = request.form['password']
+    nickname        = request.form['nickname']
+    biz_num         = request.form.get('business_number')  # NULL 허용
+    phone           = request.form['phone_number']
+    email           = request.form.get('email')
+    birth_date      = request.form['birthdate']           # YYYY-MM-DD
+    raw_gender      = request.form['gender']              # '0'/'1' 등
+    gender          = int(raw_gender)                     # 이미 0,1로 설정되어 있다고 가정
+    address         = request.form['address']
 
-    print(f"기사 회원가입 데이터 수신 (최종 단계):")
-    print(f"  이름: {name}, 아이디: {username}, 이메일: {email}")
-
-    if profile_picture and allowed_file(profile_picture.filename):
-        # 저장 경로 생성 (없으면 생성)
+    # 2) 프로필 사진 저장
+    profile = request.files.get('profile_picture')
+    profile_path = None
+    if profile and allowed_file(profile.filename):
         os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        filename = secure_filename(profile.filename)
+        profile_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        profile.save(profile_path)
 
-        filename = secure_filename(profile_picture.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        profile_picture.save(filepath)
-
-        print(f"  프로필 사진 저장됨: {filepath}")
-    else:
-        print(f"  프로필 사진: 없음 또는 허용되지 않는 파일 형식")
-
-    # DB 저장 코드가 있다면 여기에 추가
-
+    # 3) DB에 삽입
+    db = DBManager()
+    db.insert_driver(
+        name=name,
+        driver_id=driver_id,
+        driver_pw=driver_pw,
+        nickname=nickname,
+        business_registration_num=biz_num,
+        phone=phone,
+        email=email,
+        birth_date=birth_date,
+        gender=gender,
+        address=address,
+        profile_img_path=profile_path
+    )
     return render_template('public/signup_success_driver.html')
 
 
 # --- 화주 회원가입 데이터 처리 라우트 ---
 @app.route('/do_signup_submit/<user_type>', methods=['POST'])
 def do_signup_submit(user_type):
-    """화주 회원가입 폼 제출을 처리합니다."""
     if user_type == 'shipper':
-        username = request.form.get('user_id')
-        email = request.form.get('email')
+        # 1) 폼 데이터 수집
+        name    = request.form.get('name')
+        username= request.form.get('user_id')
+        password= request.form.get('password')
+        nickname= request.form.get('nickname')
+        biz_num = request.form.get('business_registration_num')
+        phone   = request.form.get('phone')
+        email   = request.form.get('email')
+        birth   = request.form.get('birth_date')  # 'YYYY-MM-DD'
+        gender  = int(request.form.get('gender'))
+        address = request.form.get('address')
+
+        # 2) 프로필 이미지 저장 (기존 로직 재사용)
         profile_img = request.files.get('profile_img')
+        profile_path = None
+        if profile_img and allowed_file(profile_img.filename):
+            filename = secure_filename(profile_img.filename)
+            profile_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            profile_img.save(profile_path)
 
-        print(f"화주 회원가입 데이터 수신 (최종 단계):")
-        print(f"  아이디: {username}, 이메일: {email}")
-        if profile_img:
-            print(f"  프로필 사진: {profile_img.filename}")
-            if not os.path.exists(app.config['UPLOAD_FOLDER']):
-                os.makedirs(app.config['UPLOAD_FOLDER'])
-            if profile_img and allowed_file(profile_img.filename):
-                filename = secure_filename(profile_img.filename)
-                filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                profile_img.save(filepath)
-                print(f"  프로필 사진 저장됨: {filepath}")
-        else:
-            print(f"  프로필 사진: 없음")
+        # 3) DB에 삽입
+        db = DBManager()
+        db.insert_shipper(name=name,shipper_id=username,shipper_pw=password,nickname=nickname,business_registration_num=biz_num,phone=phone,
+            email=email,birth_date=birth,gender=gender,address=address,profile_img_path=profile_path
+        )
 
-        # 모든 화주 회원가입 정보 처리 (DB 저장 등)
+        return render_template('public/signup_success_shipper.html')
 
-        # 화주 회원가입 완료 후, 기사 회원가입 완료 페이지와 동일한 페이지로 리디렉션
-        return render_template('public/signup_success_shipper.html') # <-- 변경: signup_success_driver_page로 통일
-
-    return redirect(url_for('signup_page'))  # 또는 오류 페이지
+    return redirect(url_for('signup_page'))
 
 
 ## 로그인 페이지
@@ -664,39 +683,108 @@ def geocode(address):
             return float(result['documents'][0]['y']), float(result['documents'][0]['x'])
         return None, None
     except Exception as e:
-        print(f"지오코딩 에러: {e}")
+        print(f"ERROR: geocoding 에러: {e}")
         return None, None
 
 
 def geocode_simple(address):
     address_map = {"서울특별시": (37.5665, 126.9780), "부산광역시": (35.1796, 129.0756)}
     for key, coords in address_map.items():
-        if key in address: return coords
+        if key in address:
+            return coords
     return (37.5665, 126.9780)
 
 
 @app.route("/route_process", methods=['POST'])
 def route_process():
     data = request.json
-    start_addr, end_addr = data.get("start_addr"), data.get("end_addr")
-    if not (start_addr and end_addr): return jsonify({"error": "주소 정보 부족"}), 400
-    start_lat, start_lon = geocode(start_addr) or geocode_simple(start_addr)
+    start_addr_param = data.get("start_addr") # '위도,경도' 또는 주소 문자열 (현재 위치)
+    pass_addr_list = data.get("pass_addr_list", []) # 경유지 주소 리스트 (입력한 출발지)
+    end_addr = data.get("end_addr") # 최종 도착지 주소 (입력한 도착지)
+
+    if not (start_addr_param and end_addr):
+        return jsonify({"error": "출발지 또는 도착지 정보 부족"}), 400
+
+    # 1. 출발지 (현재 위치) 좌표 처리
+    start_lat, start_lon = None, None
+    if isinstance(start_addr_param, str) and ',' in start_addr_param:
+        try:
+            s_lat_str, s_lon_str = start_addr_param.split(',')
+            start_lat = float(s_lat_str.strip())
+            start_lon = float(s_lon_str.strip())
+        except ValueError:
+            start_lat, start_lon = geocode(start_addr_param) or geocode_simple(start_addr_param)
+    else:
+        start_lat, start_lon = geocode(start_addr_param) or geocode_simple(start_addr_param)
+
+    if start_lat is None or start_lon is None:
+        return jsonify({"error": "출발지(현재 위치) 좌표를 찾을 수 없습니다."}), 400
+
+
+    # 2. 경유지 주소들 좌표로 변환 및 TMap API passList 형식 생성
+    tmap_pass_list = []
+    display_pass_coords = []
+
+    for p_addr in pass_addr_list:
+            p_lat, p_lon = geocode(p_addr) or geocode_simple(p_addr)
+            if p_lat is not None and p_lon is not None:
+                # POI_ID 부분에 주소 문자열 대신 '0'을 넣거나 아예 생략 (권장)
+                tmap_pass_list.append(f"{p_lon},{p_lat}") # POI_ID를 생략
+                # 또는 tmap_pass_list.append(f"{p_lon},{p_lat},0") # POI_ID를 0으로 설정
+                display_pass_coords.append({"lat": p_lat, "lon": p_lon})
+            else:
+                print(f"WARN: 경유지 '{p_addr}'의 좌표를 찾을 수 없습니다. 건너뜁니다.")
+
+
+    # 3. 최종 도착지 주소 좌표로 변환
     end_lat, end_lon = geocode(end_addr) or geocode_simple(end_addr)
+    if end_lat is None or end_lon is None:
+        return jsonify({"error": f"도착지 '{end_addr}'의 좌표를 찾을 수 없습니다."}), 400
+
+    # TMap API 호출을 위한 헤더 및 바디 구성
     headers = {"appKey": TMAP_API_KEY, "Content-Type": "application/json"}
-    body = {"startX": str(start_lon), "startY": str(start_lat), "endX": str(end_lon), "endY": str(end_lat),
-            "reqCoordType": "WGS84GEO", "resCoordType": "WGS84GEO"}
+    body = {
+        "startX": str(start_lon),
+        "startY": str(start_lat),
+        "endX": str(end_lon),
+        "endY": str(end_lat),
+        "reqCoordType": "WGS84GEO",
+        "resCoordType": "WGS84GEO",
+        "startName": "현재위치",
+        "endName": "최종도착지",
+        "passList": ";".join(tmap_pass_list) if tmap_pass_list else "",
+        "searchOption": "0", # 추천 경로
+    }
+
     try:
-        response = requests.post("https://apis.openapi.sk.com/tmap/routes?version=1", headers=headers, json=body)
-        if response.status_code != 200: return jsonify({"error": f"TMAP API 오류"}), 500
+        # 보행자 경로 API 사용
+        response = requests.post("https://apis.openapi.sk.com/tmap/routes/pedestrian?version=1", headers=headers, json=body)
+        response.raise_for_status()
+
         route_data = response.json()
-        coords = [({"lat": lat, "lon": lon}) for feature in route_data['features'] if
-                feature['geometry']['type'] == "LineString" for lon, lat in feature['geometry']['coordinates']]
-        total_distance = next((f['properties'].get("totalDistance", 0) for f in route_data['features'] if
-                                f['geometry']['type'] == "Point"), 0)
-        total_time = next(
-            (f['properties'].get("totalTime", 0) for f in route_data['features'] if f['geometry']['type'] == "Point"),
-            0)
-        return jsonify({"coords": coords, "totalDistance": total_distance, "totalTime": total_time, "success": True})
+        coords = []
+
+        for feature in route_data['features']:
+            geometry = feature['geometry']
+            if geometry['type'] == 'LineString':
+                for coord_pair in geometry['coordinates']:
+                    coords.append({"lat": coord_pair[1], "lon": coord_pair[0]})
+
+        first_feature_properties = route_data['features'][0]['properties'] if route_data['features'] else {}
+        total_distance_final = first_feature_properties.get("totalDistance", 0) # TMap API에서 제공하는 전체 거리
+        total_time_final = first_feature_properties.get("totalTime", 0)       # TMap API에서 제공하는 전체 시간
+
+
+        return jsonify({
+            "coords": coords,
+            "totalDistance": total_distance_final,
+            "totalTime": total_time_final,
+            "passCoords": display_pass_coords,
+            "success": True
+        })
+
+    except requests.exceptions.HTTPError as e:
+        return jsonify({"error": f"TMAP API 오류: {response.text}"}), response.status_code
     except Exception as e:
         return jsonify({"error": "경로 처리 중 오류 발생", "details": str(e)}), 500
 

@@ -53,13 +53,17 @@
         <div class="space-y-3">
             <div>
                 <label for="inputStartAddress" class="block text-sm font-medium text-gray-700 mb-1">출발지</label>
-                <input type="text" id="inputStartAddress" placeholder="출발지 주소를 입력하세요"
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <div class="flex">
+                    <input type="text" id="inputStartAddress" placeholder="출발지 주소를 검색하세요" readonly
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
             </div>
             <div>
                 <label for="inputEndAddress" class="block text-sm font-medium text-gray-700 mb-1">도착지</label>
-                <input type="text" id="inputEndAddress" placeholder="도착지 주소를 입력하세요"
-                        class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                <div class="flex">
+                    <input type="text" id="inputEndAddress" placeholder="도착지 주소를 검색하세요" readonly
+                            class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-l-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm">
+                </div>
             </div>
             <button id="searchManualRouteButton" class="w-full bg-indigo-600 text-white py-2 rounded-lg font-bold hover:bg-indigo-700 transition">
                 경로 검색
@@ -120,8 +124,8 @@
         </div>
     </div>
 
-
-<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=685e7ddf6b71b33bbeff08111988694f&autoload=false&libraries=services"></script>
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=685e7ddf6b71b33bbeff08111988694f&libraries=services"></script>
+<script src="//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
 
 <script>
     // logged_in_driver_id 변수가 Flask 템플릿 컨텍스트에 있는지 확인
@@ -132,7 +136,7 @@
     } else {
         console.warn("Navigation 페이지: Flask 템플릿으로부터 driverId를 받지 못했습니다. 로그인 상태를 확인하세요.");
         // 필요하다면 로그인 페이지로 리다이렉트하거나 오류 처리
-        // window.location.href = '/login'; 
+        // window.location.href = '/login';
     }
 </script>
 

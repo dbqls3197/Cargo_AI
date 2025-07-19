@@ -32,6 +32,53 @@ class DBManager:
             self.cursor.close()
             self.connection.close()
 
+
+    ## 회원가입 화주
+    def insert_shipper(self,name: str,shipper_id: str,shipper_pw: str,nickname: str,business_registration_num: str | None, phone: str,email: str | None,birth_date: str,gender: int,address: str,profile_img_path: str | None):
+        """shippers 테이블에 화주 회원정보 삽입"""
+        try:
+            self.connect()
+            insert_query = """
+                INSERT INTO shippers (name,shipper_id,shipper_pw,nickname,business_registration_num,phone,email,birth_date,gender,address,profile_img,created_at) VALUES (
+                    %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s,
+                    %s, %s
+                )
+            """
+            values = (name,shipper_id,shipper_pw,nickname,business_registration_num,phone,email,birth_date,gender,address,profile_img_path,datetime.now()
+            )
+            self.cursor.execute(insert_query, values)
+            self.connection.commit()
+            print("✅ 화주 회원정보 삽입 성공")
+        except Exception as e:
+            print(f"❌ 화주 회원정보 삽입 실패: {e}")
+        finally:
+            self.disconnect()
+
+
+    ## 회원가입 기사
+    def insert_driver(self,name: str,driver_id: str,driver_pw: str,nickname: str,business_registration_num: str | None,phone: str,email: str | None,birth_date: str,gender: int,address: str,profile_img_path: str | None):
+        """drivers 테이블에 기사 회원정보 삽입"""
+        try:
+            self.connect()
+            insert_query = """
+                INSERT INTO drivers (name,driver_id,driver_pw,nickname,business_registration_num,phone,email,birth_date,gender,address,profile_img,is_active,created_at
+                ) VALUES (
+                    %s, %s, %s, %s, %s,
+                    %s, %s, %s, %s, %s,
+                    %s, %s, CURRENT_TIMESTAMP()
+                )
+            """
+            values = (name,driver_id,driver_pw,nickname,business_registration_num,phone,email,birth_date,gender,address,profile_img_path,0                           
+            )
+            self.cursor.execute(insert_query, values)
+            self.connection.commit()
+            print("✅ 기사 회원정보 삽입 성공")
+        except Exception as e:
+            print(f"❌ 기사 회원정보 삽입 실패: {e}")
+        finally:
+            self.disconnect()
+            
     # 운송 요청 저장
     def insert_freight_request(self, shipper_id, data):
         try:
