@@ -217,9 +217,6 @@ def login():
         user = manager.select_shipper_by_id(user_id_input)
         driver = manager.select_driver_by_id(user_id_input)
         admin = manager.select_admin_by_id(user_id_input)
-
-        # print(user) # 디버깅용
-
         if user:
             session['role'] = 'shipper'
             if user['shipper_pw'] == user_pw_input: # 세션 PW 대신 직접 입력 PW 사용
@@ -232,7 +229,6 @@ def login():
         elif driver:
             session['role'] = 'driver'
             if driver['driver_pw'] == user_pw_input: # 세션 PW 대신 직접 입력 PW 사용
-                # ⭐️⭐️⭐️ 가장 중요한 수정 부분: driver_id를 세션에 저장 ⭐️⭐️⭐️
                 session['loggedInDriverId'] = driver['driver_id']
                 print(f"로그인 성공: 운전자 ID {driver['driver_id']} 세션에 저장됨") # 디버깅용
                 return redirect(url_for('driver_dashboard'))
@@ -280,14 +276,67 @@ def get_current_driver_id():
 @app.route('/admin/dashboard')
 @login_required_admin
 def admin_dashboard():
-    return render_template('admin/dashboard.html')
+    db = DBManager()
+    운송중_건수 = db.get_active_delivery_count()
+    가용_기사_수 = db.get_active_driver_count()
+
+    return render_template(
+        'admin/dashboard.html',
+        운송중_건수=운송중_건수,
+        가용_기사_수=가용_기사_수
+    )
 
 
 @app.route('/admin/realtime')
 @login_required_admin
-def admin_realtime():
-    return render_template('admin/realtime.html')
+def realtime_monitoring():
+    db = DBManager()
+    driver_list = db.get_all_driver_briefs()  # 모든 기사 목록
 
+    # 예시: 'DRV001' 기사를 선택했을 때
+    selected_driver = db.get_drivers_from_db("DRV001")  # 특정 기사 정보 조회
+
+    return render_template(
+        'admin/realtime.html',
+        drivers=driver_list,
+        selected_driver=selected_driver
+    )
+
+@app.route('/api/drivers/<string:driver_id>/details', methods=['GET'])
+def get_driver_details_api(driver_id):
+    driver_data = manager.get_driver_full_details(driver_id)
+    if driver_data:
+        return jsonify(driver_data)
+    else:
+        return jsonify({"error": "Driver not found or no details available"}), 404
+    
+
+@app.route('/api/selected_driver/<string:selected_driver_id>') # <selected_driver_id>를 URL 인자로 받도록 수정
+def get_selected_driver(selected_driver_id): # 함수 인자로 selected_driver_id 받기
+    try:
+        db_manager = DBManager() # 함수 내에서 DBManager 인스턴스 다시 생성 (또는 전역 변수 사용)
+        selected_driver = db_manager.get_driver_full_details(selected_driver_id)
+        
+        if not selected_driver:
+            return jsonify({"error": "Driver not found"}), 404
+
+        return jsonify({
+            'id': selected_driver.get('driver_id'), # get_driver_full_details는 딕셔너리를 반환
+            'name': selected_driver.get('name'),
+            'vehicle': selected_driver.get('vehicle'), # vehicle_type으로 변경될 수 있음
+            'status': selected_driver.get('status'),
+            'rating': selected_driver.get('rating'),
+            'nickname': selected_driver.get('nickname'),
+            # models.py에서 이미 'latitude'와 'longitude' 키로 가공하여 반환하므로, 그대로 사용합니다.
+            'latitude': selected_driver.get('latitude'),
+            'longitude': selected_driver.get('longitude'),
+            'location_updated_at': selected_driver.get('location_updated_at'),
+            'is_active': selected_driver.get('is_active'),
+            'details': selected_driver.get('details') # 운송 진행, 경로, 로그 등 추가 정보
+        })
+    except Exception as e:
+        print(f"DEBUG: /api/selected_driver API 호출 중 오류 발생: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/admin/cargo-approval')
 @login_required_admin
@@ -310,7 +359,26 @@ def admin_user_management():
 @app.route('/admin/reports')
 @login_required_admin
 def admin_reports():
-    return render_template('admin/reports.html')
+    drivers = manager.select_matching_driver()
+    transports = manager.select_all_matches()  # matches 테이블 기준
+
+    return render_template('admin/reports.html', drivers=drivers, transports=transports)
+
+@app.route('/api/reports/monthly_performance')
+def api_monthly_performance():
+    month = request.args.get("month")
+    if not month:
+        return jsonify({"error": "month 파라미터가 필요합니다."}), 400
+    report = manager.get_monthly_report(month)
+    return jsonify(report)
+
+@app.route('/api/reports/driver_performance')
+def api_driver_performance():
+    driver_id = request.args.get("driver_id")
+    if not driver_id:
+        return jsonify({"error": "driver_id 파라미터가 필요합니다."}), 400
+    report = manager.get_driver_report(driver_id)
+    return jsonify(report)
 
 
 @app.route('/admin/inquiry')

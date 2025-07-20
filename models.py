@@ -148,7 +148,7 @@ class DBManager:
 
     
     
-     # 기사 아이디로 기사 데이터 조회
+    # 기사 아이디로 기사 데이터 조회
     def select_matching_driver_all_info(self, driver_id):
         try:
             self.connect()
@@ -180,7 +180,7 @@ class DBManager:
         finally:
             self.disconnect()
 
-     ## 화주 아이디로 매칭 정보, 운전자 정보 조회
+    ## 화주 아이디로 매칭 정보, 운전자 정보 조회
     def select_matching_info(self, shipper_id):
         try:
             self.connect()
@@ -290,7 +290,7 @@ class DBManager:
         finally:
             self.disconnect()
 
-     ## 매칭완료결과 확인
+    ## 매칭완료결과 확인
     def select_matching_driver_my_request(self, driver_id, request_id):
         try:
             self.connect()
@@ -446,7 +446,7 @@ class DBManager:
             self.disconnect()
 
 
-    # 운전자 상태 업데이트 함수 (아래 2번 문제 해결을 위해 필요)
+    # 운전자 상태 업데이트 함수
     def update_driver_status(self, driver_id, status_value):
             query = "UPDATE drivers SET is_active = %s WHERE driver_id = %s"
             self.connect()
@@ -461,7 +461,7 @@ class DBManager:
             finally:
                 self.disconnect()
 
-     ## 모든 화물 정보 조회
+    ## 모든 화물 정보 조회
     def select_requests_all_info(self):
         try:
             self.connect()
@@ -490,5 +490,346 @@ class DBManager:
         except Exception as e:
             print(f"화물기사 추천 테이블 조회 실패 : {e}")
             return []
+        finally:
+            self.disconnect()
+
+    # 관제 보고서 필요한 데이터 불러오기
+    def get_monthly_report(self, month):
+        try:
+            self.connect()
+            query = """
+            SELECT COUNT(*) AS total_matches,
+                IFNULL(SUM(fr.price), 0) AS total_price
+            FROM matches m
+            JOIN freight_request fr ON m.request_id = fr.id
+            WHERE DATE_FORMAT(m.created_at, '%Y-%m') = %s
+            """
+            self.cursor.execute(query, (month,))
+            return self.cursor.fetchone()
+        except Exception as e:
+            print(f"❌ 월간 리포트 조회 실패: {e}")
+            return {}
+        finally:
+            self.disconnect()
+
+    def get_driver_report(self, driver_id):
+        try:
+            self.connect()
+            query = """
+            SELECT COUNT(*) AS total_trips,
+                IFNULL(SUM(fr.price), 0) AS total_price,
+                IFNULL(AVG(fr.price), 0) AS avg_price
+            FROM matches m
+            JOIN freight_request fr ON m.request_id = fr.id
+            WHERE m.driver_id = %s
+            """
+            self.cursor.execute(query, (driver_id,))
+            return self.cursor.fetchone()
+        except Exception as e:
+            print(f"❌ 기사 리포트 조회 실패: {e}")
+            return {}
+        finally:
+            self.disconnect()
+
+
+    def select_all_matches(self):
+        try:
+            self.connect()
+            query = """
+                SELECT m.*, fr.origin, fr.destination, fr.cargo_type, fr.weight
+                FROM matches m
+                LEFT JOIN freight_request fr ON m.request_id = fr.id
+            """
+            self.cursor.execute(query)
+            result = self.cursor.fetchall()
+            print("✅ 전체 matches 조회 성공")
+            return result
+        except Exception as e:
+            print(f"❌ 전체 matches 조회 실패: {e}")
+            return []
+        finally:
+            self.disconnect()
+
+    def select_matching_driver(self):
+        try:
+            self.connect()
+            query = "SELECT * FROM drivers"  # 드라이버 테이블에서 모든 정보를 조회하는 쿼리
+            self.cursor.execute(query)
+            print("화물 매칭 기사 데이터 조회 성공")
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"화물 매칭 기사 데이터 조회 실패: {e}")
+            return []
+        finally:
+            self.disconnect()
+
+    def get_active_delivery_count(self):
+        try:
+            self.connect()
+            # matches 테이블의 status 컬럼이 '0'이 운송중을 의미한다면 이대로 유지
+            # 만약 'assigned', 'picked_up', 'in_transit' 등의 문자열이라면 쿼리 수정 필요
+            query = "SELECT COUNT(*) AS count FROM matches WHERE status = 'in_transit'" # 예시: 'in_transit'이 운송중
+            self.cursor.execute(query)
+            result = self.cursor.fetchone()
+            return result['count'] if result else 0
+        except Exception as e:
+            print(f"[에러] 운송 중 쿼리 실패: {e}")
+            return 0
+        finally:
+            self.disconnect()
+
+    def get_all_driver_briefs(self):
+        try:
+            self.connect()
+            # drivers 테이블과 vehicles 테이블을 LEFT JOIN하여 필요한 정보를 가져옵니다.
+            # is_active 필드를 d.is_active로 명확히 지정하여 혼동을 피합니다.
+            query = """
+                SELECT
+                    d.driver_id,
+                    d.name,
+                    d.nickname,
+                    d.rating,
+                    d.is_active,  -- d.is_active 명확히 명시
+                    d.driver_lat,
+                    d.driver_lon,
+                    d.location_updated_at,
+                    v.truck_type,  -- 차량 유형 추가
+                    v.capacity     -- 적재 용량 추가
+                FROM
+                    drivers d
+                LEFT JOIN
+                    vehicles v ON d.driver_id = v.driver_id;
+            """
+            self.cursor.execute(query)
+            # 모든 결과를 딕셔너리 형태로 가져옵니다.
+            drivers_briefs = self.cursor.fetchall()
+
+            formatted_drivers = []
+            for driver in drivers_briefs:
+                # is_active 값을 기반으로 '운행중', '운행종료' 텍스트를 'status' 키로 추가
+                status_text = '운행중' if driver.get('is_active') == 0 else '운행종료'
+                
+                # 차량 정보 (truck_type과 capacity를 합쳐서 'vehicle' 필드로 만듭니다)
+                vehicle_info = "정보 없음"
+                if driver.get('truck_type') and driver.get('capacity') is not None:
+                    # capacity가 톤 단위라면 여기에 '톤' 추가 (예: f"{driver['capacity']}톤")
+                    vehicle_info = f"{driver['truck_type']} ({driver['capacity']}kg)"
+                elif driver.get('truck_type'):
+                    vehicle_info = f"{driver['truck_type']}"
+                elif driver.get('capacity') is not None:
+                    vehicle_info = f"{driver['capacity']}kg"
+
+
+                formatted_drivers.append({
+                    'driver_id': driver.get('driver_id'),
+                    'name': driver.get('name'),
+                    'nickname': driver.get('nickname'),
+                    'rating': driver.get('rating'),
+                    'is_active': driver.get('is_active'), # 원본 is_active 값도 유지
+                    'status': status_text, # UI 표시용 상태 (운행중/운행종료)
+                    'vehicle': vehicle_info, # 차량 유형 및 톤수 정보
+                    'latitude': float(driver.get('driver_lat')) if driver.get('driver_lat') is not None else None,
+                    'longitude': float(driver.get('driver_lon')) if driver.get('driver_lon') is not None else None,
+                    'location_updated_at': str(driver.get('location_updated_at')) if driver.get('location_updated_at') else None,
+                })
+            
+            print(f"DEBUG: get_all_driver_briefs() successfully returned {len(formatted_drivers)} drivers.")
+            # 이 시점에서 formatted_drivers의 각 항목에 'vehicle'과 'status'가 포함되어야 합니다.
+            # 이 formatted_drivers를 Flask 라우트가 JSON으로 변환하여 HTML로 보냅니다.
+            return formatted_drivers
+
+        except Exception as e:
+            print(f"❌ 모든 기사 간략 정보 조회 실패: {e}")
+            return []
+        finally:
+            self.disconnect()
+            
+# models.py 파일 내에서 get_driver_full_details 함수를 찾아서 아래 코드로 대체하세요.
+
+    def get_driver_full_details(self, driver_id):
+        try:
+            self.connect()
+
+            # 드라이버의 기본 정보와 현재 진행 중인 운송 요청 정보를 조인하여 가져오는 쿼리
+            # 이 쿼리는 driver_id가 실제로 존재하는지 확인하는 용도로만 사용합니다.
+            # freight_request 및 matches 테이블 데이터가 없어도 하드코딩을 위해 기본 정보는 가져옵니다.
+            query = """
+                SELECT
+                    d.driver_id, d.name, d.nickname, d.rating, d.is_active,
+                    d.driver_lat, d.driver_lon, d.location_updated_at,
+                    v.truck_type, v.vehicle_num, v.capacity
+                FROM
+                    drivers d
+                LEFT JOIN
+                    vehicles v ON d.driver_id = v.driver_id
+                WHERE
+                    d.driver_id = %s;
+            """
+            self.cursor.execute(query, (driver_id,))
+            result = self.cursor.fetchone()
+
+            print(f"DEBUG: get_driver_full_details for driver_id={driver_id} raw result: {result}")
+
+            if not result:
+                print(f"DEBUG: No driver found for ID {driver_id}")
+                return None # 드라이버 자체를 찾을 수 없으면 None 반환
+
+            # is_active 논리 반전 적용 (0:운행중, 1:운행종료)
+            is_active_status = '운행중' if result['is_active'] == 0 else '운행종료'
+
+            # 차량 정보 조합 (드라이버 목록에 표시될 요약 정보)
+            vehicle_info_brief = "정보 없음"
+            if result.get('truck_type') and result.get('capacity') is not None:
+                vehicle_info_brief = f"{result['truck_type']} ({result['capacity']}kg)"
+            elif result.get('truck_type'):
+                vehicle_info_brief = f"{result['truck_type']}"
+            elif result.get('capacity') is not None:
+                vehicle_info_brief = f"{result['capacity']}kg"
+
+            # 기본 드라이버 정보 구성
+            driver_data = {
+                'driver_id': result['driver_id'],
+                'name': result['name'],
+                'nickname': result['nickname'],
+                'rating': result['rating'],
+                'is_active': result['is_active'],
+                'status': is_active_status, # 기본적으로 is_active 상태 사용
+                'latitude': float(result['driver_lat']) if result['driver_lat'] is not None else None,
+                'longitude': float(result['driver_lon']) if result['driver_lon'] is not None else None,
+                'location_updated_at': str(result['location_updated_at']) if result['location_updated_at'] else None,
+                'vehicle': vehicle_info_brief,
+                'details': {
+                    'info': { # info는 일단 기본값으로 초기화
+                        'cargoId': '없음',
+                        'origin': '없음',
+                        'dest': '없음',
+                        'cargo_type': '없음',
+                        'weight': '없음',
+                        'plate_number': '없음',
+                        'capacity': '없음',
+                        'truck_type': '없음',
+                        'trip_status': '정보 없음'
+                    },
+                    'progress': [],
+                    'route': {},
+                    'logs': []
+                }
+            }
+
+            # --- 특정 driver_id에 대한 하드코딩 데이터 적용 ---
+            if driver_id == '3333': # 김철수 드라이버
+                driver_data['status'] = '운송 중' # 목록에 표시되는 상태도 변경
+                driver_data['details']['info'] = {
+                    'cargoId': '#20250709-001',
+                    'origin': '서울 강남구',
+                    'dest': '부산 물류센터',
+                    'cargo_type': '전자제품',
+                    'weight': '500',
+                    'plate_number': '123가4567', # 예시 차량 번호
+                    'capacity': '1000', # 예시 적재 용량
+                    'truck_type': '1톤 트럭', # 예시 차량 유형
+                    'trip_status': '운송 중'
+                }
+                driver_data['details']['progress'] = [
+                    {'step': '서울 상차 완료', 'time': '09:30', 'completed': True},
+                    {'step': '대전 하차 완료', 'time': '12:00', 'completed': True},
+                    {'step': '부산 이동 중 (진행 중)', 'time': '진행 중', 'completed': False},
+                    {'step': '부산 하차 예정', 'time': '17:30', 'completed': False},
+                ]
+                driver_data['details']['route'] = {
+                    'next': '부산 물류센터',
+                    'eta': '17:30',
+                    'remaining': '250km'
+                }
+                driver_data['details']['logs'] = [
+                    {'time': '12:00', 'log': '대전 하차 완료'},
+                    {'time': '09:35', 'log': '운행 시작'},
+                    {'time': '09:30', 'log': '서울 상차 완료'},
+                ]
+            elif driver_id == '2222': # 박희철 드라이버 (매칭 완료 예시)
+                driver_data['status'] = '매칭 완료'
+                driver_data['details']['info'] = {
+                    'cargoId': '#20250709-002',
+                    'origin': '경기 성남시',
+                    'dest': '대구 물류센터',
+                    'cargo_type': '의류',
+                    'weight': '200',
+                    'plate_number': '567나8901',
+                    'capacity': '500',
+                    'truck_type': '1.5톤 트럭',
+                    'trip_status': '매칭 완료'
+                }
+                driver_data['details']['progress'] = [
+                    {'step': '화물 매칭 완료', 'time': '13:00', 'completed': True},
+                    {'step': '경기 성남시 이동 예정', 'time': '예정', 'completed': False},
+                    {'step': '상차 예정', 'time': '예정', 'completed': False},
+                ]
+                driver_data['details']['route'] = {
+                    'next': '경기 성남시',
+                    'eta': '확인 중',
+                    'remaining': '확인 중'
+                }
+                driver_data['details']['logs'] = [
+                    {'time': '13:00', 'log': '화물 매칭 완료, 배차 대기 중입니다.'},
+                ]
+            else: # 그 외의 드라이버 ID (기본값)
+                driver_data['details']['info']['trip_status'] = driver_data['status'] # is_active 상태 반영
+                driver_data['details']['progress'] = [{'step': '현재 운송 없음', 'time': '', 'completed': False}]
+                driver_data['details']['route'] = {'next': 'N/A', 'eta': 'N/A', 'remaining': 'N/A'}
+                driver_data['details']['logs'] = [{'time': 'N/A', 'log': '최근 운송 기록 없음'}]
+
+            print(f"DEBUG: get_driver_full_details() successfully returned data for {driver_id}")
+            return driver_data
+
+        except Exception as e:
+            print(f"❌ 기사 상세 정보 조회 실패: {e}")
+            return None
+        finally:
+            self.disconnect()
+
+    def get_active_driver_count(self):
+        try:
+            self.connect()
+            # 스키마에 따라 is_active가 0일 때 '운행중' (활성)이므로, 0인 기사 수를 셉니다.
+            query = "SELECT COUNT(*) AS count FROM drivers WHERE is_active = 0"
+            self.cursor.execute(query)
+            result = self.cursor.fetchone()
+            return result['count'] if result else 0
+        except Exception as e:
+            print(f"[에러] 가용 기사 쿼리 실패: {e}")
+            return 0
+        finally:
+            self.disconnect()
+
+    def get_drivers_from_db(self, driver_id: str = None):
+        try:
+            self.connect()
+            if driver_id:
+                query = """
+                    SELECT driver_id, name, nickname, rating, is_active,
+                           latitude, longitude, location_updated_at
+                    FROM drivers
+                    WHERE driver_id = %s
+                """
+                self.cursor.execute(query, (driver_id,))
+            else:
+                query = """
+                    SELECT driver_id, name, nickname, rating, is_active,
+                           latitude, longitude, location_updated_at
+                    FROM drivers
+                """
+                self.cursor.execute(query)
+
+            result = self.cursor.fetchall()
+            print(f"DEBUG: get_drivers_from_db(driver_id={driver_id}) → {len(result)} rows")
+            # 단일 레코드만 원한다면:
+            # if driver_id and result:
+            #     return result[0]
+            return result
+
+        except Exception as e:
+            print(f"기사 정보 조회 실패: {e}")
+            return [] if not driver_id else None
+
         finally:
             self.disconnect()

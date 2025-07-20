@@ -19,13 +19,17 @@
             <nav class="flex-grow">
                 <ul>
                     <li class="mb-3"><a href="{{ url_for('admin_dashboard') }}" class="nav-link-item flex items-center"><i class="fas fa-chart-line w-5 h-5 mr-3"></i> 대시보드</a></li>
-                    <li class="mb-3"><a href="{{ url_for('admin_realtime') }}" class="nav-link-item flex items-center"><i class="fas fa-truck-moving w-5 h-5 mr-3"></i> 실시간 관제</a></li>
-                    <li class="mb-3"><a href="{{ url_for('admin_cargo_approval') }}" class="nav-link-item flex items-center"><i class="fas fa-box mr-3"></i> 화물 승인</a></li>
-                    <li class="mb-3"><a href="{{ url_for('admin_driver_approval') }}" class="nav-link-item flex items-center"><i class="fas fa-id-card mr-3"></i> 기사 승인</a></li>
-                    <li class="mb-3"><a href="{{ url_for('admin_user_management') }}" class="nav-link-item flex items-center"><i class="fas fa-users mr-3"></i> 사용자 관리</a></li>
+                    <li class="mb-3">
+    <a href="{{ url_for('realtime_monitoring') }}" class="nav-link-item flex items-center">
+        <i class="fas fa-truck-moving w-5 h-5 mr-3"></i> 실시간 관제
+    </a>
+</li>
+                    <!-- <li class="mb-3"><a href="{{ url_for('admin_cargo_approval') }}" class="nav-link-item flex items-center"><i class="fas fa-box mr-3"></i> 화물 승인</a></li> -->
+                    <!-- <li class="mb-3"><a href="{{ url_for('admin_driver_approval') }}" class="nav-link-item flex items-center"><i class="fas fa-id-card mr-3"></i> 기사 승인</a></li>
+                    <li class="mb-3"><a href="{{ url_for('admin_user_management') }}" class="nav-link-item flex items-center"><i class="fas fa-users mr-3"></i> 사용자 관리</a></li> -->
                     <li class="mb-3"><a href="{{ url_for('admin_reports') }}" class="nav-link-item flex items-center"><i class="fas fa-file-alt w-5 h-5 mr-3"></i> 보고서</a></li>
-                    <li class="mb-3"><a href="{{ url_for('admin_inquiry') }}" class="nav-link-item flex items-center"><i class="fas fa-question-circle w-5 h-5 mr-3"></i> 1:1 문의</a></li>
-                    <li class="mb-3"><a href="{{ url_for('admin_settings') }}" class="nav-link-item flex items-center"><i class="fas fa-cog w-5 h-5 mr-3"></i> 설정</a></li>
+                    <!-- <li class="mb-3"><a href="{{ url_for('admin_inquiry') }}" class="nav-link-item flex items-center"><i class="fas fa-question-circle w-5 h-5 mr-3"></i> 1:1 문의</a></li>
+                    <li class="mb-3"><a href="{{ url_for('admin_settings') }}" class="nav-link-item flex items-center"><i class="fas fa-cog w-5 h-5 mr-3"></i> 설정</a></li> -->
                 </ul>
             </nav>
             <a href="{{ url_for('logout') }}" class="w-full text-center bg-gray-700 text-gray-300 py-3 rounded-lg font-semibold hover:bg-gray-600"><i class="fas fa-sign-out-alt mr-2"></i> 로그아웃</a>
