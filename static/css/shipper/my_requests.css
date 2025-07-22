@@ -1,0 +1,234 @@
+/* =================================== */
+/* 1. Base Layout (기존 style.css)     */
+/* =================================== */
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+    background-color: #f3f4f6; /* Light gray background */
+}
+
+body {
+    /* base.html의 body에서 flex 관련 속성을 사용하지 않으므로 제거하거나 주석처리 */
+}
+
+.app-container {
+    max-width: 420px; /* Simulate mobile width */
+    width: 100%;
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    overflow: hidden; /* Content inside is clipped to rounded corners */
+    height: 100%;
+    position: relative; /* For absolute positioning of the footer */
+}
+
+/* 스크롤 영역 (HTML에서 이 클래스를 사용) */
+.content-scrollable {
+    height: 100%;
+    overflow-y: auto;
+    /* 푸터 높이만큼 하단 여백 확보 (푸터 높이가 약 4rem~5rem 정도) */
+    padding-bottom: 6rem; 
+    box-sizing: border-box;
+}
+
+/* 푸터 (기존 스타일 유지) */
+.footer-nav {
+    padding: 0.75rem 0;
+    background-color: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 20;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* =================================== */
+/* 2. Card Design (새로운 카드 디자인)   */
+/* =================================== */
+
+.header-container {
+    display: flex;
+    align-items: center;
+    padding: 1.5rem 1.5rem 0 1.5rem;
+    gap: 0.75rem;
+}
+
+.back-link {
+    color: #4338CA;
+}
+
+.header-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #374151;
+}
+
+.header-title strong {
+    color: #4F46E5;
+}
+
+.info-banner {
+    display: flex;
+    align-items: center;
+    margin: 1rem 1.5rem 1.5rem 1.5rem;
+    padding: 0.75rem 1rem;
+    background-color: #EEF2FF;
+    border: 1px solid #C7D2FE;
+    color: #4338CA;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 0.75rem;
+}
+.info-banner svg {
+    flex-shrink: 0;
+}
+
+
+.requests-grid {
+    padding: 0 1.5rem;
+    display: grid;
+    gap: 1.25rem;
+}
+
+.request-card {
+    background-color: #ffffff;
+    border: 1px solid #E5E7EB;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.request-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border-color: #A5B4FC;
+}
+
+.card-header {
+    display: flex;
+    justify-content: flex-start; /* ID만 있으므로 왼쪽 정렬 */
+    align-items: center;
+    margin-bottom: 1.25rem;
+}
+
+.request-id {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6B7280;
+}
+
+.route-info {
+    position: relative;
+    padding: 0.5rem 0;
+}
+
+.route-line {
+    position: absolute;
+    left: 14px;
+    top: 28px;
+    bottom: 28px;
+    width: 2px;
+    background-color: #D1D5DB;
+}
+
+.location-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+
+.location-item:first-child {
+    margin-bottom: 1.5rem;
+}
+
+.location-tag {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+    z-index: 1;
+}
+
+.location-tag.origin {
+    background-color: #4F46E5;
+}
+
+.location-tag.destination {
+    background-color: #374151;
+}
+
+.location-address {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1F2937;
+    padding-top: 4px;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #F3F4F6;
+}
+
+.cargo-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #4B5563;
+}
+
+.details-button {
+    padding: 0.5rem 1rem;
+    background-color: #4F46E5;
+    color: white;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.details-button:hover {
+    background-color: #4338CA;
+}
+
+.no-requests {
+    text-align: center;
+    padding: 4rem 1rem;
+    color: #6B7280;
+}

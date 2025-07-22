@@ -4,6 +4,8 @@ from flask import jsonify
 import json
 import requests
 import re
+from typing import Optional
+
 
 
 class DBManager:
@@ -21,20 +23,39 @@ class DBManager:
                 database="cargo_ai",
                 charset="utf8mb4"
             )
-            self.cursor = self.connection.cursor(dictionary=True)
-
+            self.cursor = self.connection.cursor(dictionary=True, buffered=True)
         except mysql.connector.Error as error:
             print(f"데이터베이스 연결 실패 : {error}")
 
     ## 데이터베이스 연결해제
     def disconnect(self):
-        if self.connection and self.connection.is_connected():
-            self.cursor.close()
-            self.connection.close()
+        try:
+            if self.connection and self.connection.is_connected():
+                self.cursor.close()
+                self.connection.close()
+        except Exception as e:
+            print("❌ disconnect 중 오류:", e)
+    # def disconnect(self):
+    #     if self.connection and self.connection.is_connected():
+    #         self.cursor.close()
+    #         self.connection.close()
 
 
     ## 회원가입 화주
-    def insert_shipper(self,name: str,shipper_id: str,shipper_pw: str,nickname: str,business_registration_num: str | None, phone: str,email: str | None,birth_date: str,gender: int,address: str,profile_img_path: str | None):
+    def insert_shipper(
+        self,
+        name: str,
+        shipper_id: str,
+        shipper_pw: str,
+        nickname: str,
+        business_registration_num: Optional[str],
+        phone: str,
+        email: Optional[str],
+        birth_date: str,
+        gender: int,
+        address: str,
+        profile_img_path: Optional[str]
+    ):
         """shippers 테이블에 화주 회원정보 삽입"""
         try:
             self.connect()
@@ -49,7 +70,6 @@ class DBManager:
             )
             self.cursor.execute(insert_query, values)
             self.connection.commit()
-            print("✅ 화주 회원정보 삽입 성공")
         except Exception as e:
             print(f"❌ 화주 회원정보 삽입 실패: {e}")
         finally:
@@ -57,7 +77,20 @@ class DBManager:
 
 
     ## 회원가입 기사
-    def insert_driver(self,name: str,driver_id: str,driver_pw: str,nickname: str,business_registration_num: str | None,phone: str,email: str | None,birth_date: str,gender: int,address: str,profile_img_path: str | None):
+    def insert_driver(
+        self,
+        name: str,
+        driver_id: str,
+        driver_pw: str,
+        nickname: str,
+        business_registration_num: Optional[str],
+        phone: str,
+        email: Optional[str],
+        birth_date: str,
+        gender: int,
+        address: str,
+        profile_img_path: Optional[str]
+    ):
         """drivers 테이블에 기사 회원정보 삽입"""
         try:
             self.connect()
@@ -73,7 +106,6 @@ class DBManager:
             )
             self.cursor.execute(insert_query, values)
             self.connection.commit()
-            print("✅ 기사 회원정보 삽입 성공")
         except Exception as e:
             print(f"❌ 기사 회원정보 삽입 실패: {e}")
         finally:
@@ -104,7 +136,6 @@ class DBManager:
             )
             self.cursor.execute(insert_query, values)
             self.connection.commit()
-            print("화물 운송 요청 데이터 삽입 성공")
         except Exception as e:
             print(f"화물 운송 요청 데이터 삽입 실패: {e}")
         finally:
@@ -119,7 +150,6 @@ class DBManager:
             """
             value = (shipper_id,)
             self.cursor.execute(query, value)
-            print("화물 운송 신청 데이터 조회 성공")
             return self.cursor.fetchall()
         except Exception as e:
             print(f"화물 운송 신청 데이터 조회 실패: {e}")
@@ -139,7 +169,6 @@ class DBManager:
             ON v.driver_id = d.driver_id; 
             """
             self.cursor.execute(query)
-            print("화물 매칭 기사 데이터 조회 성공")
             return self.cursor.fetchall()
         except Exception as e:
             print(f"화물 매칭 기사 데이터 조회 실패: {e}")
@@ -160,10 +189,30 @@ class DBManager:
             where d.driver_id = %s;
             """
             self.cursor.execute(query, (driver_id,))
-            print("기사 아이디로 기사+ 차량 데이터 정보 조회")
             return self.cursor.fetchone()
         except Exception as e:
             print(f"기사 아이디로 기사+ 차량 데이터 정보 조회 실패 : {e}")
+            return []
+        finally:
+            self.disconnect()
+
+
+    ## 운송가능한 모든 드라이버 가져오기
+    def select_active_drivers_all_info(self):
+        try:
+            self.connect()
+            query= """
+            SELECT *
+            FROM vehicles v
+            INNER JOIN drivers d
+            ON v.driver_id = d.driver_id
+            where d.is_active = 1
+            """
+            self.cursor.execute(query,)
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"기사 아이디로 기사+ 차량 데이터 정보 조회 실패 : {e}")
+            return []
         finally:
             self.disconnect()
 
@@ -173,7 +222,6 @@ class DBManager:
             self.connect()
             query = "select * from admins where admin_id = %s"
             self.cursor.execute(query, (admin_id,))
-            print("관리자 정보 조회 성공")
             return self.cursor.fetchone()
         except Exception as e:
             print(f"❌ 관리자 정보 조회 실패: {e}")
@@ -203,7 +251,6 @@ class DBManager:
             WHERE fr.shipper_id = %s;
             """
             self.cursor.execute(query,(shipper_id,))
-            print("화주 아이디로 매칭 정보, 운전자 정보 조회 성공")
             return self.cursor.fetchall()
         except Exception as e:
             print(f"화주 아이디로 매칭 정보, 운전자 정보 조회 실패 : {e}")
@@ -222,7 +269,6 @@ class DBManager:
             """
             value = (shipper_id,)
             self.cursor.execute(query, value)
-            print("운송 요청 아이디로 정보 조회 성공")
             return self.cursor.fetchall()
 
         except Exception as e:
@@ -233,16 +279,15 @@ class DBManager:
 
 
      ## 화주 운송 요청 정보 조회(운송요청아이디)
-    def select_request_by_id(self, id):
+    def select_request_by_id(self, request_id):
         try:
             self.connect()
             query = """
             SELECT * FROM freight_request
             WHERE id = %s
             """
-            value = (id,)
+            value = (request_id,)
             self.cursor.execute(query, value)
-            print("운송 요청 아이디로 정보 조회 성공")
             return self.cursor.fetchone()
 
         except Exception as e:
@@ -261,7 +306,6 @@ class DBManager:
             """
             value = (driver_id,)
             self.cursor.execute(query, value)
-            print("운전자 정보 아이디로 조회 성공")
             return self.cursor.fetchone()
 
         except Exception as e:
@@ -343,7 +387,6 @@ class DBManager:
             ORDER BY m.created_at DESC
             """
             self.cursor.execute(query, (shipper_id,))
-            print("✅ 매칭 내역 조회 성공")
             return self.cursor.fetchall()
         except Exception as e:
             print(f"❌ 매칭 내역 조회 실패: {e}")
@@ -356,14 +399,13 @@ class DBManager:
             self.connect()
             query = "select * from shippers WHERE shipper_id = %s"
             self.cursor.execute(query, (shipper_id,))
-            print("화주 테이블 조회")
             return self.cursor.fetchone()
         except Exception as e:
             print(f"화주 테이블 조회 실패: {e}")
         finally:
             self.disconnect()
 
-
+    ## 결제 테이블 생성
     def create_my_payments_table(self):
         try:
             self.connect()
@@ -384,12 +426,12 @@ class DBManager:
             """
             self.cursor.execute(query)
             self.connection.commit()
-            print("✅ payments 테이블 생성 또는 확인 완료")
         except Exception as e:
             print(f"❌ payments 테이블 생성 실패: {e}")
         finally:
             self.disconnect()
 
+    ## 결제 정보 삽입
     def insert_payment(self, data):
         try:
             self.connect()
@@ -412,6 +454,7 @@ class DBManager:
         finally:
             self.disconnect()
 
+    ## 결제 내역 아이디로 조회
     def select_payments_by_id(self, user_id):
         try:
             self.connect()
@@ -429,6 +472,7 @@ class DBManager:
         finally:
             self.disconnect()
 
+    ## 결제 상태 업데이트
     def update_payment_is_paid(self, match_id):
         try:
             self.connect()
@@ -469,7 +513,22 @@ class DBManager:
             select * from freight_request 
             """
             self.cursor.execute(query)
-            print("화물 운송 신청 데이터 조회 성공")
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"화물 운송 신청 데이터 조회 실패: {e}")
+            return []
+        finally:
+            self.disconnect()
+
+    ## 매치 안된 모든 화물정보 조회
+    def select_non_matched_requests_all_info(self):
+        try:
+            self.connect()
+            query = """
+            select * from freight_request 
+            where is_matched = 0
+            """
+            self.cursor.execute(query)
             return self.cursor.fetchall()
         except Exception as e:
             print(f"화물 운송 신청 데이터 조회 실패: {e}")
@@ -485,7 +544,6 @@ class DBManager:
             select * from recommended_matches where dirver_id = %s
             """
             self.cursor.execute(query)
-            print("화물기사 추천 테이블 조회 성공")
             return self.cursor.fetchall
         except Exception as e:
             print(f"화물기사 추천 테이블 조회 실패 : {e}")
@@ -550,12 +608,12 @@ class DBManager:
         finally:
             self.disconnect()
 
+    #모든 운전자 정보 가져오기
     def select_matching_driver(self):
         try:
             self.connect()
             query = "SELECT * FROM drivers"  # 드라이버 테이블에서 모든 정보를 조회하는 쿼리
             self.cursor.execute(query)
-            print("화물 매칭 기사 데이터 조회 성공")
             return self.cursor.fetchall()
         except Exception as e:
             print(f"화물 매칭 기사 데이터 조회 실패: {e}")
@@ -831,5 +889,295 @@ class DBManager:
             print(f"기사 정보 조회 실패: {e}")
             return [] if not driver_id else None
 
+        finally:
+            self.disconnect()
+
+
+    def get_freight_request_by_id(self, request_id: int):
+        try:
+            self.connect()
+            query = """
+                SELECT id, shipper_id, origin, destination,
+                       cargo_type, cargo_info, weight, price,
+                       special_request, request_time, pickup_deadline,
+                       surcharge, fast_request, is_matched,
+                       req_lat, req_lon
+                FROM freight_request
+                WHERE id = %s
+            """
+            self.cursor.execute(query, (request_id,))
+            return self.cursor.fetchone()
+        except Exception as e:
+            print(f"[ERROR] freight_request 조회 실패: {e}")
+            return None
+        finally:
+            self.disconnect()
+
+    def get_driver_matches(self, driver_id: str):
+        """
+        driver_id 로 매칭 목록을 조회해 dict 리스트로 반환
+        """
+        try:
+            self.connect()
+            sql = """
+                SELECT
+                    m.id            AS id,
+                    fr.origin       AS origin,
+                    fr.destination  AS destination,
+                    fr.cargo_type   AS cargo_type,
+                    fr.weight       AS weight,
+                    fr.price        AS price,
+                    fr.request_time AS request_time,
+                    m.created_at    AS created_at
+                FROM matches AS m
+                JOIN freight_request AS fr
+                  ON fr.id = m.request_id
+                WHERE m.driver_id = %s
+                  AND m.status    = 0
+                ORDER BY m.created_at DESC
+            """
+            self.cursor.execute(sql, (driver_id,))
+            return self.cursor.fetchall()   # → [ { 'id':..., 'origin':..., … }, … ]
+        except Exception as e:
+            print(f"[ERROR] get_driver_matches 실패: {e}")
+            return []
+        finally:
+            self.disconnect()
+
+    def get_matched_request_by_id(self, match_id: int):
+        """
+        match_id 에 해당하는 단일 매칭 정보를 dict 로 반환
+        """
+        try:
+            self.connect()
+            sql = """
+                SELECT
+                    m.id            AS id,
+                    fr.origin       AS origin,
+                    fr.destination  AS destination,
+                    fr.cargo_type   AS cargo_type,
+                    fr.weight       AS weight,
+                    fr.price        AS price,
+                    fr.request_time AS request_time,
+                    m.created_at    AS created_at
+                FROM matches AS m
+                JOIN freight_request AS fr
+                  ON fr.id = m.request_id
+                WHERE m.id = %s
+            """
+            self.cursor.execute(sql, (match_id,))
+            return self.cursor.fetchone()  # → { 'id':..., 'origin':..., … } or None
+        except Exception as e:
+            print(f"[ERROR] get_matched_request_by_id 실패: {e}")
+            return None
+        finally:
+            self.disconnect()
+
+
+    
+    def get_driver_by_id(self, driver_id):
+        try:
+            self.connect()
+            # is_active, rating, nickname 등은 그대로 둡니다.
+            # vehicle, status, latitude, longitude, location_updated_at은 이 함수에서 가져오지 않습니다.
+            query = """
+                SELECT name, driver_id, nickname, rating, is_active
+                FROM drivers
+                WHERE driver_id = %s
+            """
+            self.cursor.execute(query, (driver_id,))
+            return self.cursor.fetchone()
+        except Exception as e:
+            print(f"기사 정보 조회 실패: {e}")
+            return []
+        finally:
+            self.disconnect()
+    
+    # 추천 정보 삽입( 기사 순위 정보 바뀔때마다 업데이트)
+    def upsert_recommendation(self, request_id, driver_id, score, distance , rank):
+        try:
+            self.connect()
+            query = """
+            INSERT INTO recommended_matches (request_id, driver_id, score, distance, rank)
+            VALUES (%s, %s, %s, %s, %s)
+            ON DUPLICATE KEY UPDATE
+                score = VALUES(score),
+                distance = VALUES(distance),
+                rank = VALUES(rank),
+                status = IF(status = 'accepted', 'accepted', 'pending'),  -- ✅ 이미 accepted면 유지
+                created_at = NOW(),
+                responded_at = NULL
+            """
+            self.cursor.execute(query, (request_id, driver_id, score, distance, rank))
+            self.connection.commit()
+        except Exception as e:
+            print(f"기사 정보 조회 실패: {e}")
+        finally:    
+            self.disconnect()
+
+    # 기사 아이디로 추천된 모든 정보 가져오기
+    def select_recommend_matches_by_id(self, driver_id):
+        try:
+            self.connect()
+            query = """
+                SELECT request_id
+                FROM recommended_matches
+                WHERE driver_id = %s
+                """
+            self.cursor.execute(query, (driver_id,))
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"추천 테이블에서 화물 아이디 조회 실패: {e}")
+            return []
+        finally:
+            self.disconnect()
+
+    # 드라이버 아이디로 추천된 결과 가져오기
+    def select_recommend_driver_by_id(self, driver_id):
+        try:
+            self.connect()
+            query = """
+                SELECT *
+                FROM recommended_matches
+                WHERE driver_id = %s
+                """
+            self.cursor.execute(query, (driver_id,))
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"추천 테이블에서 정보 조회 실패: {e}")
+            return []
+        finally:
+            self.disconnect()
+
+    
+    def update_recommended_matchies_status(self, request_id, driver_id):
+        try: 
+            self.connect()
+            query = """
+                    UPDATE recommended_matches 
+                    SET status = 'accepted'
+                    WHERE request_id = %s and driver_id = %s 
+                    """
+            self.cursor.execute(query,(request_id,driver_id))
+            self.connection.commit()
+            print("추천 매칭 상태 업데이트 성공")
+        except Exception as e:
+            print(f"❌ 추천 매칭 상태 업데이트 실패: {e}")
+        finally:
+            self.disconnect()
+
+    def accept_recommended_match(self, request_id, driver_id):
+        try:
+            self.connect()
+            
+            query_update = """
+                UPDATE recommended_matches 
+                SET status = 'accepted', responded_at = NOW()
+                WHERE request_id = %s AND driver_id = %s AND status <> 'accepted'
+            """
+            self.cursor.execute(query_update, (request_id, driver_id))
+            
+            print("🟡 rowcount 확인:", self.cursor.rowcount)
+            print("🟡 요청된 request_id, driver_id:", request_id, driver_id)
+
+            if self.cursor.rowcount == 0:
+                print("❗ 이미 수락된 상태이거나, 유효하지 않은 요청입니다.")
+                return False
+
+            print("🟢 matches INSERT 시도")
+            query_insert = """
+                INSERT INTO matches (request_id, driver_id, created_at)
+                VALUES (%s, %s, NOW())
+                ON DUPLICATE KEY UPDATE created_at = NOW()
+            """
+            self.cursor.execute(query_insert, (request_id, driver_id))
+
+            self.connection.commit()
+            print("✅ 추천 매칭 수락 및 matches 테이블 삽입 또는 갱신 성공")
+            return True
+
+        except Exception as e:
+            self.connection.rollback()
+            print("🔴 matches 삽입 중 rollback 발생")
+            print(f"❌ 오류 내용: {e}")
+            return False
+
+        finally:
+            self.disconnect()
+
+    # def accept_recommended_match(self, request_id, driver_id):
+    #     try:
+    #         self.connect()
+            
+    #         query_update = """
+    #             UPDATE recommended_matches 
+    #             SET status = 'accepted', responded_at = NOW()
+    #             WHERE request_id = %s AND driver_id = %s AND status <> 'accepted'
+    #         """
+    #         self.cursor.execute(query_update, (request_id, driver_id))
+            
+    #         print("🟡 rowcount 확인:", self.cursor.rowcount)
+    #         print("🟡 요청된 request_id, driver_id:", request_id, driver_id)
+
+    #         if self.cursor.rowcount == 0:
+    #             print("❗ 이미 수락된 상태이거나, 유효하지 않은 요청입니다.")
+    #             return False
+
+    #         print("🟢 matches INSERT 시도")
+    #         query_insert = """
+    #             INSERT INTO matches (request_id, driver_id, created_at)
+    #             VALUES (%s, %s, NOW())
+    #         """
+    #         self.cursor.execute(query_insert, (request_id, driver_id))
+
+    #         query_match_update = """
+    #             UPDATE freight_request SET is_matched = 1 WHERE id = %s
+    #         """
+    #         self.cursor.execute(query_match_update, (request_id,))
+
+    #         self.connection.commit()
+    #         print("✅ 추천 매칭 수락 및 matches 테이블 삽입 성공")
+    #         return True
+
+    #     except Exception as e:
+    #         self.connection.rollback()
+    #         print("🔴 matches 삽입 중 rollback 발생")
+    #         print(f"❌ 오류 내용: {e}")
+    #         return False
+
+    #     finally:
+    #         self.disconnect()
+
+
+    # (기사데이터 : name, rating, truck_type, truck_info, 추천 정보 : 순위, 예상 접근 거리- 📍 "출발지까지 거리: {{ distance }}km")
+    # 화물데이터 : origin, destination, cargo_type, weight, pickup_deadline
+    ## 화물정보로 추천 기사 데이터 가져오기
+    def get_recommended_matches(self, request_id):
+        try:
+            self.connect()
+            query = """
+            SELECT 
+            rm.request_id,
+            rm.driver_id,
+            rm.distance,
+            rm.rank,
+            d.name AS driver_name,
+            d.rating driver_rating,
+            d.total_requests AS driver_total_requests,
+            v.truck_type,
+            v.capacity,
+            v.vehicle_num,
+            v.truck_info
+            FROM recommended_matches rm
+            INNER JOIN drivers d ON d.driver_id = rm.driver_id
+            INNER JOIN vehicles v ON d.driver_id = v.driver_id
+            WHERE rm.request_id = %s and rm.status = 'accepted'
+            ORDER BY rm.rank;
+            """
+            self.cursor.execute(query, (request_id,))
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(f"추천 기사 정보 조회 실패: {e}")
+            return []
         finally:
             self.disconnect()

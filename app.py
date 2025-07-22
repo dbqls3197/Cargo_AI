@@ -10,6 +10,11 @@ import random
 import base64
 import os
 from werkzeug.utils import secure_filename
+from pred import PDManager, ModelPredictor, load_model
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from lightgbm import LGBMRanker
+
 
 # Flask 앱을 생성합니다.
 app = Flask(__name__)
@@ -47,6 +52,7 @@ TMAP_API_KEY = "eEl7AGPzATadBLtufoN4i6dSx6RZGpcT8Bpq5zsj"
 KAKAO_API_KEY = "b57c96e18902eff2c9b26c47c7c9f066"
 
 manager = DBManager()
+pd_manager = PDManager()
 
 # Kafka Producer 설정
 try:
@@ -114,7 +120,6 @@ def user_type_select():
 def signup_page(user_type):
     """지정된 사용자 유형에 맞는 회원가입 페이지를 렌더링합니다."""
     template_name = f'public/signup_{user_type}.html'
-    print(template_name)
     if user_type not in ['shipper', 'driver']:  # 'admin' 제거
         return redirect(url_for('user_type_select'))
     try:
@@ -230,7 +235,6 @@ def login():
             session['role'] = 'driver'
             if driver['driver_pw'] == user_pw_input: # 세션 PW 대신 직접 입력 PW 사용
                 session['loggedInDriverId'] = driver['driver_id']
-                print(f"로그인 성공: 운전자 ID {driver['driver_id']} 세션에 저장됨") # 디버깅용
                 return redirect(url_for('driver_dashboard'))
             else :
                 flash("비밀번호가 일치하지 않습니다.", "error")
@@ -294,7 +298,7 @@ def realtime_monitoring():
     driver_list = db.get_all_driver_briefs()  # 모든 기사 목록
 
     # 예시: 'DRV001' 기사를 선택했을 때
-    selected_driver = db.get_drivers_from_db("DRV001")  # 특정 기사 정보 조회
+    selected_driver = db.get_driver_by_id("DRV001")  # 특정 기사 정보 조회
 
     return render_template(
         'admin/realtime.html',
@@ -335,7 +339,6 @@ def get_selected_driver(selected_driver_id): # 함수 인자로 selected_driver_
             'details': selected_driver.get('details') # 운송 진행, 경로, 로그 등 추가 정보
         })
     except Exception as e:
-        print(f"DEBUG: /api/selected_driver API 호출 중 오류 발생: {e}")
         return jsonify({"error": str(e)}), 500
 
 @app.route('/admin/cargo-approval')
@@ -410,7 +413,6 @@ def shipper_dashboard():
     completed = [mat for mat in my_matchings if mat['status'] == 1] or []
     in_progress_count = len(in_progress)
     completed_count = len(completed)
-    print(f"not_matched:{not_matched}")
     return render_template('shipper/dashboard.html', my_requests = my_requests, my_requests_count=my_requests_count, not_matched=not_matched,
                            in_progress_count=in_progress_count, completed_count=completed_count
                            )
@@ -431,7 +433,6 @@ def submit_shipper_request():
         manager.insert_freight_request(user_id, data)
         return jsonify({"success": True, "message": "요청이 성공적으로 저장되었습니다."})
     except Exception as e:
-        print(f"[에러] 운송 요청 저장 중 오류: {e}")
         return jsonify({"success": False, "message": "운송 요청 저장 중 오류 발생"})
 
 
@@ -440,9 +441,8 @@ def submit_shipper_request():
 @login_required_shipper
 def shipper_my_requests():
     shipper_id = session['id']  # shipper_id로 받아야 DB컬럼과 일치
-    all_requests = manager.select_requests_by_shipper_id(shipper_id)
-    non_matched = [mat for mat in all_requests if mat['is_matched'] == 0]
-    print(f"🔍 나의 요청 목록: {non_matched}")
+    all_requests = manager.select_requests_by_shipper_id(shipper_id) 
+    non_matched = [mat for mat in all_requests if mat['is_matched'] == 0] 
     return render_template("shipper/my_requests.html", my_requests= non_matched )
 
 
@@ -450,12 +450,14 @@ def shipper_my_requests():
 @app.route('/shipper/driver_matching')
 @login_required_shipper
 def driver_matching():
-    request_id = request.args.get('id')
-    my_request = manager.select_request_by_id(request_id)
-    truck_info = my_request['cargo_info']
-    all_drivers = manager.select_matching_drivers_info()
-    drivers = [driver for driver in all_drivers if driver.get('truck_info') == truck_info] or []
-    return render_template('shipper/driver_matching.html', my_request = my_request, drivers=drivers, request_id=request_id)
+    request_id = request.args.get('id') # 화물 번호
+    select_request = manager.select_request_by_id(request_id) # 선택한 화물
+    print(f"선택된 화물 요청 정보: {select_request}")
+    # 화물 번호에 대한 추천기사의 정보 가져오기 (기사데이터 : name, rating, truck_type, truck_info, 추천 정보 : 순위, 예상 접근 거리- 📍 "출발지까지 거리: {{ distance }}km")
+    recommend_matches = manager.get_recommended_matches(request_id) or [] #
+    print(f"추천 정보: {recommend_matches}" ) 
+    return render_template('shipper/driver_matching.html',recommend_matches = recommend_matches, select_request = select_request)
+
 
 ## 화주 매칭 결과
 @app.route('/shipper/matching_result', methods=['POST'])
@@ -464,12 +466,9 @@ def driver_matching_result():
     request_id = request.form['request_id']
     driver_id = request.form['driver_id']
     my_request = manager.select_request_by_id(request_id)
-    print(f"my_request:{my_request}")
     driver = manager.select_matching_driver_all_info(driver_id)
-    print(f"driver:{driver}")
     manager.insert_matching_result(request_id, driver_id)
     my_matching = manager.select_matching_driver_my_request(driver_id, request_id)
-    print(f"my_matching: {my_matching}")
     manager.update_matching_status(request_id)
     return render_template("shipper/driver_matching_result.html", my_request=my_request, driver=driver,
                            my_matching=my_matching)
@@ -481,10 +480,8 @@ def driver_matching_result():
 def shipper_my_shipments():
     shipper_id = session['id']
     my_matchings = manager.select_matching_info(shipper_id)# 매칭정보 가져옴
-    print(f"my_matchings:{my_matchings}")
     in_progress = [mat for mat in my_matchings if mat['status'] == 0] or []
     completed = [mat for mat in my_matchings if mat['status'] == 1] or []
-    print(f"completed: {completed}")
     return render_template('shipper/my_shipments.html', in_progress= in_progress, completed=completed, my_matchings= my_matchings)
 
 
@@ -492,7 +489,7 @@ def shipper_my_shipments():
 @app.route('/shipper/tracking/<match_id>')
 @login_required_shipper
 def shipper_tracking(match_id):
-    return render_template('shipper/shipper_tracking.html', match_id = match_id)
+    return render_template('shipper/shipper_tracking.html',match_id=match_id,KAKAO_API_KEY=KAKAO_API_KEY)
 
 
 # -------------------------------------------------------------------------------------------------
@@ -531,7 +528,6 @@ def shipper_payments():
 @login_required_shipper
 def shipper_payments_result():
     user_id = session['id']
-    all_matchings = manager.select_matching_driver_my_request_by_id(user_id)
     
     # 결제 상태 업데이트
     try:
@@ -575,7 +571,6 @@ def process_payment():
 def shipper_my_page():
     shipper_id = session['id']
     shipper = manager.select_shipper_by_id(shipper_id)
-    print(shipper)
     return render_template('shipper/my_page.html', shipper=shipper)
 
 
@@ -587,36 +582,201 @@ def shipper_my_page():
 @app.route('/driver/dashboard')
 @login_required_driver
 def driver_dashboard():
-    return render_template('driver/dashboard.html')
+    # 1) 모델 로드
+    BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
+    MODEL_PATH = os.path.join(BASE_DIR, 'model', 'lgbm_ranker_model.pkl')
+    model = load_model(MODEL_PATH)
+    mp_manager = ModelPredictor(model)
 
-# 기사 운송 요청 목록
+    # 2) 현재 기사 정보 (세션)
+    driver_id = session['id']
+    driver = manager.select_matching_driver_all_info(driver_id) or [] # 로그인한 기사의 모든 정보 가져오기
+    driver_name = driver['name'] # 로그인한 기사의 이름
+    # 3) 화물 요청 및 전체 기사 목록 조회
+    freight_requests = manager.select_non_matched_requests_all_info()  # 매치 안된 화물 모든정보 
+    print(f"매치 안된 화물 모든정보:{freight_requests}")
+    all_drivers = manager.select_active_drivers_all_info()       # 운송 가능한 화물기사 모두의 정보
+    # 4) 후보 (request × driver) 조합으로 피처 행 생성
+    rows = []
+    for fr in freight_requests:
+        # 화물 요청의 위/경도
+        origin = fr['origin']
+        req_lat, req_lon = geocode(origin) # 화물의 출발지 주소 => 위도 경도
+        for dr in all_drivers:
+            # ① 용량, 화물타입, 정보, 위험물/유해물 필터 (룰 기반)
+            if dr['capacity'] > fr['weight'] and dr['truck_type'] == fr['cargo_type'] and dr['truck_info'] == fr['cargo_info'] :
+            
+                # ② 거리 계산 (km)
+                distance = mp_manager.haversine_distance(
+                    dr['driver_lat'], dr['driver_lon'],
+                    req_lat, req_lon
+                )
+                print(distance)
+                if distance < 200 :
+            
+
+                    # ③ 평점·수락률·휴식시간
+                    acceptance_rate  = dr['accepted_requests'] / max(dr['total_requests'],1)
+                    rating = dr.get('rating', 0)
+
+                    # ④ 피처 행 추가
+                    rows.append({
+                        'request_id':        fr['id'],
+                        'driver_id':         dr['driver_id'],
+                        'distance':          distance,
+                        'rating':            rating,
+                        'acceptance_rate':   acceptance_rate
+                        
+                    })
+    df_cand = pd.DataFrame(rows)
+    # 🔐 예외 처리: 빈 데이터프레임이면 안전하게 템플릿으로 리턴
+    if df_cand.empty:
+        print("❌ 조건에 맞는 추천 대상이 없습니다.")
+        return render_template('driver/dashboard.html',
+                            driver_id=driver_id,
+                            driver_name=driver_name,
+                            combined_list=[])
+
+    feature_cols = ['distance','rating','acceptance_rate']
+    df_cand['score'] = model.predict(df_cand[feature_cols])
+    print(f"예측된 점수: {df_cand['score']}")
+    # 6) request_id 별로 내림차순 정렬하여 상위 N (예: top 3) 추출
+    recommendations = {}
+    recommend_list = []
+    for req_id, grp in df_cand.groupby('request_id'):
+        topk = (
+            grp.sort_values('score', ascending=False)
+                .head(3)[['driver_id','score','distance','rating','acceptance_rate']]
+                .to_dict(orient='records')
+        )
+        recommendations[req_id] = topk
+        request_id = req_id
+        rinfo = manager.select_request_by_id(request_id)
+        recommend_list.append(rinfo)
+
+    # print(f"화물정보 : {recommend_list} ")
+    # print(f"예측결과 : {recommendations} ")
+
+    for req_id, drivers in recommendations.items():
+    
+        # 새 추천 삽입 (rank 부여)
+        for rank, info in enumerate(drivers, start=1):
+            manager.upsert_recommendation(
+                request_id=req_id,
+                driver_id=info['driver_id'],
+                distance = info['distance'],
+                score=info['score'],
+                rank=rank
+            )
+
+    recommend_request_id = manager.select_recommend_matches_by_id(driver_id) # 드라이버 아이디로 추천된 화물번호 가져오기
+    recommend_driver_info = manager.select_recommend_driver_by_id(driver_id) # 드라이버 아이디로 추천된 결과 가져오기
+
+    recommend_requests_info = []
+    for req in recommend_request_id :
+        request_id = req['request_id']
+        req = manager.select_request_by_id(request_id) # 화물 id로 화물정보 받아오기
+        recommend_requests_info.append(req)
+
+    combined_list = []
+
+    # request_id → 화물정보 dict 로 매핑
+    request_map = {r['id']: r for r in recommend_requests_info}
+
+    # recommend_driver_info는 match 테이블 기반
+    for match in recommend_driver_info:
+        req_id = match['request_id']
+        if req_id in request_map:
+            combined_list.append({
+                'match': match,
+                'request': request_map[req_id]
+            })
+
+    # 7) 템플릿에 전달
+    return render_template('driver/dashboard.html'
+                        , driver_id = driver_id, driver_name=driver_name, combined_list=combined_list
+                        )
+
+
+## 화물 요청 상세보기
 @app.route('/driver/request/<int:request_id>')
 @login_required_driver
 def request_detail(request_id):
-    return render_template('driver/request_detail.html', request_id=request_id)
+    request_info = manager.select_request_by_id(request_id) # 화물 id로 화물 정보 가져오기
+    shipper_id = request_info['shipper_id']  # 화물 정보에서 화주아이디 추출
+    shipper_info = manager.select_shipper_by_id(shipper_id) # 화주 아이디로 화주정보 추출
+    return render_template('driver/request_detail.html', request_id=request_id, request_info=request_info, shipper_info = shipper_info)
 
-# 기사 운송 요청 목록 페이지
-@app.route('/driver/request_accept_success')
+## 화물 요청 수락 
+@app.route('/driver/request_accept_success/<int:request_id>')
 @login_required_driver
-def request_accept_success():
-    return render_template('driver/request_accept_success.html')
+def request_accept_success(request_id):
+    driver_id = session['id']
+    
+    # 🔥 추천 매칭 수락 및 matches 삽입 로직 포함된 메서드 사용
+    success = manager.accept_recommended_match(request_id, driver_id)
+
+    if not success:
+        flash("❗ 이미 수락된 요청이거나 오류가 발생했습니다.", "error")
+        return redirect(url_for('driver_dashboard'))
+
+    # ✅ 성공했으면 요청 정보 및 화주 정보 조회
+    request_info = manager.select_request_by_id(request_id)
+    shipper_info = manager.select_shipper_by_id(request_info['shipper_id'])
+
+    return render_template(
+        'driver/request_accept_success.html',
+        request_id=request_id,
+        request_info=request_info,
+        shipper_info=shipper_info
+    )
+
+
+@app.route('/accept_match/<int:request_id>/<driver_id>', methods=['POST'])
+def accept_match(request_id, driver_id):
+    db = DBManager()
+    success = db.accept_recommended_match(request_id, driver_id)
+    
+    if success:
+        return jsonify({"message": "매칭 수락 성공"}), 200
+    else:
+        return jsonify({"message": "이미 수락되었거나 유효하지 않은 요청입니다."}), 400
 
 # 기사 운송 요청 목록
-@app.route("/driver/navigation")
+@app.route('/driver/navigation', defaults={'request_id': None, 'match_id': None})
+@app.route('/driver/navigation/request/<int:request_id>', defaults={'match_id': None})
+@app.route('/driver/navigation/match/<int:match_id>', defaults={'request_id': None})
 @login_required_driver
-def navigation_page():
-    # 세션에서 loggedInDriverId를 가져옵니다.
-    # 이 값은 로그인 시 session['loggedInDriverId']에 저장되었습니다.
+def navigation_page(request_id, match_id):
     logged_in_driver_id = session.get('loggedInDriverId')
-
-    if logged_in_driver_id:
-        print(f"Flask: navigation_page 렌더링 - logged_in_driver_id: {logged_in_driver_id}")
-        return render_template("driver/navigation.html", logged_in_driver_id=logged_in_driver_id)
-    else:
-        # loggedInDriverId가 세션에 없으면 로그인 페이지로 리다이렉트
-        # (login_required_driver 데코레이터가 이미 처리하지만, 명시적으로 처리할 수도 있습니다.)
+    if not logged_in_driver_id:
         flash("드라이버 ID를 찾을 수 없습니다. 다시 로그인해주세요.", "error")
         return redirect(url_for('login'))
+
+    db = DBManager()
+
+    # 1) request_id로 조회되는 원본 운송 요청
+    freight_request = None
+    if request_id is not None:
+        freight_request = db.get_freight_request_by_id(request_id)
+        if not freight_request:
+            flash("해당 운송 요청을 찾을 수 없습니다.", "error")
+            return redirect(url_for('driver_history'))
+
+    # 2) match_id로 조회되는 매칭 정보
+    match = None
+    if match_id is not None:
+        match = db.get_matched_request_by_id(match_id)
+        if not match:
+            flash("해당 매칭 정보를 찾을 수 없습니다.", "error")
+            return redirect(url_for('driver_history'))
+
+    return render_template(
+        'driver/navigation.html',
+        logged_in_driver_id=logged_in_driver_id,
+        freight_request=freight_request,
+        match=match,
+    )
 
 matches = [
     {"id": 1, "company": "(주)가나다 물류", "date": "2025-07-08", "cargo": "가구", "weight": 165, "price": 103000,
@@ -626,12 +786,30 @@ matches = [
     {"id": 3, "company": "우리식품", "date": "2025-06-30", "cargo": "식품", "weight": 550, "price": 70000, "reviewed": False}
 ]
 
+@app.route('/driver/accept/<int:request_id>', methods=['POST'])
+def accept_recommendation(request_id):
+    driver_id = session.get('loggedInDriverId')  # 세션에서 드라이버 ID 추출
+    if not driver_id:
+        flash("드라이버 로그인 정보가 없습니다.", "error")
+        return redirect(url_for('driver_login'))
+
+    db = DBManager()
+    result = db.accept_recommended_match(request_id, driver_id)
+
+    if result:
+        flash("매칭을 수락했습니다.", "success")
+    else:
+        flash("매칭 수락에 실패했습니다.", "error")
+
+    return redirect(url_for('driver_dashboard'))
 
 @app.route("/driver/history")
 @login_required_driver
 def history():
+    driver_id = session['loggedInDriverId']
+    db = DBManager()
+    matches = db.get_driver_matches(driver_id)
     return render_template("driver/history.html", matches=matches)
-
 
 @app.route("/driver/review/<int:match_id>")
 @login_required_driver
@@ -710,7 +888,6 @@ def update_driver_status():
 @login_required_driver 
 def get_driver_status():
     driver_id = request.args.get('driver_id')
-    print(f"DEBUG: /get_driver_status 호출됨. driver_id: {driver_id}")
 
     if not driver_id:
         return jsonify({'success': False, 'message': '드라이버 ID가 필요합니다.'}), 400
@@ -722,18 +899,14 @@ def get_driver_status():
             status = driver_data.get('is_active') 
 
             if status is not None: # is_active 값이 존재한다면
-                print(f"DEBUG: 드라이버 {driver_id}의 is_active 상태: {status}")
                 return jsonify({'success': True, 'status': status}), 200 # 클라이언트에는 'status'로 반환
             else:
-                print(f"ERROR: 드라이버 {driver_id}의 is_active 상태 정보를 찾을 수 없습니다 (DB 컬럼 확인 필요).")
                 return jsonify({'success': False, 'message': '드라이버 상태 정보를 찾을 수 없습니다.'}), 404
         else:
-            print(f"ERROR: ID {driver_id}를 가진 드라이버를 찾을 수 없습니다.")
             return jsonify({'success': False, 'message': '해당 드라이버를 찾을 수 없습니다.'}), 404
     except Exception as e:
-        print(f"API 오류: 드라이버 상태 조회 중 서버 오류 발생: {e}")
         return jsonify({'success': False, 'message': f'서버 오류: {str(e)}'}), 500
-
+    
 
 
 
@@ -966,4 +1139,4 @@ def get_all_users():
 # -----------------------------------------------------------------------------
 # 앱 실행
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5004, debug=True)
+    app.run(host='0.0.0.0', port=5555, debug=True)

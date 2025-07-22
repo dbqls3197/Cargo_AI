@@ -1,0 +1,201 @@
+/* 전체 레이아웃 */
+
+
+.content-container {
+    padding: 1.5rem;
+    padding-top: 0.5rem;
+    background-color: #F9FAFB;
+    min-height: 100%;
+    box-sizing: border-box;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+.back-link { color: #4338CA; }
+.header-title { font-size: 1.5rem; font-weight: 800; color: #374151; }
+
+/* 탭 메뉴 */
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+.tab-button {
+    flex: 1;
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #6B7280;
+    background-color: #F3F4F6;
+    border: 1px solid #E5E7EB;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.tab-button.active {
+    background-color: #4F46E5;
+    color: white;
+    border-color: #4F46E5;
+}
+
+/* 탭 콘텐츠 */
+.tab-pane { display: none; }
+.tab-pane.active { display: block; animation: fadeIn 0.5s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* 운송 카드 공통 */
+.shipment-card {
+    background-color: white;
+    border: 1px solid #E5E7EB;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+}
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.shipment-id { font-size: 0.875rem; font-weight: 500; color: #6B7280; }
+.date { font-size: 0.875rem; color: #6B7280; }
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #F3F4F6;
+}
+.driver-info { display: flex; align-items: center; gap: 0.75rem; }
+.driver-avatar { width: 36px; height: 36px; border-radius: 50%; }
+.driver-info span, .driver-name { font-weight: 600; color: #374151; }
+
+/* ======================================== */
+/* ▼▼▼ 운송 중 카드 경로 표시 (정리된 버전) ▼▼▼ */
+/* ======================================== */
+
+.in-progress-card { cursor: pointer; transition: all 0.2s ease; }
+.in-progress-card:hover { border-color: #A5B4FC; transform: translateY(-2px); }
+
+.route-info {
+    padding-top: 0.5rem;
+}
+
+.location-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: #6B7280;
+    font-weight: 500;
+    padding: 0 2px;
+    margin-bottom: 0.25rem;
+}
+
+.location-item {
+    display: flex;
+    align-items: center;
+}
+
+.location-icon {
+    width: 12px; height: 12px;
+    border-radius: 50%; border: 2px solid; flex-shrink: 0;
+}
+.location-icon.origin { border-color: #4F46E5; }
+.location-icon.destination { border-color: #6B7280; background-color: #6B7280; }
+
+.route-line-progress {
+    flex-grow: 1;
+    height: 4px;
+    background-color: #E5E7EB;
+    border-radius: 2px;
+    margin: 0 8px;
+    overflow: hidden;
+}
+
+.progress-bar {
+    height: 100%;
+    background-color: #4F46E5;
+    border-radius: 2px;
+}
+
+.location-addresses {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.5rem;
+}
+
+.location-address {
+    font-weight: 500;
+    color: #374151;
+    font-size: 0.9rem;
+    width: 45%;
+}
+.location-address.right {
+    text-align: right;
+}
+
+.shipment-details {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #F3F4F6;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.shipment-details p { font-size: 0.9rem; color: #4B5563; margin: 0; }
+.shipment-details p strong { font-weight: 600; color: #374151; margin-right: 0.5rem; }
+
+.details-button {
+    background-color: #4F46E5; color: white;
+    padding: 0.5rem 1rem; border-radius: 0.5rem;
+    font-weight: 600; text-decoration: none; font-size: 0.875rem;
+    transition: background-color 0.2s;
+}
+.details-button:hover { background-color: #4338CA; }
+
+/* ======================================== */
+/* ▲▲▲ 여기까지 ▲▲▲                       */
+/* ======================================== */
+
+/* 운송 완료 카드 */
+.status-badge { background-color: #F0FDF4; color: #15803D; padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.75rem; font-weight: 700; }
+.route-info-completed p { margin: 0.25rem 0; color: #4B5563; }
+.route-info-completed p strong { font-weight: 600; color: #1F2937; }
+.completion-time { font-size: 0.8rem; color: #9CA3AF; }
+.truck-info { font-size: 0.8rem; color: #6B7280; }
+.details-button-secondary { background-color: #E5E7EB; color: #374151; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; text-decoration: none; font-size: 0.875rem; transition: background-color 0.2s; }
+.details-button-secondary:hover { background-color: #D1D5DB; }
+.completed-card .shipment-details { padding-bottom: 1rem; }
+
+/* 목록 없을 때 메시지 */
+.no-items-message { text-align: center; padding: 3rem 1rem; background-color: #F9FAFB; border-radius: 1rem; }
+.no-items-message p { font-weight: 500; color: #6B7280; }
+.footer-nav {
+    /* 기존 속성 */
+    position: absolute;
+    bottom: 0;
+    padding: 0.75rem 0;
+    background-color: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+    z-index: 20;
+    display: flex;
+    justify-content: space-around;
+
+    /* 너비 및 위치 수정 */
+    max-width: 400px;
+    width: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+
+    /* 둥근 모서리 속성 모두 제거 */
+    /* border-top-left-radius: 12px;  <-- 삭제 */
+    /* border-top-right-radius: 12px; <-- 삭제 */
+}

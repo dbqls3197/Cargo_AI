@@ -5,7 +5,7 @@
 {% block content %}
 <div id="driver-main-screen">
     <div class="flex justify-between items-center mb-6">
-        <h1 class="text-2xl font-bold text-indigo-700">안녕하세요, 김기사님!</h1>
+        <h1 class="text-xl font-bold text-indigo-700">안녕하세요, {{ driver_name }} 기사님!</h1>
         <div class="flex space-x-3">
             <button id="driver-notification-icon" class="relative text-gray-600 hover:text-indigo-600 p-1">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
@@ -23,8 +23,36 @@
         </label>
         <p class="mt-2 text-lg font-semibold text-green-700" id="driverStatusText">운행 가능</p>
     </div>
-    <h3 class="text-lg font-semibold text-gray-800 mb-3">주변 운송 요청</h3>
-    <div id="request-card-1" class="bg-white p-4 rounded-xl shadow-md flex flex-col mb-3"><p class="font-semibold text-gray-800 mb-1">서울 강남구 → 경기 성남시</p><p class="text-sm text-gray-600 mb-2">물품: 가구 (165kg) | 예상 운임: 103,000원</p><div class="flex justify-between items-center text-sm text-gray-500"><span>공차 거리: 5.9km | 예상 시간: 25분</span><span class="bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium">1순위 추천</span></div><a href="{{ url_for('request_detail', request_id=1) }}" class="mt-3 bg-indigo-600 text-white py-2 rounded-xl text-sm hover:bg-indigo-700 transition text-center">요청 상세 보기</a></div>
-    <div id="request-card-2" class="bg-white p-4 rounded-xl shadow-md flex flex-col mb-3"><p class="font-semibold text-gray-800 mb-1">경기 수원시 → 서울 서초구</p><p class="text-sm text-gray-600 mb-2">물품: 공산품 (850kg) | 예상 운임: 120,000원</p><div class="flex justify-between items-center text-sm text-gray-500"><span>공차 거리: 8.2km | 예상 시간: 35분</span><span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium">2순위 추천</span></div><a href="{{ url_for('request_detail', request_id=2) }}" class="mt-3 bg-indigo-600 text-white py-2 rounded-xl text-sm hover:bg-indigo-700 transition text-center">요청 상세 보기</a></div>
+    <h3 class="text-lg font-semibold text-gray-800 mb-3">추천 운송</h3>
+       {% if combined_list %}
+       {% for item in combined_list %}
+            {% if item.match.status == 'pending' %}
+                <div id="request-card-1" class="bg-white p-4 rounded-xl shadow-md flex flex-col mb-3">
+                    <div class="flex justify-start mb-2">
+                    <span class="inline-block bg-gradient-to-r from-green-400 to-green-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow">
+                        🚚 추천 {{ item.match.rank }}순위
+                    </span>
+                </div>
+                    <p class="font-semibold text-gray-800 mb-1">화물 번호 :  {{ item.request.id }} </p>
+                    <p class="font-semibold text-gray-800 mb-1">요청시간 : {{ item.request.request_time }}</p>
+                    <p class="font-semibold text-gray-800 mb-1">출발지 : {{ item.request.origin }}</p>
+                    <p class="font-semibold text-gray-800 mb-1">도착지 : {{ item.request.destination }}</p>
+                    <p class="text-sm text-gray-600 mb-2">화물 종류 :  {{ item.request.cargo_type }} /{{ item.request.weight }}kg</p>
+                    <p class="text-sm text-gray-600 mb-2">물품 종류 :  {{ item.request.cargo_info }}</p>
+                    <p class="text-sm text-gray-600 mb-2">요청사항 : {{ item.request.special_request }}</p>
+
+                    <div class="flex justify-between items-center text-sm text-gray-500">
+                        <span>공차 거리: {{ item.match.distance | round(2) }}  km </span>
+                        
+                    </div>
+                    <a href="{{ url_for('request_detail', request_id= item.request.id) }}" class="mt-3 bg-indigo-600 text-white py-2 rounded-xl text-sm hover:bg-indigo-700 transition text-center">
+                        요청 상세 보기
+                    </a>
+                </div>
+            {% endif %}
+        {% endfor %}
+        {% else %}
+            <p class="text-gray-500">추천된 화물 요청이 없습니다.</p>
+        {% endif %}
 </div>
 {% endblock %}

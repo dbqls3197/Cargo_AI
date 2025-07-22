@@ -1,151 +1,131 @@
 {% extends "shipper_base.html" %}
 
-{% block title %}기사 선택 페이지{% endblock %}
+{% block title %}기사님 선택{% endblock %}
 
 {% block extra_css %}
-<style>
-    .content-scrollable {
-        height: 100%;
-        overflow-y: auto;
-        padding: 1.5rem;
-        padding-bottom: 6rem;
-    }
-
-    .border{
-        background-color: rgb(204, 203, 203);
-    }
-
-</style>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/shipper/driver_matching.css') }}">
 {% endblock %}
 
 {% block contents %}
 <div class="content-scrollable">
-    <div id="arrow-to-dashboard" class="flex items-center text-indigo-700 font-semibold text-sm mb-4 cursor-pointer hover:text-indigo-800" onclick="location.href='{{ url_for('shipper_my_requests') }}'">
-        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-        </svg>
-        <span class="text-xl font-bold">🚚 기사님을 선택해주세요 <strong>(2/3)</strong></span>
+    <div class="header-container">
+        <a href="{{ url_for('shipper_my_requests') }}" class="back-link">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+            </svg>
+        </a>
+        <h1 class="header-title">🚚 기사님을 선택해주세요 <strong>(2/3)</strong></h1>
     </div>
-    
-    <div class="grid gap-4">
-        <div class="border border-gray-300 rounded-lg p-4 shadow hover:shadow-md transition cursor-pointer"
-                onclick="location.href='/shipper/driver_matching?id={{ request_id }}'">
-        <div class="text-sm text-gray-500 mb-2">신청 번호 # {{ my_request.request_time.strftime('%Y%M%d') }}-{{ request_id }}</div>
-        <div class="font-semibold text-sm mb-1">요청 시간 : {{ my_request['request_time'] }}</div>
-        <div class="font-semibold text-sm mb-1">출발지 : {{ my_request['origin'] }}</div>
-        <div class="font-semibold text-sm mb-1">도착지 : {{ my_request['destination'] }}</div>
-        <div class="font-semibold text-sm mb-1">물품 종류 : {{ my_request['cargo_info'] }} / 무게: {{ my_request['weight'] | int }}kg</div>
-        <div class="font-semibold text-sm mb-1">차량 타입 : {{ my_request['cargo_type'] }}</div>
-        <div class="font-semibold text-sm mb-1">희망 상차 시간 : {{ my_request['pickup_deadline'] }}</div>
+    <!-- 화물 정보 -->
+    <div class="summary-card">
+        <div class="summary-header">
+            <span class="summary-id">#{{ select_request.request_time.strftime('%Y%m%d') }}-{{ select_request.request_id }}</span>
         </div>
-    </div>
-
-
-    <div class="mb-4 space-y-3">
-        <h3 class="text-lg font-semibold text-gray-800 mb-0" style="margin-top:30px;">매칭된 기사님</h3>
-
-        <!-- 기사 1 -->
-        {% for driver in drivers %} 
-        <form action="{{ url_for('driver_matching_result') }}" method = 'POST'>
-        <input type="hidden" name="request_id" value="{{ request_id }}">
-        <input type="hidden" name="driver_id" value="{{ driver['driver_id'] }}">
-        <div class="bg-gray-200 p-4 rounded-xl shadow-md flex items-center">
-            <img src="https://placehold.co/60x60/6366F1/FFFFFF?text=기사" class="rounded-full mr-4">
-            <div class="flex-grow">
-                <p class="font-semibold text-gray-900">{{ driver['name']}}기사님</p>
-                <p class="flex items-center">
-                평점:
-                {% set full_stars = driver['rating'] | int %}
-                {% set half_star = 1 if driver['rating'] - full_stars >= 0.5 else 0 %}
-                {% set empty_stars = 5 - full_stars - half_star %}
-
-                <!-- 꽉 찬 별 -->
-                {% for _ in range(full_stars) %}
-                    <svg class="w-5 h-5 text-yellow-400 fill-current ml-1" viewBox="0 0 20 20">
-                        <polygon points="10,1 12.59,6.49 18.66,7.27 14,11.72 15.18,17.74 10,14.77 4.82,17.74 6,11.72 1.34,7.27 7.41,6.49" />
-                    </svg>
-                {% endfor %}
-
-                <!-- 반 별 -->
-                {% if half_star %}
-                    <svg class="w-5 h-5 ml-1" viewBox="0 0 20 20">
-                        <defs>
-                            <linearGradient id="half">
-                                <stop offset="50%" stop-color="#facc15" />
-                                <stop offset="50%" stop-color="#e5e7eb" />
-                            </linearGradient>
-                        </defs>
-                        <polygon fill="url(#half)" points="10,1 12.59,6.49 18.66,7.27 14,11.72 15.18,17.74 10,14.77 4.82,17.74 6,11.72 1.34,7.27 7.41,6.49" />
-                    </svg>
-                {% endif %}
-
-                <!-- 빈 별 -->
-                {% for _ in range(empty_stars) %}
-                    <svg class="w-5 h-5 text-gray-300 fill-current ml-1" viewBox="0 0 20 20">
-                        <polygon points="10,1 12.59,6.49 18.66,7.27 14,11.72 15.18,17.74 10,14.77 4.82,17.74 6,11.72 1.34,7.27 7.41,6.49" />
-                    </svg>
-                {% endfor %}
-                </p>
-                <div class="text-xs text-gray-600 mt-1">
-                    <div class="flex items-center">
-                        <span class="w-30 inline-block whitespace-nowrap">
-                            {{ driver['capacity']/1000 | round(1) }}톤 / {{ driver['truck_type'] }} / {{ driver['truck_info']}}
-                        </span>
-                    </div>
-                    <div class="flex items-center">
-                    <span>
-                        운송 이력 {{ driver['total_requests'] }}건
-                    </span>
-                    </div>
-                    <div class="flex items-center"><span class="w-30 inline-block">거리 5km </span></div>
-                    <div class="flex items-center"><span class="w-30 inline-block">예상도착 : 10분 후</span></div>
-                </div>
-                <p class="text-sm text-indigo-600 font-semibold mt-1">AI 추천 점수: 92점 </p>
-                <p class="text-sm text-indigo-600 font-semibold mt-1">수락 예상 확률: 85%</p>
+        <div class="route-info">
+            <div class="location-item">
+                <span class="location-tag origin">출</span>
+                <p class="location-address">{{ select_request.origin }}</p>
             </div>
-            <button type="submit" class="select-driver-btn bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm hover:bg-indigo-700 transition ml-2 whitespace-nowrap" data-driver-id="101">
-            선택
-            </button>
+            <div class="route-line"></div>
+            <div class="location-item">
+                <span class="location-tag destination">도</span>
+                <p class="location-address">{{ select_request.destination }}</p>
+            </div>
         </div>
-        </form> 
+        <div class="summary-details">
+        <div class="detail-item">
+            <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">...</svg>
+            <span>
+                {% if select_request.pickup_deadline %}
+                    {{ select_request.pickup_deadline.strftime('%Y-%m-%d %H:%M') }}
+                {% else %}
+                    시간 미지정
+                {% endif %}
+            </span>
+        </div>
+            <div class="detail-item">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-14L4 7m0 10l8 4m0 0l8-4m-8 4V7"></path></svg>
+                <span>{{ select_request.cargo_info }} / {{ select_request.weight | int }}kg</span>
+            </div>
+        </div>
+    </div>
+    <h2 class="drivers-section-title">AI가 추천하는 기사님</h2>
+    <div class="drivers-scroll-container">
+        <!-- 기사 정보 -->
+        {% for rm in recommend_matches %}
+        <div class="driver-card">
+            <form action="{{ url_for('driver_matching_result') }}" method="POST" class="driver-form">
+                <input type="hidden" name="request_id" value="{{ rm.request_id }}">
+                <input type="hidden" name="driver_id" value="{{ rm.driver_id }}">
+                
+                <div class="driver-profile">
+                    <img src="https://avatar.iran.liara.run/public/boy?username={{ rm.driver_name }}" class="profile-image">
+                    <div class="profile-info">
+                        <p class="driver-name">{{ rm.driver_name }} 기사님</p>
+                        <div class="driver-rating">
+                            <svg class="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20"><polygon points="10,1 12.59,6.49 18.66,7.27 14,11.72 15.18,17.74 10,14.77 4.82,17.74 6,11.72 1.34,7.27 7.41,6.49"></polygon></svg>
+                            <span>{{ rm.driver_rating | round(1) }}</span>
+                            <span class="review-count"> ({{ rm.driver_total_requests }}건)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="driver-details">
+                    <p><span>차량:</span> {{ rm.capacity/1000 | round(1) }}톤 {{ rm.truck_type }}</p>
+                    <p><span>정보:</span> {{ rm.truck_info }}</p>
+                </div>
+
+                <div class="ai-scores">
+                    <div class="score-item">
+                        <label>AI 추천 순위</label>
+                        <div class="progress-bar">
+                            <div class="progress" style="width: {{ rm.rank | default(85, true) }}%;"></div>
+                        </div>
+                        <span class="score-value">{{ rm.rank }}위</span>
+                    </div>
+                    <div class="score-item">
+                        <label>출발지와의 거리</label>
+                        <div class="progress-bar">
+                            <div class="progress success" style="width: {{ rm.distance | default(75, true) }}%;"></div>
+                        </div>
+                        <span class="score-value">{{ rm.distance }} km</span>
+                    </div>
+                </div>
+                
+                <button type="submit" class="select-button">이 기사님으로 선택</button>
+            </form>
+        </div>
         {% endfor %}
     </div>
 </div>
 {% endblock %}
+
+
 {% block footer %}
 <div class="footer-nav flex justify-around">
-    <!-- 홈 -->
     <a href="{{ url_for('shipper_dashboard') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
-    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
-    </svg>
-    <span class="text-xs mt-1">홈</span>
+        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+        </svg>
+        <span class="text-xs mt-1">홈</span>
     </a>
-    <!-- 신청 목록 -->
     <a href="{{ url_for('shipper_my_requests') }}" class="flex flex-col items-center text-indigo-600">
-    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 3h11a1 1 0 011 1v4h2.382a1 1 0 01.894.553l1.618 3.236A1 1 0 0119 12v4a1 1 0 01-1 1h-1a2 2 0 11-4 0H7a2 2 0 11-4 0H2a1 1 0 01-1-1V4a1 1 0 011-1zM4 15a1 1 0 102 0 1 1 0 00-2 0zm10 0a1 1 0 102 0 1 1 0 00-2 0z"/>
-    </svg>
-    <span class="text-xs mt-1">기사 매칭</span>
+        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 3h11a1 1 0 011 1v4h2.382a1 1 0 01.894.553l1.618 3.236A1 1 0 0119 12v4a1 1 0 01-1 1h-1a2 2 0 11-4 0H7a2 2 0 11-4 0H2a1 1 0 01-1-1V4a1 1 0 011-1zM4 15a1 1 0 102 0 1 1 0 00-2 0zm10 0a1 1 0 102 0 1 1 0 00-2 0z"/>
+        </svg>
+        <span class="text-xs mt-1">기사 매칭</span>
     </a>
-    <!-- 운송 내역 -->
     <a href="{{ url_for('shipper_my_shipments') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
         <span class="text-xs mt-1">내 운송</span>
     </a>
-    <!-- 결제 -->
     <a href="{{ url_for('shipper_payments') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
         <span class="text-xs mt-1">결제</span>
     </a>
-    <!-- 마이페이지 -->
     <a href="{{ url_for('shipper_my_page') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
         <span class="text-xs mt-1">마이페이지</span>
     </a>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script type="module" src="{{ url_for('static', filename='js/shipper/driver_matching.js') }}"></script>
 {% endblock %}

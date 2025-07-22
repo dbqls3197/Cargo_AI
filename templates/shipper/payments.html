@@ -3,72 +3,93 @@
 {% block title %}결제{% endblock %}
 
 {% block contents %}
-<div id="shipper-payment-screen" class="content-scrollable">
-    <div class="flex items-center mb-6">
-        <a href="{{ url_for('shipper_dashboard')}}" class="back-btn text-gray-600 hover:text-indigo-600 p-1 mr-2">
+<div id="shipper-payment-screen" class="content-scrollable pb-20"> {# 하단 푸터 높이만큼 패딩 추가 #}
+    {# 상단 헤더 섹션: 고정 및 그림자 추가로 모바일 앱 상단바 느낌 강화 #}
+    <div class="flex items-center px-4 py-3 bg-white border-b border-gray-100 sticky top-0 z-30 shadow-sm">
+        <a href="{{ url_for('shipper_dashboard')}}" class="back-btn text-gray-500 hover:text-indigo-600 p-2 rounded-full hover:bg-gray-100 transition-colors duration-200">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                 xmlns="http://www.w3.org/2000/svg">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M15 19l-7-7 7-7"></path>
             </svg>
         </a>
-        <h2 class="text-xl font-bold text-gray-800">결제 페이지</h2>
+        <h2 class="flex-grow text-center text-xl md:text-2xl font-bold text-gray-800">결제 페이지</h2>
+        <div class="w-6 h-6"></div> {# 뒤로가기 버튼과 동일한 크기의 빈 공간으로 제목 중앙 정렬 보조 #}
     </div>
 
     {% if payments %}
-    <div id="payment-items-list" class="space-y-4">
+    <div id="payment-items-list" class="space-y-4 px-4 mt-4"> {# 좌우 패딩 및 상단 마진 추가 #}
         {% for payment in payments %}
-        <div class="payment-item bg-white p-4 rounded-xl shadow-sm">
-            <div class="flex items-center mb-3">
-                <img src="{{ payment.profile_img_url or 'https://placehold.co/40x40/6366F1/FFFFFF?text=기' }}"
-                    alt="기사 프로필" class="rounded-full mr-3">
+        <div class="payment-item bg-white p-5 rounded-xl shadow-md border border-gray-100"> {# 패딩 및 그림자, 테두리 강화 #}
+            {# 기사 프로필 및 이름 섹션 #}
+            <div class="flex items-center mb-4 pb-4 border-b border-gray-100"> {# 아래쪽 경계선으로 분리 #}
+                <img src="{{ payment.profile_img_url or 'https://placehold.co/48x48/6366F1/FFFFFF?text=기사' }}"
+                    alt="기사 프로필" class="rounded-full w-12 h-12 object-cover mr-4 shadow-sm">
                 <div>
-                    <p class="font-semibold text-gray-800">{{ payment.id }} </p>
-                    <p class="font-semibold text-gray-800">{{ payment.driver_name }} 기사님</p>
-                    <p class="text-sm text-gray-500">출발지 : {{ payment.origin }}</p>
-                    <p class="text-sm text-gray-500">도착지 : {{ payment.destination }}</p> 
-                    <p class="text-sm text-gray-500">완료 시간 : {{ payment.created_at.strftime('%y-%m-%d %H:%M:%S') }}</p>
+                    {# 원본에 가깝게 payment.id 표시 유지, 디자인은 bold 강조 #}
+                    <p class="font-bold text-lg text-gray-800">{{ payment.id }}</p> 
+                    <p class="font-bold text-lg text-gray-800">{{ payment.driver_name }} 기사님</p> {# 폰트 크기 및 굵기 강조 #}
                 </div>
             </div>
-            <div class="bg-gray-50 p-3 rounded-lg text-sm space-y-2">
-                <div class="text-indigo-600">
-                    <span>운송 운임</span>
-                    <span>{{ "{:,.0f}".format(payment.fee) }}원</span>
+
+            {# 운송 정보 섹션: 아이콘 추가로 시각적 구분 강화 #}
+            <div class="space-y-2 mb-4">
+                <div class="flex items-center text-gray-700">
+                    <svg class="w-5 h-5 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
+                    <p class="text-base">출발지: <span class="font-medium text-gray-800">{{ payment.origin }}</span></p>
+                </div>
+                <div class="flex items-center text-gray-700">
+                    <svg class="w-5 h-5 mr-2 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
+                    <p class="text-base">도착지: <span class="font-medium text-gray-800">{{ payment.destination }}</span></p>
+                </div>
+                <div class="flex items-center text-gray-600">
+                    <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <p class="text-sm">완료 시간: <span class="font-medium">{{ payment.created_at.strftime('%Y년 %m월 %d일 %H:%M') }}</span></p> {# 년도까지 표시 및 포맷 변경 #}
                 </div>
             </div>
+
+            {# 운송 운임 섹션 (강조): 배경색 및 폰트 크기/굵기 강조 #}
+            <div class="bg-indigo-50 p-4 rounded-lg flex justify-between items-center mb-4">
+                <span class="text-indigo-700 font-semibold text-base">총 운송 운임</span>
+                <span class="text-indigo-600 font-bold text-xl">{{ "{:,.0f}".format(payment.fee) }}원</span>
+            </div>
+
             <button
-            class="pay-now-btn w-full mt-3 bg-indigo-600 text-white py-2 rounded-xl font-semibold hover:bg-indigo-700 transition"
+            class="pay-now-btn w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition-colors duration-200 shadow-md"
             data-match-id="{{ payment.match_id }}"
             data-id="{{ payment.id }}"
             >
-            결제하기 
+            결제하기
             </button>
         </div>
         {% endfor %}
     </div>
     {% else %}
-    <div id="no-payments-message" class="text-center py-16">
-        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+    {# 결제 내역 없음 메시지: 중앙 정렬 및 아이콘/텍스트 크기 조정 #}
+    <div id="no-payments-message" class="text-center py-20 px-4 flex flex-col items-center justify-center min-h-[calc(100vh-200px)]">
+        <svg class="mx-auto h-16 w-16 text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"
             aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
         </svg>
-        <h3 class="mt-2 text-lg font-medium text-gray-900">결제할 내역이 없습니다.</h3>
-        <p class="mt-1 text-sm text-gray-500">모든 운송 건에 대한 결제가 완료되었습니다.</p>
+        <h3 class="mt-2 text-xl font-semibold text-gray-800">결제할 내역이 없습니다.</h3>
+        <p class="mt-2 text-base text-gray-500">모든 운송 건에 대한 결제가 완료되었습니다.</p>
     </div>
     {% endif %}
 </div>
-<div id="payment-complete-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
-  <div class="bg-white p-6 rounded-xl text-center shadow-xl w-72">
-    <div class="mx-auto mb-4">
-      <svg class="w-12 h-12 mx-auto text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-      </svg>
+
+{# 결제 완료 모달: 디자인 개선 및 중앙 정렬 강화 #}
+<div id="payment-complete-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50 hidden p-4">
+    <div class="bg-white p-8 rounded-2xl text-center shadow-2xl max-w-sm w-full">
+        <div class="mx-auto mb-5">
+            <svg class="w-16 h-16 mx-auto text-green-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+        </div>
+        <h3 class="text-xl font-bold mb-2 text-gray-800">결제가 완료되었습니다!</h3>
+        <p class="text-base text-gray-600 mb-6">자동 이체가 성공적으로 처리되었습니다.</p>
+        <button id="confirm-payment-btn" class="w-full py-3 rounded-lg bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors duration-200 shadow-md">확인</button>
     </div>
-    <h3 class="text-lg font-semibold mb-1 text-gray-800">결제가 완료되었습니다!</h3>
-    <p class="text-sm text-gray-600 mb-4">자동 이체가 성공적으로 처리되었습니다.</p>
-    <button id="confirm-payment-btn" class="w-full py-2 rounded-lg bg-indigo-600 text-white font-bold hover:bg-indigo-700">확인</button>
-  </div>
 </div>
 {% endblock %}
 {% block footer %}

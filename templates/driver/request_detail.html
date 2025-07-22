@@ -3,14 +3,21 @@
 {% block content %}
 
 <div id="driver-request-detail-screen" class="max-w-xl mx-auto p-4 space-y-6">
-    <h2 class="text-2xl font-bold text-gray-800">운송 요청 상세 (요청 ID: {{ request_id }})</h2>
-
+    <div id="arrow-to-dashboard" class="flex items-center text-indigo-700 font-semibold text-sm mb-4 cursor-pointer hover:text-indigo-800">
+            <a href="{{ url_for('driver_dashboard')}}">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            </a>
+            <span class="text-xl font-bold text-gray-800">운송 요청 상세 ( 화물 번호 : {{ request_id }})</span>
+    </div>
     <div class="bg-white p-4 rounded-xl shadow-md space-y-2">
-        <p class="font-bold text-gray-800 text-lg">서울 강남구 → 경기 성남시</p>
-        <p class="text-sm text-gray-600">물품: 가구 (1.5㎥, 165kg)</p>
-        <p class="text-sm text-gray-600">요청 차량: 5톤 탑차</p>
-        <p class="text-gray-700 font-medium">예상 운임: <span class="text-indigo-600 font-bold">103,000원</span></p>
-        <p class="text-gray-700 font-medium">예상 순수익: <span class="text-green-600 font-bold">85,000원</span></p>
+        <p class="font-bold text-gray-800 text-lg">출발지 : {{ request_info.origin }}</p>
+        <p class="font-bold text-gray-800 text-lg">도착지 : {{ request_info.destination }} </p>
+        <p class="text-sm text-gray-600">화물 종류 : {{ request_info.cargo_info }} | {{ request_info.weight  }}kg</p>
+        <p class="text-sm text-gray-600">요청 차량 : {{ request_info.cargo_type }} </p>
+        <p class="text-gray-700 font-medium">운임료 : <span class="text-indigo-600 font-bold"> {{ "{:,}".format(request_info.price) }}원</span></p>
+        <p class="text-gray-700 font-medium">예상 순수익: <span class="text-green-600 font-bold">{{ "{:,}".format((request_info.price * 0.95) | round(0) | int) }}원 </span></p>
     </div>
 
     <div class="bg-white p-4 rounded-xl shadow-md">
@@ -18,13 +25,47 @@
         <div class="flex items-center space-x-3">
             <img src="https://placehold.co/50x50/A78BFA/FFFFFF?text=화주" class="rounded-full">
             <div>
-                <p class="font-semibold text-gray-800">김화주님</p>
-                <p class="text-sm text-gray-600">평점: <span class="text-yellow-500">★★★★☆</span></p>
+                <p class="font-semibold text-gray-800">{{ shipper_info.name }}님</p>
+                <p class="font-semibold text-gray-800">사업자등록번호 : {{ shipper_info. business_registration_num }}</p>
+                <p class="font-semibold text-gray-800">이메일 : {{ shipper_info.email }}</p>
+                <p class="flex items-center">
+                평점:
+                {% set full_stars = shipper_info['rating'] | int %}
+                {% set half_star = 1 if shipper_info['rating'] - full_stars >= 0.5 else 0 %}
+                {% set empty_stars = 5 - full_stars - half_star %}
+
+                <!-- 꽉 찬 별 -->
+                {% for _ in range(full_stars) %}
+                    <svg class="w-5 h-5 text-yellow-400 fill-current ml-1" viewBox="0 0 20 20">
+                        <polygon points="10,1 12.59,6.49 18.66,7.27 14,11.72 15.18,17.74 10,14.77 4.82,17.74 6,11.72 1.34,7.27 7.41,6.49" />
+                    </svg>
+                {% endfor %}
+
+                <!-- 반 별 -->
+                {% if half_star %}
+                    <svg class="w-5 h-5 ml-1" viewBox="0 0 20 20">
+                        <defs>
+                            <linearGradient id="half">
+                                <stop offset="50%" stop-color="#facc15" />
+                                <stop offset="50%" stop-color="#e5e7eb" />
+                            </linearGradient>
+                        </defs>
+                        <polygon fill="url(#half)" points="10,1 12.59,6.49 18.66,7.27 14,11.72 15.18,17.74 10,14.77 4.82,17.74 6,11.72 1.34,7.27 7.41,6.49" />
+                    </svg>
+                {% endif %}
+
+                <!-- 빈 별 -->
+                {% for _ in range(empty_stars) %}
+                    <svg class="w-5 h-5 text-gray-300 fill-current ml-1" viewBox="0 0 20 20">
+                        <polygon points="10,1 12.59,6.49 18.66,7.27 14,11.72 15.18,17.74 10,14.77 4.82,17.74 6,11.72 1.34,7.27 7.41,6.49" />
+                    </svg>
+                {% endfor %}
+                </p>
             </div>
         </div>
     </div>
 
-    <button onclick="window.location.href='{{ url_for('request_accept_success') }}'"
+    <button onclick="window.location.href='{{ url_for('request_accept_success', request_id = request_id ) }}'"
         class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition">
         운송 요청 수락하기
     </button>

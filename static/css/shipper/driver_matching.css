@@ -1,0 +1,122 @@
+/* 전체 레이아웃 */
+.content-scrollable {
+    height: 100%;
+    overflow-y: auto;
+    padding: 1.5rem;
+    padding-top: 0.5rem;
+    padding-bottom: 6rem;
+    box-sizing: border-box;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.back-link { color: #4338CA; }
+.header-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #374151;
+}
+
+/* 상단 정보 요약 카드 */
+.summary-card {
+    background-color: #F9FAFB; /* gray-50 */
+    border: 1px solid #E5E7EB; /* gray-200 */
+    border-radius: 1rem;
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.summary-header { margin-bottom: 1rem; }
+.summary-id { font-size: 0.875rem; font-weight: 500; color: #6B7280; }
+
+.route-info { position: relative; padding-left: 0.5rem; }
+.route-line {
+    position: absolute; left: 18px; top: 28px; bottom: 28px;
+    width: 2px; background-color: #D1D5DB;
+}
+.location-item { display: flex; align-items: center; gap: 1rem; }
+.location-item:first-child { margin-bottom: 1rem; }
+.location-tag {
+    flex-shrink: 0; width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; font-weight: 700; color: white; z-index: 1;
+}
+.location-tag.origin { background-color: #4F46E5; }
+.location-tag.destination { background-color: #374151; }
+.location-address { font-weight: 600; color: #1F2937; }
+
+.summary-details {
+    display: flex; flex-direction: column; gap: 0.5rem;
+    padding-top: 1.25rem; margin-top: 1.25rem; border-top: 1px solid #E5E7EB;
+}
+.detail-item {
+    display: flex; align-items: center; gap: 0.5rem;
+    font-size: 0.875rem; color: #4B5563;
+}
+.detail-item svg { width: 1rem; height: 1rem; flex-shrink: 0; color: #818CF8; }
+
+/* 기사님 섹션 */
+.drivers-section-title {
+    font-size: 1.25rem; font-weight: 700;
+    color: #111827; margin-bottom: 1rem;
+}
+
+.drivers-scroll-container {
+    display: flex; overflow-x: auto; gap: 1rem;
+    padding: 0.5rem; margin: 0 -1.5rem; /* 컨테이너 패딩만큼 음수 마진 */
+    padding-left: 1.5rem; padding-right: 1.5rem;
+    -ms-overflow-style: none; scrollbar-width: none;
+}
+.drivers-scroll-container::-webkit-scrollbar { display: none; }
+
+.driver-card {
+    flex: 0 0 85%; max-width: 300px;
+    background: white; border-radius: 1rem; border: 1px solid #E5E7EB;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -2px rgba(0,0,0,0.03);
+    overflow: hidden; display: flex;
+}
+
+.driver-form { width: 100%; padding: 1.25rem; }
+
+.driver-profile { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
+.profile-image { width: 60px; height: 60px; border-radius: 50%; }
+.profile-info { flex-grow: 1; }
+.driver-name { font-size: 1.125rem; font-weight: 700; color: #111827; }
+.driver-rating { display: flex; align-items: center; gap: 0.25rem; font-size: 0.875rem; color: #6B7280; }
+.review-count { color: #9CA3AF; margin-left: 0.25rem; }
+
+.driver-details {
+    font-size: 0.875rem; color: #4B5563;
+    background: #F9FAFB; padding: 0.75rem; border-radius: 0.5rem;
+    margin-bottom: 1.25rem;
+}
+.driver-details p { margin: 0; padding: 0.125rem 0; }
+.driver-details p span { font-weight: 600; color: #1F2937; margin-right: 0.5rem; }
+
+.ai-scores { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
+.score-item { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 0 1rem; }
+.score-item label { font-size: 0.875rem; font-weight: 500; color: #374151; }
+.progress-bar {
+    grid-column: 1 / -1; background: #E5E7EB; height: 8px;
+    border-radius: 99px; overflow: hidden; margin-top: 0.25rem;
+}
+.progress { height: 100%; background-color: #4F46E5; border-radius: 99px; }
+.progress.success { background-color: #16A34A; }
+.score-value {
+    grid-column: 2; grid-row: 1;
+    font-size: 0.875rem; font-weight: 600; color: #4F46E5;
+}
+.score-item:last-child .score-value { color: #16A34A; }
+
+.select-button {
+    width: 100%; background-color: #4F46E5; color: white;
+    padding: 0.75rem; border: none; border-radius: 0.75rem;
+    font-size: 1rem; font-weight: 600;
+    cursor: pointer; transition: background-color 0.2s;
+}
+.select-button:hover { background-color: #4338CA; }

@@ -294,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 estimatedArrivalTime: etaData.arrivalTime.toISOString()
             });
 
-        }, 200);
+        }, 50);
     } // startNavigationSimulation 함수 닫는 괄호
 
     // 네비게이션 종료 함수 (기존 코드 유지)

@@ -134,3 +134,6 @@ def load_model(path):
     except Exception as e:
         print(f"🚨 모델 로드 실패: {e}")
         return None
+
+
+

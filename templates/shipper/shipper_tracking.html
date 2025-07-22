@@ -1,50 +1,565 @@
 {% extends "shipper_base.html" %}
 {% block title %}실시간 운송 현황{% endblock %}
+
 {% block contents %}
 <div id="shipper-tracking-screen" class="content-scrollable">
-    <!-- 뒤로가기 버튼 및 페이지 제목 -->
-    <div class="flex items-center mb-6">
-        <a href="{{ url_for('shipper_my_shipments')}}" class="back-btn text-gray-600 hover:text-indigo-600 p-1 mr-2">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
-        </a>
-        <h2 class="text-xl font-bold text-gray-800">실시간 운송 현황</h2>
-    </div>
+  <!-- 뒤로가기 버튼 및 페이지 제목 -->
+  <div class="flex items-center mb-6">
+    <a href="{{ url_for('shipper_my_shipments') }}"
+       class="back-btn text-gray-600 hover:text-indigo-600 p-1 mr-2">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor"
+           viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M15 19l-7-7 7-7"></path>
+      </svg>
+    </a>
+    <h2 class="text-xl font-bold text-gray-800">실시간 운송 현황</h2>
+  </div>
 
-    <!-- 요청하신 문구가 표시되는 영역 -->
-    <div class="text-center p-8 bg-white rounded-xl shadow-sm">
-        <h3 class="text-lg font-semibold text-gray-800">TMAP 출발지 - 도착지 경로에 기사 현재 위치 표시</h3>
-        
-        <div class="mt-6 w-full h-64 bg-gray-200 rounded-lg flex items-center justify-center">
-            <p class="text-gray-500">지도 표시 영역</p>
-        </div>
+  <!-- 설명 문구 -->
+  <div class="text-center p-8 bg-white rounded-xl shadow-sm mb-6">
+    <h3 class="text-lg font-semibold text-gray-800">
+      TMAP 출발지 – 도착지 경로에 기사 현재 위치 표시
+    </h3>
+  </div>
+
+  <!-- 실시간 상태 표시 -->
+  <div class="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 mb-4">
+    <div class="flex items-center">
+      <div class="flex-shrink-0">
+        <span id="connection-status" class="inline-block w-3 h-3 bg-gray-400 rounded-full mr-2"></span>
+      </div>
+      <div>
+        <p class="font-medium">실시간 추적 상태: <span id="status-text">연결 중...</span></p>
+        <p class="text-sm">마지막 업데이트: <span id="last-update">--</span></p>
+      </div>
     </div>
+  </div>
+
+  <!-- 지도 표시 영역 -->
+  <div id="map" class="w-full h-80 bg-gray-200 rounded-lg mb-6 border-2 border-dashed border-gray-300"></div>
+
 </div>
 {% endblock %}
+
 {% block footer %}
 <div class="footer-nav flex justify-around">
-    <a href="{{ url_for('shipper_dashboard') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
-    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+  <a href="{{ url_for('shipper_dashboard') }}"
+     class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
+    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 
+               1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 
+               0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 
+               001.414-1.414l-7-7z"></path>
     </svg>
     <span class="text-xs mt-1">홈</span>
-    </a>
-    <a href="{{ url_for('shipper_my_requests') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
-    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 3h11a1 1 0 011 1v4h2.382a1 1 0 01.894.553l1.618 3.236A1 1 0 0119 12v4a1 1 0 01-1 1h-1a2 2 0 11-4 0H7a2 2 0 11-4 0H2a1 1 0 01-1-1V4a1 1 0 011-1zM4 15a1 1 0 102 0 1 1 0 00-2 0zm10 0a1 1 0 102 0 1 1 0 00-2 0z"/>
+  </a>
+  <a href="{{ url_for('shipper_my_requests') }}"
+     class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
+    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M3 3h11a1 1 0 011 1v4h2.382a1 1 0 
+               01.894.553l1.618 3.236A1 1 0 0119 12v4a1 
+               1 0 01-1 1h-1a2 2 0 11-4 0H7a2 2 0 
+               11-4 0H2a1 1 0 01-1-1V4a1 1 
+               0 011-1zM4 15a1 1 0 102 0 1 1 0 
+               00-2 0zm10 0a1 1 0 102 0 1 1 
+               0 00-2 0z"></path>
     </svg>
     <span class="text-xs mt-1">기사 매칭</span>
-    </a>
-    <a href="{{ url_for('shipper_my_shipments') }}" class="flex flex-col items-center text-indigo-600">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-        <span class="text-xs mt-1">내 운송</span>
-    </a>
-    <a href="{{ url_for('shipper_payments') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-        <span class="text-xs mt-1">결제</span>
-    </a>
-    <a href="{{ url_for('shipper_my_page') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-        <span class="text-xs mt-1">마이페이지</span>
-   </a>
+  </a>
+  <a href="{{ url_for('shipper_my_shipments') }}"
+     class="flex flex-col items-center text-indigo-600">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 
+               2h10a2 2 0 002-2V7a2 2 0 
+               00-2-2h-2M9 5a2 2 0 002 
+               2h2a2 2 0 002-2M9 5a2 2 
+               0 012-2h2a2 2 0 012 
+               2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01">
+      </path>
+    </svg>
+    <span class="text-xs mt-1">내 운송</span>
+  </a>
+  <a href="{{ url_for('shipper_payments') }}"
+     class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M3 10h18M7 15h1m4 0h1m-7 
+               4h12a3 3 0 003-3V8a3 3 
+               0 00-3-3H6a3 3 0 00-3 
+               3v8a3 3 0 003 3z"></path>
+    </svg>
+    <span class="text-xs mt-1">결제</span>
+  </a>
+  <a href="{{ url_for('shipper_my_page') }}"
+     class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M16 7a4 4 0 11-8 
+               0 4 4 0 018 0zM12 14a7 7 
+               0 00-7 7h14a7 7 0 00-7-7z">
+      </path>
+    </svg>
+    <span class="text-xs mt-1">마이페이지</span>
+  </a>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=685e7ddf6b71b33bbeff08111988694f&libraries=services"></script>
+
+<script>
+// 전역 변수들
+let map = null;
+let marker = null;
+let evtSource = null;
+let isDebugMode = true;
+let updateCount = 0;
+let lastPosition = null;
+let reconnectAttempts = 0;
+const MAX_RECONNECT_ATTEMPTS = 5;
+
+// 디버그 정보 관리
+function updateDebugInfo(message, type = 'info') {
+    if (!isDebugMode) return;
+    
+    const debugContent = document.getElementById('debug-content');
+    if (!debugContent) return;
+    
+    const timestamp = new Date().toLocaleTimeString();
+    const colorClass = type === 'error' ? 'text-red-600' : 
+                      type === 'success' ? 'text-green-600' : 
+                      type === 'warning' ? 'text-yellow-600' : 'text-blue-600';
+    
+    const newMessage = document.createElement('div');
+    newMessage.className = colorClass;
+    newMessage.innerHTML = `[${timestamp}] ${message}`;
+    
+    debugContent.insertBefore(newMessage, debugContent.firstChild);
+    
+    // 최근 20개 메시지만 유지
+    while (debugContent.children.length > 20) {
+        debugContent.removeChild(debugContent.lastChild);
+    }
+    
+    // 스크롤을 최상단으로
+    debugContent.scrollTop = 0;
+}
+
+function clearDebugInfo() {
+    const debugContent = document.getElementById('debug-content');
+    if (debugContent) {
+        debugContent.innerHTML = '';
+    }
+}
+
+function toggleDebug() {
+    isDebugMode = !isDebugMode;
+    const debugDiv = document.getElementById('debug-info');
+    if (debugDiv) {
+        debugDiv.style.display = isDebugMode ? 'block' : 'none';
+    }
+    updateDebugInfo(`디버그 모드 ${isDebugMode ? '활성화' : '비활성화'}`);
+}
+
+// 상태 업데이트
+function updateConnectionStatus(status, message) {
+    const statusEl = document.getElementById('connection-status');
+    const textEl = document.getElementById('status-text');
+    const updateEl = document.getElementById('last-update');
+    
+    if (statusEl) {
+        statusEl.className = `inline-block w-3 h-3 rounded-full mr-2 ${
+            status === 'connected' ? 'bg-green-500 animate-pulse' :
+            status === 'error' ? 'bg-red-500' : 'bg-yellow-500'
+        }`;
+    }
+    
+    if (textEl) textEl.textContent = message;
+    if (updateEl) updateEl.textContent = new Date().toLocaleTimeString();
+}
+
+// 지도 초기화
+function initializeMap() {
+    try {
+        updateDebugInfo('지도 초기화 시작...', 'info');
+        
+        // Kakao Maps SDK 확인
+        if (!window.kakao || !window.kakao.maps) {
+            throw new Error('Kakao Maps SDK가 로드되지 않았습니다.');
+        }
+
+        // 지도 컨테이너 확인
+        const mapContainer = document.getElementById('map');
+        if (!mapContainer) {
+            throw new Error('지도 컨테이너를 찾을 수 없습니다.');
+        }
+
+        // 지도 생성
+        const mapOptions = {
+            center: new kakao.maps.LatLng(37.5665, 126.9780), // 서울시청
+            level: 6
+        };
+
+        map = new kakao.maps.Map(mapContainer, mapOptions);
+        updateDebugInfo('✅ 지도 생성 완료', 'success');
+
+        // 마커 이미지 설정
+        const markerImageSrc = 'https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_red.png';
+        const markerImageSize = new kakao.maps.Size(32, 32);
+        const markerImageOptions = { offset: new kakao.maps.Point(16, 32) };
+        const markerImage = new kakao.maps.MarkerImage(markerImageSrc, markerImageSize, markerImageOptions);
+
+        // 마커 생성
+        marker = new kakao.maps.Marker({
+            map: map,
+            position: new kakao.maps.LatLng(37.5665, 126.9780),
+            image: markerImage
+        });
+
+        updateDebugInfo('✅ 마커 생성 완료', 'success');
+
+        // 마커 클릭 이벤트
+        kakao.maps.event.addListener(marker, 'click', function() {
+            const pos = marker.getPosition();
+            updateDebugInfo(`마커 클릭: ${pos.getLat().toFixed(6)}, ${pos.getLng().toFixed(6)}`, 'info');
+        });
+
+        return true;
+    } catch (error) {
+        console.error('지도 초기화 실패:', error);
+        updateDebugInfo(`❌ 지도 초기화 실패: ${error.message}`, 'error');
+        return false;
+    }
+}
+
+// 마커 위치 업데이트 (개선된 버전)
+function updateMarkerPosition(lat, lng, smoothMove = true) {
+    try {
+        if (!map || !marker) {
+            throw new Error('지도 또는 마커가 초기화되지 않음');
+        }
+
+        // 좌표 유효성 검증
+        if (typeof lat !== 'number' || typeof lng !== 'number' || isNaN(lat) || isNaN(lng)) {
+            throw new Error(`유효하지 않은 좌표: lat=${lat}, lng=${lng}`);
+        }
+
+        const newPosition = new kakao.maps.LatLng(lat, lng);
+        
+        // 위치 변화 확인
+        if (lastPosition) {
+            const distance = calculateDistance(
+                lastPosition.lat, lastPosition.lng,
+                lat, lng
+            );
+
+            // 너무 작은 변화는 무시 (노이즈 제거)
+            if (distance < 0.00001) { // 약 1미터
+                updateDebugInfo(`위치 변화 미미 (${(distance * 1000).toFixed(2)}m), 스킵`, 'warning');
+                return true;
+            }
+            
+            updateDebugInfo(`위치 변화: ${(distance * 1000).toFixed(1)}m`, 'info');
+        }
+
+        // 마커 위치 업데이트
+        marker.setPosition(newPosition);
+        
+        // 지도 중심 이동
+        if (smoothMove) {
+            map.panTo(newPosition);
+        } else {
+            map.setCenter(newPosition);
+        }
+
+        // 적절한 줌 레벨 유지
+        const currentLevel = map.getLevel();
+        if (currentLevel > 8) {
+            map.setLevel(6);
+        }
+
+        // 위치 정보 저장
+        lastPosition = { lat, lng, timestamp: Date.now() };
+        updateCount++;
+
+        updateDebugInfo(
+            `✅ 마커 업데이트 #${updateCount}: ${lat.toFixed(6)}, ${lng.toFixed(6)}`, 
+            'success'
+        );
+
+        updateConnectionStatus('connected', '실시간 추적 중');
+        return true;
+        
+    } catch (error) {
+        console.error('마커 위치 업데이트 실패:', error);
+        updateDebugInfo(`❌ 마커 업데이트 실패: ${error.message}`, 'error');
+        return false;
+    }
+}
+
+// 거리 계산 함수 (두 좌표간 거리)
+function calculateDistance(lat1, lng1, lat2, lng2) {
+    const R = 6371; // 지구 반지름 (km)
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLng = (lng2 - lng1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c; // km 단위
+}
+
+// SSE 연결 해제
+function closeSSE() {
+    if (evtSource) {
+        evtSource.close();
+        evtSource = null;
+        updateDebugInfo('🔌 SSE 연결 종료', 'warning');
+    }
+}
+
+// SSE 재연결
+function reconnectSSE() {
+    if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        updateDebugInfo(`❌ 최대 재연결 횟수(${MAX_RECONNECT_ATTEMPTS}) 초과`, 'error');
+        updateConnectionStatus('error', '연결 실패');
+        return;
+    }
+    
+    reconnectAttempts++;
+    updateDebugInfo(`🔄 SSE 재연결 시도 ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}...`, 'warning');
+    
+    setTimeout(() => {
+        initializeSSE();
+    }, 2000 * reconnectAttempts); // 점진적 지연
+}
+
+// SSE 연결 초기화 (개선된 버전)
+function initializeSSE() {
+    try {
+        closeSSE(); // 기존 연결 정리
+        
+        const matchId = "{{ match_id }}";
+        const sseUrl = "{{ url_for('stream') }}";
+        
+        updateDebugInfo(`SSE 연결 시작 - URL: ${sseUrl}, 매치 ID: ${matchId}`, 'info');
+
+        evtSource = new EventSource(sseUrl);
+
+        evtSource.onopen = function(event) {
+            console.log('🔗 SSE 연결 성공');
+            updateDebugInfo('🔗 SSE 연결 성공', 'success');
+            updateConnectionStatus('connected', '실시간 연결 활성');
+            reconnectAttempts = 0; // 성공시 재시도 횟수 리셋
+        };
+
+        evtSource.onmessage = function(event) {
+            try {
+                updateDebugInfo(`📨 원본 메시지: ${event.data}`, 'info');
+                
+                // 메시지가 비어있는지 확인
+                if (!event.data || event.data.trim() === '') {
+                    updateDebugInfo('⚠️ 빈 메시지 수신', 'warning');
+                    return;
+                }
+                
+                // JSON 파싱
+                let data;
+                try {
+                    data = JSON.parse(event.data);
+                } catch (parseError) {
+                    updateDebugInfo(`❌ JSON 파싱 실패: ${parseError.message}`, 'error');
+                    return;
+                }
+                
+                updateDebugInfo(`📍 파싱된 데이터: ${JSON.stringify(data)}`, 'info');
+
+                // 데이터 구조 확인 - 다양한 형태 대응
+                let lat, lng;
+                
+                if (data.lat && data.lng) {
+                    // 직접적인 lat, lng 필드
+                    lat = data.lat;
+                    lng = data.lng;
+                } else if (data.latitude && data.longitude) {
+                    // latitude, longitude 필드
+                    lat = data.latitude;
+                    lng = data.longitude;
+                } else if (data.location) {
+                    // location 객체 안에 좌표
+                    lat = data.location.lat || data.location.latitude;
+                    lng = data.location.lng || data.location.longitude;
+                } else if (data.coordinates) {
+                    // coordinates 배열 [lng, lat] (GeoJSON 스타일)
+                    if (Array.isArray(data.coordinates) && data.coordinates.length >= 2) {
+                        lng = data.coordinates[0];
+                        lat = data.coordinates[1];
+                    }
+                } else {
+                    updateDebugInfo('⚠️ 좌표 데이터를 찾을 수 없음', 'warning');
+                    updateDebugInfo(`데이터 키들: ${Object.keys(data).join(', ')}`, 'info');
+                    return;
+                }
+
+                // 좌표 변환 및 검증
+                lat = parseFloat(lat);
+                lng = parseFloat(lng);
+
+                if (isNaN(lat) || isNaN(lng)) {
+                    updateDebugInfo(`❌ 좌표 파싱 실패: lat=${lat}, lng=${lng}`, 'error');
+                    return;
+                }
+
+                // 극단적인 좌표값 필터링
+                if (lat === 0 && lng === 0) {
+                    updateDebugInfo('⚠️ (0, 0) 좌표 수신 - GPS 오류 가능성', 'warning');
+                    return;
+                }
+
+                // 한국 근처 좌표 범위 확인 (경고만, 차단하지 않음)
+                if (lat < 32 || lat > 44 || lng < 123 || lng > 133) {
+                    updateDebugInfo(`⚠️ 한국 좌표 범위 벗어남: ${lat.toFixed(6)}, ${lng.toFixed(6)}`, 'warning');
+                }
+
+                // 마커 위치 업데이트 실행
+                const success = updateMarkerPosition(lat, lng, true);
+                
+                if (success) {
+                }
+
+            } catch (error) {
+                console.error('❌ SSE 메시지 처리 실패:', error);
+                updateDebugInfo(`❌ 메시지 처리 실패: ${error.message}`, 'error');
+            }
+        };
+
+        evtSource.onerror = function(event) {
+            console.error('🔥 SSE 연결 오류:', event);
+            updateDebugInfo(`🔥 SSE 연결 오류: ${event.type}`, 'error');
+            updateConnectionStatus('error', '연결 오류');
+            
+            closeSSE();
+            
+            // 재연결 시도
+            setTimeout(() => {
+                reconnectSSE();
+            }, 1000);
+        };
+
+    } catch (error) {
+        console.error('SSE 초기화 실패:', error);
+        updateDebugInfo(`❌ SSE 초기화 실패: ${error.message}`, 'error');
+        updateConnectionStatus('error', 'SSE 초기화 실패');
+    }
+}
+
+// 테스트 함수들
+function testRandomLocation() {
+    // 서울 근처 랜덤 좌표 생성
+    const lat = 37.5665 + (Math.random() - 0.5) * 0.1; // ±0.05도
+    const lng = 126.9780 + (Math.random() - 0.5) * 0.1;
+    
+    updateDebugInfo(`🧪 랜덤 위치 테스트: ${lat.toFixed(6)}, ${lng.toFixed(6)}`, 'info');
+    updateMarkerPosition(lat, lng, true);
+}
+
+function resetToCenter() {
+    updateDebugInfo('🏠 서울 시청으로 리셋', 'info');
+    updateMarkerPosition(37.5665, 126.9780, true);
+    if (map) map.setLevel(6);
+}
+
+// SSE 메시지 테스트 함수
+function testSSEMessage() {
+    const testData = {
+        lat: 37.5665 + (Math.random() - 0.5) * 0.01,
+        lng: 126.9780 + (Math.random() - 0.5) * 0.01,
+        timestamp: new Date().toISOString()
+    };
+    
+    updateDebugInfo(`🧪 가상 SSE 메시지 테스트: ${JSON.stringify(testData)}`, 'info');
+    
+    // 실제 SSE 메시지 처리 과정을 시뮬레이션
+    const fakeEvent = {
+        data: JSON.stringify(testData)
+    };
+    
+    if (evtSource && evtSource.onmessage) {
+        evtSource.onmessage(fakeEvent);
+    } else {
+        updateMarkerPosition(testData.lat, testData.lng, true);
+    }
+}
+
+// 페이지 로드 시 초기화
+document.addEventListener('DOMContentLoaded', function() {
+    updateDebugInfo('📱 페이지 로드 완료, 초기화 시작', 'info');
+    
+    // 1. 지도 초기화
+    setTimeout(() => {
+        if (initializeMap()) {
+            updateDebugInfo('✅ 지도 초기화 성공', 'success');
+            
+            // 2. SSE 연결 초기화 (지도 초기화 후)
+            setTimeout(() => {
+                initializeSSE();
+            }, 1000);
+            
+            // 3. 초기 테스트 마커 (SSE 연결 후)
+            setTimeout(() => {
+                updateDebugInfo('🚀 초기 테스트 실행', 'info');
+                testRandomLocation();
+            }, 3000);
+            
+        } else {
+            updateConnectionStatus('error', '지도 초기화 실패');
+        }
+    }, 500);
+});
+
+// 페이지 언로드 시 정리
+window.addEventListener('beforeunload', function() {
+    closeSSE();
+});
+
+// 개발자 도구용 전역 함수들
+window.testMarker = function(lat, lng) {
+    lat = lat || (37.5665 + (Math.random() - 0.5) * 0.1);
+    lng = lng || (126.9780 + (Math.random() - 0.5) * 0.1);
+    updateDebugInfo(`🧪 수동 테스트: ${lat}, ${lng}`, 'info');
+    return updateMarkerPosition(lat, lng, true);
+};
+
+window.getMapInfo = function() {
+    if (map && marker) {
+        const center = map.getCenter();
+        const markerPos = marker.getPosition();
+        const level = map.getLevel();
+        
+        const info = {
+            center: { lat: center.getLat(), lng: center.getLng() },
+            marker: { lat: markerPos.getLat(), lng: markerPos.getLng() },
+            level: level,
+            updateCount: updateCount,
+            lastPosition: lastPosition,
+            sseConnected: evtSource && evtSource.readyState === EventSource.OPEN
+        };
+        
+        console.log('=== 지도 정보 ===');
+        console.table(info);
+        return info;
+    }
+    return null;
+};
+
+window.forceReconnectSSE = function() {
+    updateDebugInfo('🔄 강제 SSE 재연결', 'warning');
+    closeSSE();
+    reconnectAttempts = 0;
+    setTimeout(initializeSSE, 1000);
+};
+
+</script>
 {% endblock %}

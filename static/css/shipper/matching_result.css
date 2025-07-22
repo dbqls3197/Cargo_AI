@@ -1,0 +1,142 @@
+/* 전체 레이아웃 및 배경 */
+.content-container {
+    padding: 1.5rem;
+    background-color: #F9FAFB; /* gray-50 */
+    min-height: 100%;
+    box-sizing: border-box;
+}
+
+/* 상단 성공 메시지 */
+.success-header {
+    text-align: center;
+    padding: 2rem 1rem;
+    margin-bottom: 2rem;
+}
+.success-icon-wrapper {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1.5rem auto;
+    background-color: #22C55E; /* green-500 */
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 8px rgba(34, 197, 94, 0.2);
+}
+.success-title {
+    font-size: 1.75rem; /* text-2xl */
+    font-weight: 800; /* font-extrabold */
+    color: #111827; /* gray-900 */
+    margin-bottom: 0.5rem;
+}
+.success-subtitle {
+    font-size: 1rem;
+    color: #6B7280; /* gray-500 */
+}
+
+/* 정보 카드 공통 스타일 */
+.info-card {
+    background: white;
+    border-radius: 1rem;
+    border: 1px solid #E5E7EB; /* gray-200 */
+    margin-bottom: 1.5rem;
+    padding: 1.25rem;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03), 0 2px 4px -2px rgba(0,0,0,0.03);
+}
+
+.card-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 700;
+    color: #1F2937; /* gray-800 */
+    padding-bottom: 0.75rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #F3F4F6; /* gray-100 */
+}
+.card-title svg {
+    color: #6366F1; /* indigo-500 */
+}
+
+.card-content p {
+    margin: 0.5rem 0;
+    font-size: 0.95rem;
+    color: #4B5563; /* gray-600 */
+    line-height: 1.6;
+}
+.card-content p strong {
+    font-weight: 600;
+    color: #374151; /* gray-700 */
+    min-width: 60px;
+    display: inline-block;
+}
+
+/* 기사님 프로필 카드 */
+.driver-profile {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+.profile-image {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.profile-details { flex-grow: 1; }
+.driver-name {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+.driver-rating {
+    display: flex; align-items: center; gap: 0.25rem;
+    font-size: 0.875rem; color: #6B7280; margin: 0.25rem 0;
+}
+.review-count { color: #9CA3AF; margin-left: 0.25rem; }
+.driver-truck {
+    font-size: 0.875rem;
+    color: #6B7280;
+    background-color: #F3F4F6;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    display: inline-block;
+    margin-top: 0.25rem;
+}
+
+/* 하단 액션 버튼 */
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 2.5rem;
+}
+.button {
+    width: 100%;
+    padding: 0.875rem;
+    border: none;
+    border-radius: 0.75rem;
+    font-size: 1rem;
+    font-weight: 700;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.button.primary {
+    background-color: #4F46E5; /* indigo-600 */
+    color: white;
+}
+.button.primary:hover {
+    background-color: #4338CA; /* indigo-700 */
+}
+.button.secondary {
+    background-color: #E0E7FF; /* indigo-200 */
+    color: #3730A3; /* indigo-800 */
+}
+.button.secondary:hover {
+    background-color: #C7D2FE; /* indigo-300 */
+}

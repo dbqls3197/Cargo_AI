@@ -5,57 +5,93 @@
 {% endblock %}
 {% block contents %}
 <div id="shipper-app" class="app-container">
-    <div id="shipper-main-screen" class="content-scrollable">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold text-indigo-700">화물 AI 서비스</h1>
-            <div class="flex space-x-3">
-                <button id="shipper-search-icon" class="text-gray-600 hover:text-indigo-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-                </button>
-                <button id="shipper-notification-icon" class="relative text-gray-600 hover:text-indigo-600 p-1">
+    {# content-scrollable의 하단 패딩을 충분히 늘려 푸터가 고정 해제되었을 때 콘텐츠가 가려지지 않도록 조정 #}
+    <div id="shipper-main-screen" class="content-scrollable pb-24 px-4"> {# 하단 패딩을 pb-24로 크게 늘림 #}
+        {# 상단 헤더: 고정 속성 제거, 배경색, 테두리는 유지하여 영역 구분 #}
+        <div class="flex justify-between items-center py-4 bg-white border-b border-gray-100">
+            <h1 class="text-2xl font-extrabold text-indigo-700">화물 AI 서비스</h1> {# 폰트 굵기 강조 #}
+            <div class="flex space-x-4 items-center"> {# 아이콘 간격 조정 #}
+                <button id="shipper-notification-icon" class="relative text-gray-500 hover:text-indigo-600 p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"> {# 호버 효과 추가 #}
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                    <span class="absolute -top-0.5 -right-0.5 inline-flex items-center justify-center w-5 h-5 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">3</span>
+                    <span class="absolute -top-1 -right-1 inline-flex items-center justify-center w-4 h-4 text-xs font-bold leading-none text-white bg-red-500 rounded-full border-2 border-white">3</span> {# 뱃지 크기 및 색상, 테두리 조정 #}
                 </button>
-                <a href="{{ url_for('shipper_my_page') }}" id="shipper-profile-icon" class="text-gray-600 hover:text-indigo-600">
+                <a href="{{ url_for('shipper_my_page') }}" id="shipper-profile-icon" class="text-gray-500 hover:text-indigo-600 p-1 rounded-full hover:bg-gray-100 transition-colors duration-200"> {# 호버 효과 추가 #}
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                 </a>
             </div>
         </div>
 
-        <a href="{{ url_for('shipper_request') }}">
-        <div class="w-full bg-indigo-600 text-white py-4 rounded-xl font-semibold mb-6 shadow-lg hover:bg-indigo-700 transition transform hover:scale-105 text-center">
-            내 운송 신청 목록 
-        </div>
+        {# "새 운송 신청" 버튼: 단일 인디고 색상 유지, 그림자 및 호버 애니메이션 강화 #}
+        <a href="{{ url_for('shipper_request') }}" class="block mt-6 mb-6">
+            <div class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 text-center"> {# 단일 색상 유지, 폰트 굵기/크기, 그림자, 호버 애니메이션 강화 #}
+                새 운송 신청 
+            </div>
         </a>
-        <div class="bg-gray-50 p-4 rounded-xl shadow-sm mb-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-3">내 운송 내역</h3>
-            <div class="flex justify-between items-center text-gray-600 mb-2">
-                <span>총 신청 건수</span>
-                <span class="font-bold text-indigo-600"> {{ my_requests_count }}건</span>
-            </div>
-            <div class="flex justify-between items-center text-gray-600 mb-2">
-                <span>운송 진행 중</span>
-                <span class="font-bold text-indigo-600"> {{ in_progress_count }}건</span>
-            </div>
-            <div class="flex justify-between items-center text-gray-600">
-                <span>완료된 운송</span>
-                <span class="font-bold"> {{ completed_count }}건</span>
+        
+        {# "내 운송 내역" 요약 섹션: 흰색 배경 유지, 통계 항목에 아이콘 및 색상 강조 #}
+        <div class="bg-white p-5 rounded-xl shadow-lg mb-6 border border-gray-100"> {# 배경색, 패딩, 둥근 모서리, 그림자, 테두리 강화 #}
+            <h3 class="text-xl font-bold text-gray-800 mb-4">내 운송 내역</h3> {# 폰트 크기 및 굵기 강조 #}
+            
+            <div class="grid grid-cols-3 gap-3 text-center"> {# 3열 그리드 레이아웃 #}
+                <div class="bg-white p-3 rounded-lg flex flex-col items-center justify-center border border-gray-100 shadow-sm"> {# 흰색 배경 유지, 테두리 및 그림자 추가 #}
+                    <svg class="w-6 h-6 text-blue-600 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+                    <span class="text-xs text-gray-600">총 신청</span>
+                    <span class="font-bold text-lg text-indigo-700">{{ my_requests_count }}건</span>
+                </div>
+                <div class="bg-white p-3 rounded-lg flex flex-col items-center justify-center border border-gray-100 shadow-sm"> {# 흰색 배경 유지, 테두리 및 그림자 추가 #}
+                    <svg class="w-6 h-6 text-yellow-600 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <span class="text-xs text-gray-600">진행 중</span>
+                    <span class="font-bold text-lg text-indigo-700">{{ in_progress_count }}건</span>
+                </div>
+                <div class="bg-white p-3 rounded-lg flex flex-col items-center justify-center border border-gray-100 shadow-sm"> {# 흰색 배경 유지, 테두리 및 그림자 추가 #}
+                    <svg class="w-6 h-6 text-green-600 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span class="text-xs text-gray-600">완료</span>
+                    <span class="font-bold text-lg text-indigo-700">{{ completed_count }}건</span>
+                </div>
             </div>
             
+            {# 각 운송 항목 카드: 디자인 개선 #}
             {% for nm in not_matched %}
-            <div class="mt-4 p-3 bg-white rounded-lg shadow-sm">
-                <p class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full font-medium whitespace-nowrap w-fit mb-2">🕒 추천 기사 대기중</p>
-                <p class="text-sm text-gray-500">신청시간 : {{ nm['request_time']}} <p>
-                <p class="text-sm text-gray-500">출발지 :  {{ nm['origin'] }}</p>
-                <p class="text-sm text-gray-500">도착지 : {{ nm['destination'] }} </p>
-                <p class="text-sm text-gray-500">운송 방식 : 
-                    {% if nm['fast_request'] == 1 %}
-                    긴급 운송
-                    {% else %}
-                    일반
-                    {% endif %}
-                </p>
-                <p class="text-sm text-gray-500">상차 예정 시간 : {{ nm['pickup_deadline'] }} </p>
+            <div class="mt-5 p-4 bg-white rounded-lg shadow-md border border-gray-100 relative overflow-hidden"> {# 상단 마진, 패딩, 둥근 모서리, 그림자, 테두리 강화 #}
+                {# 상태 태그: 시각적으로 더 강조된 디자인 #}
+                <p class="absolute top-0 right-0 bg-yellow-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">대기중</p> {# 위치 조정, 색상, 폰트, 둥근 모서리 #}
+                
+                <div class="space-y-2 text-sm"> {# 정보 간격 조정 #}
+                    <div class="flex items-center text-gray-700">
+                        <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span class="font-semibold text-gray-600">신청시간</span>: <span class="ml-1 text-gray-800">{{ nm['request_time']}}</span>
+                    </div>
+                    <div class="flex items-center text-gray-700">
+                        <svg class="w-4 h-4 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
+                        <span class="font-semibold text-gray-600">출발지</span>: <span class="ml-1 text-gray-800">{{ nm['origin'] }}</span>
+                    </div>
+                    <div class="flex items-center text-gray-700">
+                        <svg class="w-4 h-4 mr-2 text-red-500" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path></svg>
+                        <span class="font-semibold text-gray-600">도착지</span>: <span class="ml-1 text-gray-800">{{ nm['destination'] }}</span>
+                    </div>
+                    <div class="flex items-center text-gray-700">
+                        <svg class="w-4 h-4 mr-2 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                        <span class="font-semibold text-gray-600">운송 방식</span>: 
+                        <span class="ml-1 text-gray-800">
+                            {% if nm['fast_request'] == 1 %}
+                            <span class="text-red-600 font-bold">긴급 운송</span> {# 긴급 운송 강조 #}
+                            {% else %}
+                            일반
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="flex items-center text-gray-700">
+                        <svg class="w-4 h-4 mr-2 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                        <span class="font-semibold text-gray-600">상차 예정 시간</span>: 
+                        <span class="ml-1 text-gray-800">
+                            {% if nm['pickup_deadline'] %} {# None 값 처리 #}
+                            {{ nm['pickup_deadline'] }}
+                            {% else %}
+                            미정
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
             </div>
             {% endfor %}
         </div>
@@ -63,36 +99,36 @@
 </div>
 {% endblock %}
 {% block footer %}
-<div class="footer-nav flex justify-around">
+{# 하단 푸터 내비게이션: "내 운송" 대신 "홈"이 활성화되도록 클래스 수정 #}
+<div class="footer-nav flex justify-around py-3 bg-white border-t border-gray-100 shadow-lg">
     <!-- 홈 -->
-    <a href="{{ url_for('shipper_dashboard') }}" class="flex flex-col items-center text-indigo-600">
-    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-        <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
-    </svg>
-    <span class="text-xs mt-1">홈</span>
+    <a href="{{ url_for('shipper_dashboard') }}" class="flex flex-col items-center flex-1 text-indigo-600 py-1 border-t-2 border-indigo-600 -mt-1 pt-1"> {# 홈 활성화 클래스 적용 #}
+        <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+        </svg>
+        <span class="text-xs font-bold">홈</span>
     </a>
     <!-- 신청 목록 -->
-    <a href="{{ url_for('shipper_my_requests') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
-    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 3h11a1 1 0 011 1v4h2.382a1 1 0 01.894.553l1.618 3.236A1 1 0 0119 12v4a1 1 0 01-1 1h-1a2 2 0 11-4 0H7a2 2 0 11-4 0H2a1 1 0 01-1-1V4a1 1 0 011-1zM4 15a1 1 0 102 0 1 1 0 00-2 0zm10 0a1 1 0 102 0 1 1 0 00-2 0z"/>
-    </svg>
-    <span class="text-xs mt-1">기사 매칭</span>
+    <a href="{{ url_for('shipper_my_requests') }}" class="flex flex-col items-center flex-1 text-gray-500 hover:text-indigo-600 py-1"> {# 비활성화 클래스 유지 #}
+        <svg class="w-6 h-6 mb-1" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 3h11a1 1 0 011 1v4h2.382a1 1 0 01.894.553l1.618 3.236A1 1 0 0119 12v4a1 1 0 01-1 1h-1a2 2 0 11-4 0H7a2 2 0 11-4 0H2a1 1 0 01-1-1V4a1 1 0 011-1zM4 15a1 1 0 102 0 1 1 0 00-2 0zm10 0a1 1 0 102 0 1 1 0 00-2 0z"/>
+        </svg>
+        <span class="text-xs font-medium">기사 매칭</span>
     </a>
     <!-- 운송 내역 -->
-    <a href="{{ url_for('shipper_my_shipments') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
-        <span class="text-xs mt-1">내 운송</span>
+    <a href="{{ url_for('shipper_my_shipments') }}" class="flex flex-col items-center flex-1 text-gray-500 hover:text-indigo-600 py-1"> {# 내 운송 비활성화 클래스 적용 #}
+        <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+        <span class="text-xs font-medium">내 운송</span>
     </a>
     <!-- 결제 -->
-    <a href="{{ url_for('shipper_payments') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-        <span class="text-xs mt-1">결제</span>
+    <a href="{{ url_for('shipper_payments') }}" class="flex flex-col items-center flex-1 text-gray-500 hover:text-indigo-600 py-1"> {# 비활성화 클래스 유지 #}
+        <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+        <span class="text-xs font-medium">결제</span>
     </a>
     <!-- 마이페이지 -->
-   <a href="{{ url_for('shipper_my_page') }}" class="flex flex-col items-center text-gray-500 hover:text-indigo-600">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-        <span class="text-xs mt-1">마이페이지</span>
-   </a>
+    <a href="{{ url_for('shipper_my_page') }}" class="flex flex-col items-center flex-1 text-gray-500 hover:text-indigo-600 py-1"> {# 비활성화 클래스 유지 #}
+        <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+        <span class="text-xs font-medium">마이페이지</span>
+    </a>
 </div>
 {% endblock %}
-
